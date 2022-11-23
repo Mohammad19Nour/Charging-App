@@ -2,6 +2,7 @@
 using Charging_App.Entity;
 using Charging_App.Errors;
 using Charging_App.Interfaces;
+using Charging_App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -138,12 +139,13 @@ public class AccountController : BaseApiController
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-       
+        var code = GenerateRandomeCode.GenerateCode(user.Id, token);
+        
         var confirmationLink = Url.Action("ResetPassword" , "Account", 
             new{userId = user.Id , token = token}, Request.Scheme);
 
-        string text = "<html><body>To reset your password please<a href=" + confirmationLink +
-                      "> click here</a></body></html>";
+        string text = "<html><body> The code to reset your password is : " + code +
+                     "</body></html>";
         await  _emailSender.SendEmailAsync(user.Email , "Reset Password",text);
 
         
@@ -152,10 +154,16 @@ public class AccountController : BaseApiController
 
     [HttpGet("reset-password")]
     [AllowAnonymous]
-    public async Task<ActionResult> ResetPassword(string? userId , string? token , string? newPassword)
+    public async Task<ActionResult> ResetPassword( string code , string? newPassword)
     {
-        if (token == null || userId == null || newPassword == null)
-            return BadRequest(new ApiResponse(400 , "token or userid or new password is null"));
+        if (newPassword == null) 
+            return BadRequest(new ApiResponse(400, "The password should not be empty"));
+        var val = GenerateRandomeCode.GetUserIdAndToken(code);
+        
+        if (null == val)
+            return BadRequest(new ApiResponse(400 , "the code is incorrect"));
+        var userId = val.Keys.First().ToString();
+        var token = val[val.Keys.FirstOrDefault()];
         
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return BadRequest(new ApiResponse(400 , "this user is not registered"));
@@ -164,6 +172,7 @@ public class AccountController : BaseApiController
 
         if (res.Succeeded == false) return BadRequest(new ApiResponse(400 , "Cannot reset password"));
         
+        GenerateRandomeCode.DeleteCode(code);
         return Ok("Password was reset successfully");
     }
 }
