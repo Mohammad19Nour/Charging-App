@@ -33,7 +33,10 @@ public class AutoMapperProfiles : Profile
         CreateMap<Quantity,int>().ConvertUsing(q=>q.Value);
        // CreateMap<JsonPatchDocument<ProductToUpdateDto>, JsonPatchDocument<Product>>();
        // CreateMap<Operation<ProductToUpdateDto>, Operation<Product>>();
-        CreateMap<Payment, PaymentDto>();
+       CreateMap<Payment, PaymentDto>();
+       CreateMap<Payment, CompanyPaymentDto>();
+       CreateMap<Payment, OfficePaymentDto>();
+
         CreateMap<CategoryUpdateDto, Category>();
         CreateMap<Order, OrderDto>() 
             .ForMember(dest => dest.ProductName, opt =>

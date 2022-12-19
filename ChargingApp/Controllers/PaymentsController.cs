@@ -58,7 +58,7 @@ public class PaymentsController : BaseApiController
         _paymentRepo.AddPayment(payment);
 
         if (await _paymentRepo.SaveAllChangesAsync())
-            return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
+            return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
 
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
@@ -95,7 +95,7 @@ public class PaymentsController : BaseApiController
         _paymentRepo.AddPayment(payment);
 
         if (await _paymentRepo.SaveAllChangesAsync())
-            return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
+            return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
 
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
@@ -130,7 +130,7 @@ public class PaymentsController : BaseApiController
     }
     
     [HttpGet("my-payments")]
-    public async Task<ActionResult<List<PaymentDto>>> GetMyPayment()
+    public async Task<ActionResult<List<CompanyPaymentDto>>> GetMyPayment()
     {
         var email = User.GetEmail();
         var user = await _userRepo.GetUserByEmailAsync(email);

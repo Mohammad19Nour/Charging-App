@@ -18,12 +18,12 @@ public class PaymentRepository : IPaymentRepository
         _mapper = mapper;
     } 
 
-    public async Task<List<PaymentDto>?> GetPaymentsForUserAsync(string userEmail)
+    public async Task<List<CompanyPaymentDto>?> GetPaymentsForUserAsync(string userEmail)
     {
         userEmail = userEmail.ToLower();
        return await _context.Payments
             .Where(x => x.User.Email == userEmail)
-            .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
+            .ProjectTo<CompanyPaymentDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
 
