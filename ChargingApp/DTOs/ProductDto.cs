@@ -7,6 +7,8 @@ public class ProductDto
     public string? Photo { get; set; }
     public string? EnglishName { get; set; }
     public string? ArabicName{ get; set; }
+
+    public bool Available { get; set; }
    // public int Value { get; set; }
    public bool CanChooseQuantity { get; set; } = false;
     public ICollection<int>? AvailableQuantities { get; set; }
