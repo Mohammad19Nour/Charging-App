@@ -7,9 +7,11 @@ public class CategoryDto
     public string? ArabicName { get; set; }
     public string? Photo { get; set; }
     public bool HasSubCategories { get; set; }
+    public bool Available { get; set; } = true;
 }
 
 public class CategoryWithProductsDto : CategoryDto
 {
     public List<ProductDto>? Products { get; set; }
 }
+

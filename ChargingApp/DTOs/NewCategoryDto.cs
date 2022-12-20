@@ -1,9 +1,15 @@
 ﻿namespace ChargingApp.DTOs;
 
-public class NewCategoryDto
+public class CategoryInfo
 {
     public string? EnglishName { get; set; }
     public string? ArabicName { get; set; }
+    public IFormFile? ImageFile { get; set; }
+}
+public class NewCategoryDto : CategoryInfo
+{
     public bool HasSubCategories { get; set; } = true;
-    public IFormFile PhotoFile { get; set; }
+} 
+public class CategoryUpdateDto : CategoryInfo
+{
 }

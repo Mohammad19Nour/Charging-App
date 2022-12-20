@@ -66,7 +66,7 @@ public class CategoriesController : BaseApiController
             ArabicName = dto.ArabicName,
             HasSubCategories = dto.HasSubCategories
         };
-        var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
+        var result = await _photoService.AddPhotoAsync(dto.ImageFile);
         if (result.Error != null)
             return BadRequest(new ApiResponse(400, result.Error.Message));
 

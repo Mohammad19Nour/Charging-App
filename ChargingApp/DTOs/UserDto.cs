@@ -1,18 +1,30 @@
 ﻿namespace ChargingApp.DTOs;
 
-public class UserInfoDto
+public class UserInfo
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string AccountType { get; set; }
-    public double Balance { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     
     public string? City { get; set; }
     
     public string? Country { get; set; }
+    public string? PhoneNumber { get; set; }
 }
-public class UserDto : UserInfoDto
+
+public class UpdateUserInfoDto : UserInfo
 {
+    
+}
+public class UserDto : UserInfo
+{
+    public string AccountType { get; set; }
+    public double Balance { get; set; }
     public string Token { get; set; }
     
+}
+
+public class UserInfoDto : UserInfo 
+{
+    public string AccountType { get; set; }
+    public double Balance { get; set; }
 }

@@ -113,6 +113,9 @@ public class AccountController : BaseApiController
             LastName = user.LastName.ToLower(),
             Token = await _tokenService.CreateToken(user),
             Balance = user.Balance,
+            PhoneNumber = user.PhoneNumber,
+            City = user.City,
+            Country = user.Country,
             AccountType = user.VIPLevel switch
             {
                 0 => "Normal",
