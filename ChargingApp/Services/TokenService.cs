@@ -12,7 +12,7 @@ public class TokenService : ITokenService
 {
     private readonly UserManager<AppUser> _userManager;
     private SymmetricSecurityKey _key;
-
+ 
     public TokenService(UserManager<AppUser> userManager , IConfiguration config)
     {
         _userManager = userManager;

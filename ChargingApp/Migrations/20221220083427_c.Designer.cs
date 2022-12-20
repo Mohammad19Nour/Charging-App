@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221218070209_h")]
-    partial class h
+    [Migration("20221220083427_c")]
+    partial class c
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -59,6 +59,7 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -66,6 +67,7 @@ namespace ChargingApp.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Country")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -264,7 +266,7 @@ namespace ChargingApp.Migrations
                     b.Property<int>("AddedValue")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Aproved")
+                    b.Property<bool>("Approved")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedDate")
@@ -283,11 +285,11 @@ namespace ChargingApp.Migrations
                     b.Property<string>("ReceiptNumber")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("Scucced")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("SecretNumber")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("Succeed")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");

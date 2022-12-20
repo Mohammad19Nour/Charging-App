@@ -34,9 +34,9 @@ namespace ChargingApp.Migrations
                     LastName = table.Column<string>(type: "TEXT", nullable: false),
                     Country = table.Column<string>(type: "TEXT", nullable: true),
                     City = table.Column<string>(type: "TEXT", nullable: true),
-                    Balance = table.Column<int>(type: "INTEGER", nullable: false),
+                    Balance = table.Column<double>(type: "REAL", nullable: false),
                     VIPLevel = table.Column<int>(type: "INTEGER", nullable: false),
-                    TotalPurchasing = table.Column<int>(type: "INTEGER", nullable: false),
+                    TotalPurchasing = table.Column<double>(type: "REAL", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -231,11 +231,11 @@ namespace ChargingApp.Migrations
                     AddedValue = table.Column<int>(type: "INTEGER", nullable: false),
                     SecretNumber = table.Column<string>(type: "TEXT", nullable: true),
                     ReceiptNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    Aproved = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Scucced = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Approved = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Succeed = table.Column<bool>(type: "INTEGER", nullable: false),
                     Username = table.Column<string>(type: "TEXT", nullable: false),
-                    PaymentGateway = table.Column<string>(type: "TEXT", nullable: true),
-                    RechargeType = table.Column<string>(type: "TEXT", nullable: false),
+                    PaymentType = table.Column<string>(type: "TEXT", nullable: false),
+                    PaymentAgent = table.Column<string>(type: "TEXT", nullable: true),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -247,6 +247,27 @@ namespace ChargingApp.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RechargeCodes",
+                columns: table => new
+                {
+                    Code = table.Column<string>(type: "TEXT", nullable: false),
+                    Value = table.Column<int>(type: "INTEGER", nullable: false),
+                    Istaked = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    TakedTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RechargeCodes", x => x.Code);
+                    table.ForeignKey(
+                        name: "FK_RechargeCodes_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -308,7 +329,8 @@ namespace ChargingApp.Migrations
                     CanChooseQuantity = table.Column<bool>(type: "INTEGER", nullable: false),
                     Available = table.Column<bool>(type: "INTEGER", nullable: false),
                     PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
-                    CategoryId = table.Column<int>(type: "INTEGER", nullable: true)
+                    CategoryId = table.Column<int>(type: "INTEGER", nullable: true),
+                    MinimumQuantityAllowed = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -466,6 +488,11 @@ namespace ChargingApp.Migrations
                 name: "IX_Quantities_ProductId",
                 table: "Quantities",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RechargeCodes_UserId",
+                table: "RechargeCodes",
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -498,6 +525,9 @@ namespace ChargingApp.Migrations
                 name: "Quantities");
 
             migrationBuilder.DropTable(
+                name: "RechargeCodes");
+
+            migrationBuilder.DropTable(
                 name: "VipLevels");
 
             migrationBuilder.DropTable(
@@ -510,10 +540,10 @@ namespace ChargingApp.Migrations
                 name: "PaymentGateways");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Categories");

@@ -29,7 +29,7 @@ builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
-builder.Services.AddTransient<IEmailSender, EmailSenderService>();
+builder.Services.AddTransient<IEmailHelper, EmailSenderService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -89,6 +89,9 @@ builder.Services.AddIdentityCore<AppUser>(
         opt =>
         {
             opt.User.RequireUniqueEmail = true;
+            opt.Password.RequireDigit = false;
+            opt.Password.RequireNonAlphanumeric = false;
+            opt.Password.RequireUppercase = false;
         })
     .AddRoles<AppRole>()
     .AddRoleManager<RoleManager<AppRole>>()
