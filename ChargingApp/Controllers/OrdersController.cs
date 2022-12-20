@@ -43,7 +43,7 @@ public class OrdersController : BaseApiController
         if (user.VIPLevel != 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        return await _ordersRepository.GetNormalUserOrdersAsync(user.Id);
+        return Ok(new ApiOkResponse( await _ordersRepository.GetNormalUserOrdersAsync(user.Id)));
     }
 
     [HttpGet("vip-my-order")]
@@ -54,7 +54,7 @@ public class OrdersController : BaseApiController
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        return await _ordersRepository.GetVipUserOrdersAsync(user.Id);
+        return Ok(new ApiOkResponse(await _ordersRepository.GetVipUserOrdersAsync(user.Id)));
     }
 
     [HttpPost("vip-order")]

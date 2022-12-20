@@ -36,8 +36,13 @@ public class AutoMapperProfiles : Profile
        CreateMap<Payment, PaymentDto>();
        CreateMap<Payment, CompanyPaymentDto>();
        CreateMap<Payment, OfficePaymentDto>();
+       CreateMap<AppUser,UserInfoDto>().ForMember(dest=>dest.AccountType , opt=>
+           opt.MapFrom(src=> src.VIPLevel == 0 ?"Normal":("VIP " + src.VIPLevel )));
 
-        CreateMap<CategoryUpdateDto, Category>();
+       CreateMap<CategoryUpdateDto, Category>();
+       CreateMap<UpdateUserInfoDto, AppUser>().ForAllMembers
+       (opt=>
+           opt.Condition( (src , dest,srcMember) => srcMember!= null));
         CreateMap<Order, OrderDto>() 
             .ForMember(dest => dest.ProductName, opt =>
             opt.MapFrom(src => src.Product.EnglishName));

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221216074748_b")]
+    [Migration("20221220070506_b")]
     partial class b
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,8 +55,8 @@ namespace ChargingApp.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Balance")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Balance")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("City")
                         .HasColumnType("TEXT");
@@ -109,8 +109,8 @@ namespace ChargingApp.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("TotalPurchasing")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("TotalPurchasing")
+                        .HasColumnType("REAL");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
@@ -264,7 +264,7 @@ namespace ChargingApp.Migrations
                     b.Property<int>("AddedValue")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Aproved")
+                    b.Property<bool>("Approved")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedDate")
@@ -273,21 +273,21 @@ namespace ChargingApp.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PaymentGateway")
+                    b.Property<string>("PaymentAgent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ReceiptNumber")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("RechargeType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("Scucced")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("SecretNumber")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("Succeed")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
@@ -366,6 +366,9 @@ namespace ChargingApp.Migrations
                     b.Property<string>("EnglishName")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("MinimumQuantityAllowed")
+                        .HasColumnType("INTEGER");
+
                     b.Property<double>("OriginalPrice")
                         .HasColumnType("REAL");
 
@@ -401,6 +404,33 @@ namespace ChargingApp.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("Quantities");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.RechargeCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Istaked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("TakedTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RechargeCodes");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.RechargeMethod", b =>
@@ -625,6 +655,15 @@ namespace ChargingApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.RechargeCode", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

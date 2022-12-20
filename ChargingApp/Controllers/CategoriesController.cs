@@ -46,11 +46,11 @@ public class CategoriesController : BaseApiController
         var user = await _userRepo.GetUserByEmailAsync(email);
         if (user is null) return res;
 
+        var discount = await _vipRepo.GetVipLevelDiscount(user.VIPLevel);
         for (int i = 0; i < res.Category.Products.Count; i++)
         {
-            res.Category.Products[i].Price = res.Category.Products[i].Price -
-                                             res.Category.Products[i].Price *
-                                             (await _vipRepo.GetVipLevelDiscount(user.VIPLevel)) / 100;
+            res.Category.Products[i].Price -= res.Category.Products[i].Price *
+                (discount) / 100;
         }
 
         return Ok(new ApiOkResponse(res));

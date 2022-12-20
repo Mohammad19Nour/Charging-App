@@ -57,6 +57,7 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -64,6 +65,7 @@ namespace ChargingApp.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Country")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
