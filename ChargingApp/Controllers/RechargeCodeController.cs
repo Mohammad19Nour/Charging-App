@@ -23,7 +23,7 @@ public class RechargeCodeController : BaseApiController
     }
 
     [HttpPost]
-    public async Task<ActionResult> Recharge([FromBody] string code)
+    public async Task<ActionResult> Recharge([FromBody] MyClass obj)
     {
         var email = User.GetEmail();
         var user = await _userRpo.GetUserByEmailAsync(email);
@@ -34,7 +34,7 @@ public class RechargeCodeController : BaseApiController
         if (user.VIPLevel == 0)
             return Unauthorized(new ApiResponse(403, "you can't do this action"));
 
-        var tmpCode = await _rechargeCodeRepo.GetCodeAsync(code);
+        var tmpCode = await _rechargeCodeRepo.GetCodeAsync(obj.Code);
         if (tmpCode is null || tmpCode.Istaked)
             return BadRequest(new ApiResponse(401, "Invalid Code"));
 
@@ -70,4 +70,8 @@ public class RechargeCodeController : BaseApiController
 
         return Ok(new ApiOkResponse(codes));
     }
+  public class MyClass
+  {
+      public string Code { get; set; }
+  }
 }
