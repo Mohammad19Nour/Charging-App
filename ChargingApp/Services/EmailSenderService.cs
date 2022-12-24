@@ -33,7 +33,8 @@ public class EmailSenderService : IEmailHelper
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
-            Console.WriteLine("Failed to send email to " + email);
+            Console.WriteLine("\n\n\nFailed to send email to " + email);
+          //  throw;
             return false;
             // throw ;
         }

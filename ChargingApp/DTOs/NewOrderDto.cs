@@ -12,6 +12,6 @@ public class NewOrderDto
 public class NewNormalOrderDto : NewOrderDto
 {
     
-    [Required] public int PaymentGatewayId { get; set; }
+    [Required] public string PaymentGateway { get; set; }//paypal or visa
     [Required] public string TransferNumber { get; set; }
 }

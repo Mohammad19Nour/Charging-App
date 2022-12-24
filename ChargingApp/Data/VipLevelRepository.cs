@@ -1,5 +1,6 @@
 ﻿using ChargingApp.Entity;
 using ChargingApp.Interfaces;
+using ChargingApp.Migrations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;
@@ -33,8 +34,9 @@ public class VipLevelRepository :IVipLevelRepository
     public async Task<int> GetVipLevelForPurchasingAsync(double purchase)
     {
         var v = await _context.VipLevels
-            .OrderByDescending(x=>x.MinimumPurchase)
-            .FirstOrDefaultAsync(x => x.MinimumPurchase < purchase);
+            .OrderByDescending(x =>x.MinimumPurchase)
+            .ThenByDescending(x=>x.VIP_Level)
+            .FirstOrDefaultAsync(x => x.MinimumPurchase <= purchase);
         return v.VIP_Level;
     }
 }

@@ -137,8 +137,9 @@ public class PaymentsController : BaseApiController
         if (user == null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
-            return BadRequest(new ApiResponse(403, "you have no access to this recourse"));
+            return BadRequest(new ApiResponse(403, "you have no access to do this recourse"));
 
+        email = email.ToLower();
         return  Ok( new ApiOkResponse( await _paymentRepo.GetPaymentsForUserAsync(email)));
     }
 }

@@ -3,9 +3,8 @@ using EntityFrameworkCore.EncryptColumn.Attribute;
 
 namespace ChargingApp.Entity;
 
-public class Category
+public class Category :BaseEntity
 {
-    public int Id { get; set; }
     public string? EnglishName { get; set; }
     public string? ArabicName { get; set; }
     public Photo? Photo { get; set; }

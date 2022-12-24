@@ -13,9 +13,11 @@ public class PaymentGatewayRepository : IPaymentGatewayRepository
         _context = context;
     }
 
-    public async Task<PaymentGateway?> GetPaymentGatewayByIdAsync(int id)
+    public async Task<PaymentGateway?> GetPaymentGatewayByNameAsync(string name)
     {
-        return await _context.PaymentGateways.FirstOrDefaultAsync(x=>x.Id == id);
+        name = name.ToLower();
+        return await 
+            _context.PaymentGateways.FirstOrDefaultAsync(x=>x.Name.ToLower() == name);
     }
 
     public async Task<bool> SaveAllChangesAsync()

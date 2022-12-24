@@ -161,6 +161,8 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+//app.UseDefaultFiles();
+//app.UseStaticFiles();
 
 app.MapControllers();
 

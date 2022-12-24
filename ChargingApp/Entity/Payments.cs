@@ -1,8 +1,7 @@
 ﻿namespace ChargingApp.Entity;
 
-public class Payment
+public class Payment :BaseEntity
 {
-    public int Id { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public string? Notes{ get; set; }
     public int AddedValue { get; set; }

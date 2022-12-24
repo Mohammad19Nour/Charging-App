@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChargingApp.Entity;
-public class ChangerAndCompany
+public class ChangerAndCompany :BaseEntity
 {
-    public int Id { get; set; }
     public RechargeMethod RechargeMethodMethod { get; set; }
     public string ArabicName { get; set; }
     public string EnglishName { get; set; }

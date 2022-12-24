@@ -68,7 +68,7 @@ public class OrdersRepository : IOrdersRepository
     {
         var order = await _context.Orders
             .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync(x => x.UserId == userId && !x.Approved);
+            .FirstOrDefaultAsync(x => x.UserId == userId && !x.Checked);
 
         return order; 
     }
