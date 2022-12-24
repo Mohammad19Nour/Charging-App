@@ -1,8 +1,7 @@
 ﻿namespace ChargingApp.Entity;
 
-public class Product
+public class Product :BaseEntity
 {
-    public int Id { get; set; }
     public double Price { get; set; }
     public double OriginalPrice { get; set; }
     public string? EnglishName { get; set; }

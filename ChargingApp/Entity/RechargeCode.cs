@@ -2,7 +2,7 @@
 
 namespace ChargingApp.Entity;
 
-public class RechargeCode
+public class RechargeCode :BaseEntity
 {
     [Key]
     public string Code { get; set; }

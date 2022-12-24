@@ -1,4 +1,5 @@
-﻿using ChargingApp.Data;
+﻿using AutoMapper;
+using ChargingApp.Data;
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
@@ -21,10 +22,11 @@ public class OrdersController : BaseApiController
     private readonly IPaymentGatewayRepository _paymentGatewayRepo;
     private readonly IVipLevelRepository _vipLevelRepo;
     private readonly DataContext _context;
+    private readonly IMapper _mapper;
 
     public OrdersController(IUserRepository userRepository, IOrdersRepository ordersRepository,
         IProductRepository productRepo, IPaymentGatewayRepository paymentGatewayRepo,
-        IVipLevelRepository vipLevelRepo, DataContext context
+        IVipLevelRepository vipLevelRepo, DataContext context,IMapper mapper
     )
     {
         _userRepository = userRepository;
@@ -33,6 +35,7 @@ public class OrdersController : BaseApiController
         _paymentGatewayRepo = paymentGatewayRepo;
         _vipLevelRepo = vipLevelRepo;
         _context = context;
+        _mapper = mapper;
     }
 
     [HttpGet("normal-my-order")]
@@ -78,7 +81,7 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Approved)
+            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Checked)
                 return BadRequest(new ApiResponse(400, "your previous order was less than a minuet old "));
         }
 
@@ -89,32 +92,31 @@ public class OrdersController : BaseApiController
         }
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400, "the amount you chose is small"));
+            return BadRequest(new ApiResponse(400, "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
-        var order = new Order
-        {
-            Product = product,
-            User = user,
-            PlayerId = dto.PlayerId,
-            TotalPrice = SomeUsefulFunction.CalcTotalePrice(dto.Quantity, product.Price, user,
-                await _vipLevelRepo.GetAllVipLevelsAsync()),
-            Quantity = dto.Quantity,
-            OrderType = "VIP",
-            //    CreatedAt = DateTime.Now
-        };
-        if (order.TotalPrice > user.Balance)
-            return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
-
-        using (var transaction = _context.Database.BeginTransaction())
+        await using (var transaction = await _context.Database.BeginTransactionAsync())
         {
             try
             {
+                var order = new Order
+                {
+                    Product = product,
+                    User = user,
+                    PlayerId = dto.PlayerId,
+                    TotalPrice = SomeUsefulFunction.CalcTotalePrice(dto.Quantity, product.Price, user,
+                        await _vipLevelRepo.GetAllVipLevelsAsync()),
+                    Quantity = dto.Quantity,
+                    OrderType = "VIP",
+                };
+                if (order.TotalPrice > user.Balance)
+                    return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
+
                 user.Balance -= order.TotalPrice;
                 _ordersRepository.AddOrder(order);
 
-                _context.SaveChanges();
-                transaction.Commit();
-                return Ok(new ApiResponse(201, "Order Placed"));
+              await  _context.SaveChangesAsync();
+              await  transaction.CommitAsync();
+                return Ok(new ApiOkResponse(_mapper.Map<OrderDto>(order)));
             }
             catch (Exception ex)
             {
@@ -146,13 +148,14 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) == -1) && !lastOrder.Approved)
+            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Checked)
                 return BadRequest(new ApiResponse(400, "your previous order was less than a minuet old "));
         }
 
-        var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByIdAsync(dto.PaymentGatewayId);
+        var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
 
-        if (paymentGateway is null) return BadRequest(new ApiResponse(404, "payment gateway isn't found"));
+        if (paymentGateway is null) 
+            return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
 
         if (product.CanChooseQuantity)
         {
@@ -161,7 +164,7 @@ public class OrdersController : BaseApiController
         }
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400, "the amount you chose is small"));
+            return BadRequest(new ApiResponse(400, "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         var order = new Order
         {
@@ -179,7 +182,7 @@ public class OrdersController : BaseApiController
         if (await _ordersRepository.SaveAllChangesAsync())
         {
             //change to return dto
-            return Ok(new ApiResponse(201, "Order Placed"));
+            return Ok(new ApiOkResponse(_mapper.Map<NormalOrderDto>(order)));
         }
 
         return BadRequest(new ApiResponse(400, "Something went wrong"));
@@ -200,17 +203,18 @@ public class OrdersController : BaseApiController
             return BadRequest(new ApiResponse(400, "this order isn't exist"));
 
         if (order.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) < 0)
-            return BadRequest(new ApiResponse(400, "yopu can't delete this order because it's been 1 minute"));
+            return BadRequest(new ApiResponse(400, "you can't delete this order because it's been 1 minute"));
         using (var transaction = _context.Database.BeginTransaction())
         {
             try
             {
-                _ordersRepository.DeleteOrderById(orderId);
                 var price = order.TotalPrice;
                 user.Balance += price;
                 user.TotalPurchasing -= price;
+
                 user.VIPLevel = await _vipLevelRepo.GetVipLevelForPurchasingAsync(user.TotalPurchasing);
 
+                _ordersRepository.DeleteOrderById(orderId);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 

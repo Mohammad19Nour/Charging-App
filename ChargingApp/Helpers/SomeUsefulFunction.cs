@@ -34,7 +34,7 @@ public static class SomeUsefulFunction
 
             total -= d ;
             
-            user.TotalPurchasing += (int) d ;
+            user.TotalPurchasing += d ;
             price += d ;
             user.VIPLevel = vipLevels[i].VIP_Level;
             if(total == 0) break;

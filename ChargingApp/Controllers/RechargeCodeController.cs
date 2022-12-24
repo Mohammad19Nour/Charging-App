@@ -38,23 +38,21 @@ public class RechargeCodeController : BaseApiController
         if (tmpCode is null || tmpCode.Istaked)
             return BadRequest(new ApiResponse(401, "Invalid Code"));
 
-        using (var transaction = _context.Database.BeginTransaction())
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            try
-            {
-                tmpCode.Istaked = true;
-                tmpCode.User = user;
-                user.Balance += tmpCode.Value;
-                tmpCode.TakedTime = DateTime.Now;
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return Ok(new ApiResponse(201, "Recharged successfully"));
-            }
-            catch (Exception e)
-            {
-                await transaction.RollbackAsync();
-                return BadRequest(new ApiResponse(400, "something went wrong"));
-            }
+            tmpCode.Istaked = true;
+            tmpCode.User = user;
+            user.Balance += tmpCode.Value;
+            tmpCode.TakedTime = DateTime.Now;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Ok(new ApiResponse(201, "Recharged successfully. your balance is: "+user.Balance));
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(new ApiResponse(400, "something went wrong"));
         }
     }
  

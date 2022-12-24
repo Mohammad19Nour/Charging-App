@@ -45,10 +45,17 @@ public class AutoMapperProfiles : Profile
            opt.Condition( (src , dest,srcMember) => srcMember!= null));
         CreateMap<Order, OrderDto>() 
             .ForMember(dest => dest.ProductName, opt =>
-            opt.MapFrom(src => src.Product.EnglishName));
-        ;
-        CreateMap<Order, NormalOrderDto>().ForMember(dest => dest.ProductName, opt =>
-            opt.MapFrom(src => src.Product.EnglishName));
+            opt.MapFrom(src => src.Product.EnglishName))
+            .ForMember(dest=> dest.Status,opt=> 
+                opt.MapFrom(src=>
+                    (!src.Checked ? "Pending": (src.Checked && !src.Succeed)?"Rejected":"Succeed" ) ));
+        
+        CreateMap<Order, NormalOrderDto>()
+            .ForMember(dest => dest.ProductName, opt =>
+                opt.MapFrom(src => src.Product.EnglishName))
+            .ForMember(dest=> dest.Status,opt=> 
+                opt.MapFrom(src=>
+                    (!src.Checked ? "Pending": (src.Checked && !src.Succeed)?"Rejected":"Succeed" ) ));
            
     }
 }
