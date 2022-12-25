@@ -40,7 +40,10 @@ builder.Services.AddScoped<IVipLevelRepository, VipLevelRepository>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString =
+        "Data Source=SQL8004.site4now.net;Initial Catalog=db_a91f76_chargdb;User Id=db_a91f76_chargdb_admin;Password=Mohamed09914";
+    
+    options.UseSqlServer(connectionString);
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -130,14 +133,14 @@ try
     var context = services.GetRequiredService<DataContext>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    await context.Database.MigrateAsync();
+   /* await context.Database.MigrateAsync();
     await Seed.SeedUsers(userManager,roleManager);
     await Seed.SeedCategories(context);
     await Seed.SeedVipLevels(context);
     await Seed.SeedProducts(context);
     await Seed.SeedPayments(context);
     await Seed.SeedPaymentMethods(context);
-    await Seed.SeedCompanies(context);
+    await Seed.SeedCompanies(context);*/
 }
 catch (Exception e)
 {
@@ -155,14 +158,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
-//app.UseRouting();
-//app.UseCors(x => x.SetIsOriginAllowed(_=>true).AllowAnyHeader().AllowAnyHeader().AllowAnyMethod());
+app.UseRouting();
+app.UseCors(x => x.SetIsOriginAllowed(_=>true).AllowAnyHeader().AllowAnyHeader().AllowAnyMethod());
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-//app.UseDefaultFiles();
-//app.UseStaticFiles();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.MapControllers();
 

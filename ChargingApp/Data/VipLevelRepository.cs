@@ -1,6 +1,5 @@
 ﻿using ChargingApp.Entity;
 using ChargingApp.Interfaces;
-using ChargingApp.Migrations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;

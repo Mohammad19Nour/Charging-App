@@ -146,7 +146,7 @@ public class AccountController : BaseApiController
 
         if (!res.Succeeded) return BadRequest(new ApiResponse(400, "confirmation failed"));
 
-        return Ok(new ApiResponse(200, "Your Email is Confirmed try to login in now"));
+        return Ok( "Your Email is Confirmed try to login in now");
     }
 
     [HttpPost("forget-password")]
