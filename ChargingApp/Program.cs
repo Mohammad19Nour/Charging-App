@@ -41,9 +41,8 @@ builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(
 builder.Services.AddDbContext<DataContext>(options =>
 {
     var connectionString =
-        "Data Source=SQL8004.site4now.net;Initial Catalog=db_a91f76_chargdb;User Id=db_a91f76_chargdb_admin;Password=Mohamed09914";
-    
-    options.UseSqlServer(connectionString);
+        "Data source=chargingapp.db";
+    options.UseSqlite(connectionString);
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -133,14 +132,14 @@ try
     var context = services.GetRequiredService<DataContext>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
-   /* await context.Database.MigrateAsync();
+   await context.Database.MigrateAsync();
     await Seed.SeedUsers(userManager,roleManager);
     await Seed.SeedCategories(context);
     await Seed.SeedVipLevels(context);
     await Seed.SeedProducts(context);
     await Seed.SeedPayments(context);
     await Seed.SeedPaymentMethods(context);
-    await Seed.SeedCompanies(context);*/
+    await Seed.SeedCompanies(context);
 }
 catch (Exception e)
 {
