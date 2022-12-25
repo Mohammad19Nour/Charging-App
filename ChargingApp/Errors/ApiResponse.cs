@@ -22,6 +22,7 @@ public class ApiResponse
             403 => "Sorry, you're forbidden from accessing this recourse, only admin can",
             404 => "Resource not found",
             500 => "Errors server",
+            405 => "The target method doesn't support the request methode",
             _ => "unknown code"
         };
     }
