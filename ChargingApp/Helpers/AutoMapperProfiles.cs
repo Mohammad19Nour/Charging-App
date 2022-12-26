@@ -13,12 +13,13 @@ public class AutoMapperProfiles : Profile
         CreateMap<AppUser, UserDto>();
         CreateMap<UpdateUserInfoDto, AppUser>();
         CreateMap<RegisterDto, AppUser>();
+        CreateMap<NewAgentDto , ChangerAndCompany>();
 
         CreateMap<Category, CategoryDto>();
         CreateMap<Category, CategoryWithProductsDto>();
         CreateMap<RechargeMethod, RechargeMethodDto>()
             .ForMember(dest=>dest.Agents,opt=>
-                opt.MapFrom(src=>src.ChangerAndCompanies))
+                opt.MapFrom(src=>src.ChangerAndCompanies??new List<ChangerAndCompany>()))
             .ForMember(dest=>dest.MethodId,opt=>
                 opt.MapFrom(src=>src.Id));
         CreateMap<ChangerAndCompany, AgentDto>()

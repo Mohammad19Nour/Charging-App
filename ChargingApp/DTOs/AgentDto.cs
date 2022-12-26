@@ -1,8 +1,13 @@
 ﻿namespace ChargingApp.DTOs;
 
-public class AgentDto
+
+public class NewAgentDto
 {
-    public int AgentId { get; set; }
     public string ArabicName { get; set; }
     public string EnglishName { get; set; }
+}
+
+public class AgentDto : NewAgentDto
+{
+    public int AgentId { get; set; }
 }

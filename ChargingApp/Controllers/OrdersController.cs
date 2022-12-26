@@ -63,6 +63,7 @@ public class OrdersController : BaseApiController
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
+    
         var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
 
