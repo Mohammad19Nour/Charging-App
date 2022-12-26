@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Net.Http.Headers;
+using System.Text;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ChargingApp.Extentions;
 using ChargingApp.Data;
@@ -8,6 +10,7 @@ using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ChargingApp.Controllers;
 
@@ -37,7 +40,6 @@ public class HomeController : BaseApiController
     [HttpGet]
     public async Task<ActionResult<HomeDto>> GetHomePage()
     {
-
         var res = new HomeDto
         {
             Categories = await _categoryRepo.GetAllCategoriesAsync()
