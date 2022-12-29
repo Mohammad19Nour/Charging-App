@@ -171,7 +171,16 @@ public static class Seed
     public static async Task SeedPayments(DataContext context)
     {
        
-        if (await context.Payments.AnyAsync()) return;
+        if (await context.PaymentGateways.AnyAsync()) return;
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            Name = "PayPal",
+            BagAddress = "2654jhjh"
+        });context.PaymentGateways.Add(new PaymentGateway
+        {
+            Name = "VisaCard",
+            BagAddress = "hku5416"
+        });
 
 /*
         context.PenddingOrders.Add(new PenddingOrder { UserId = 1,

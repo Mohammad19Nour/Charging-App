@@ -26,7 +26,7 @@ public class OrdersController : BaseApiController
 
     public OrdersController(IUserRepository userRepository, IOrdersRepository ordersRepository,
         IProductRepository productRepo, IPaymentGatewayRepository paymentGatewayRepo,
-        IVipLevelRepository vipLevelRepo, DataContext context,IMapper mapper
+        IVipLevelRepository vipLevelRepo, DataContext context, IMapper mapper
     )
     {
         _userRepository = userRepository;
@@ -46,7 +46,7 @@ public class OrdersController : BaseApiController
         if (user.VIPLevel != 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        return Ok(new ApiOkResponse( await _ordersRepository.GetNormalUserOrdersAsync(user.Id)));
+        return Ok(new ApiOkResponse(await _ordersRepository.GetNormalUserOrdersAsync(user.Id)));
     }
 
     [HttpGet("vip-my-order")]
@@ -63,7 +63,6 @@ public class OrdersController : BaseApiController
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
-    
         var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
 
@@ -84,11 +83,11 @@ public class OrdersController : BaseApiController
         {
             if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0)
             {
-                return BadRequest(new ApiResponse(400, 
-                    "you can make a new order after " + 
-                    Math.Max((lastOrder.CreatedAt.AddMinutes(1).Second - DateTime.Now.Second),1) + " seconds"));
-
-            }}
+                return BadRequest(new ApiResponse(400,
+                    "you can make a new order after " +
+                    CalcSeconds(lastOrder.CreatedAt.AddMinutes(1).Second , DateTime.Now.Second) + " seconds"));
+            }
+        }
 
         if (product.CanChooseQuantity)
         {
@@ -97,7 +96,8 @@ public class OrdersController : BaseApiController
         }
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400, "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+            return BadRequest(new ApiResponse(400,
+                "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         await using (var transaction = await _context.Database.BeginTransactionAsync())
         {
@@ -121,8 +121,8 @@ public class OrdersController : BaseApiController
                 user.Balance -= order.TotalPrice;
                 _ordersRepository.AddOrder(order);
 
-              await  _context.SaveChangesAsync();
-              await  transaction.CommitAsync();
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 return Ok(new ApiOkResponse(_mapper.Map<OrderDto>(order)));
             }
             catch (Exception ex)
@@ -133,7 +133,9 @@ public class OrdersController : BaseApiController
         }
     }
 
-// new order 
+    
+
+    // new order 
     [HttpPost("normal-order")]
     public async Task<IActionResult> PlaceOrder([FromBody] NewNormalOrderDto dto)
     {
@@ -155,18 +157,17 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0))
+            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0)
             {
-                return BadRequest(new ApiResponse(400, 
-                    "you can make a new order after " + 
-                    Math.Max((lastOrder.CreatedAt.AddMinutes(1).Second - DateTime.Now.Second),1) + " seconds"));
-
+                return BadRequest(new ApiResponse(400,
+                    "you can make a new order after " +
+                    CalcSeconds(lastOrder.CreatedAt.AddMinutes(1).Second , DateTime.Now.Second) + " seconds"));
             }
         }
 
         var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
 
-        if (paymentGateway is null) 
+        if (paymentGateway is null)
             return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
 
         if (product.CanChooseQuantity)
@@ -176,7 +177,8 @@ public class OrdersController : BaseApiController
         }
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400, "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+            return BadRequest(new ApiResponse(400,
+                "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         var order = new Order
         {
@@ -251,5 +253,10 @@ public class OrdersController : BaseApiController
         }
 
         return product.Category.Available;
+    }
+    private int CalcSeconds(int second, int nowSecond)
+    {
+        if (nowSecond <= second) return Math.Max(1, second - nowSecond);
+        return Math.Max(second + 60 - nowSecond , 1);
     }
 }
