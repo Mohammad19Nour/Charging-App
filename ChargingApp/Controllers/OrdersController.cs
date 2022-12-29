@@ -82,11 +82,11 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0 && !lastOrder.Checked)
+            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0)
             {
                 return BadRequest(new ApiResponse(400, 
                     "you can make a new order after " + 
-                    (lastOrder.CreatedAt.Second - DateTime.Now.Second) + "seconds"));
+                    Math.Max((lastOrder.CreatedAt.AddMinutes(1).Second - DateTime.Now.Second),1) + " seconds"));
 
             }}
 
@@ -155,11 +155,11 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Checked)
+            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0))
             {
                 return BadRequest(new ApiResponse(400, 
                     "you can make a new order after " + 
-                    (lastOrder.CreatedAt.Second - DateTime.Now.Second) + "seconds"));
+                    Math.Max((lastOrder.CreatedAt.AddMinutes(1).Second - DateTime.Now.Second),1) + " seconds"));
 
             }
         }
