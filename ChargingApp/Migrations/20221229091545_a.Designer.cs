@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221229071546_a")]
+    [Migration("20221229091545_a")]
     partial class a
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
