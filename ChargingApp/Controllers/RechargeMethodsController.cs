@@ -27,7 +27,7 @@ public class RechargeMethodsController : BaseApiController
 
     [HttpPost("add-agent/{rechargeMethodId:int}")]
     public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)
-    {
+    {   
         if (rechargeMethodId == 1)
             return BadRequest(
                 new ApiResponse(403, "you can't add to this method "));

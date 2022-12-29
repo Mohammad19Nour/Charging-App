@@ -7,8 +7,7 @@ public class PaymentDto
     public string? Notes { get; set; }
     public int AddedValue { get; set; }
 
-    public bool Approved { get; set; }
-    public bool Succeed { get; set; }
+    public string Status { get; set; }
     public string Username { get; set; }
     public string PaymentType { get; set; }
 }
