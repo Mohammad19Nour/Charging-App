@@ -82,9 +82,13 @@ public class OrdersController : BaseApiController
 
         if (lastOrder != null)
         {
-            if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Checked)
-                return BadRequest(new ApiResponse(400, "your previous order was less than a minuet old "));
-        }
+            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0 && !lastOrder.Checked)
+            {
+                return BadRequest(new ApiResponse(400, 
+                    "you can make a new order after " + 
+                    (lastOrder.CreatedAt.Second - DateTime.Now.Second) + "seconds"));
+
+            }}
 
         if (product.CanChooseQuantity)
         {
@@ -108,6 +112,8 @@ public class OrdersController : BaseApiController
                         await _vipLevelRepo.GetAllVipLevelsAsync()),
                     Quantity = dto.Quantity,
                     OrderType = "VIP",
+                    Succeed = true,
+                    Checked = true
                 };
                 if (order.TotalPrice > user.Balance)
                     return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
@@ -150,7 +156,12 @@ public class OrdersController : BaseApiController
         if (lastOrder != null)
         {
             if ((lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0) && !lastOrder.Checked)
-                return BadRequest(new ApiResponse(400, "your previous order was less than a minuet old "));
+            {
+                return BadRequest(new ApiResponse(400, 
+                    "you can make a new order after " + 
+                    (lastOrder.CreatedAt.Second - DateTime.Now.Second) + "seconds"));
+
+            }
         }
 
         var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
@@ -176,7 +187,9 @@ public class OrdersController : BaseApiController
             TotalPrice = dto.Quantity * product.Price,
             Quantity = dto.Quantity,
             PaymentGateway = paymentGateway,
-            OrderType = "Normal"
+            OrderType = "Normal",
+            Succeed = true,
+            Checked = true
             //  CreatedAt = DateTime.Now
         };
         _ordersRepository.AddOrder(order);

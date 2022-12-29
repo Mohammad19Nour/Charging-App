@@ -7,7 +7,7 @@ public class Payment :BaseEntity
     public int AddedValue { get; set; }
     public string? SecretNumber { get; set ; }
     public string? ReceiptNumber { get; set; }
-    public bool Approved { get; set; } = false;
+    public bool Checked { get; set; } = false;
     public bool Succeed { get; set; } = false;
     public string Username { get; set; }
     public string PaymentType { get; set; } = "USDT"; // office or company or usdt 

@@ -34,9 +34,18 @@ public class AutoMapperProfiles : Profile
         CreateMap<Quantity,int>().ConvertUsing(q=>q.Value);
        // CreateMap<JsonPatchDocument<ProductToUpdateDto>, JsonPatchDocument<Product>>();
        // CreateMap<Operation<ProductToUpdateDto>, Operation<Product>>();
-       CreateMap<Payment, PaymentDto>();
-       CreateMap<Payment, CompanyPaymentDto>();
-       CreateMap<Payment, OfficePaymentDto>();
+       CreateMap<Payment, PaymentDto>()
+           .ForMember(dest=> dest.Status,opt=> 
+               opt.MapFrom(src=>
+                   (!src.Checked ? "Pending": (src.Checked && !src.Succeed)?"Rejected":"Succeed" ) ));
+       CreateMap<Payment, CompanyPaymentDto>().ForMember(dest=> dest.Status,opt=> 
+           opt.MapFrom(src=>
+               (!src.Checked ? "Pending": (src.Checked && !src.Succeed)?"Rejected":"Succeed" ) ));
+
+       CreateMap<Payment, OfficePaymentDto>().ForMember(dest=> dest.Status,opt=> 
+           opt.MapFrom(src=>
+               (!src.Checked ? "Pending": (src.Checked && !src.Succeed)?"Rejected":"Succeed" ) ));
+
        CreateMap<AppUser,UserInfoDto>().ForMember(dest=>dest.AccountType , opt=>
            opt.MapFrom(src=> src.VIPLevel == 0 ?"Normal":("VIP " + src.VIPLevel )));
 

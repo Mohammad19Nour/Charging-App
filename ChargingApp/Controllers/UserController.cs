@@ -62,4 +62,14 @@ public class UserController : BaseApiController
 
         return Ok(new ApiResponse(200, "updated successfully"));
     }
+
+    [HttpGet("balance")]
+    public async Task<ActionResult<double>> MyBalance()
+    {
+        var email = User.GetEmail();
+
+        if (email is null) return Unauthorized(new ApiResponse(401));
+
+        return Ok(new ApiOkResponse( (await _userRepo.GetUserByEmailAsync(email)).Balance));
+    }
 }

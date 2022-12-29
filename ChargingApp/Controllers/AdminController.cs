@@ -17,7 +17,7 @@ public class AdminController :BaseApiController
     _repo = repo;
     _photoService = photoService;
   }
-
+/*
   [HttpPost("add-photo")]
   public async Task<ActionResult> AddPhotoToCategory(IFormFile file ,int categoryId)
   {
@@ -44,32 +44,6 @@ public class AdminController :BaseApiController
 
     return BadRequest(new ApiResponse(400 , "Failed to update photo to category"));
   }
-
-  [HttpPut("update-category-name")]
-  public async Task<ActionResult> UpdateCategoryName(int categoryId, string? arabicName, string? englishName)
-  {
-    var category = await _repo.GetCategoryByIdAsync(categoryId);
-    
-    if ( category == null) return NotFound(new ApiResponse(404, "Category not found"));
-    if (arabicName == null && englishName == null)
-      return BadRequest(new ApiResponse(400 , "At least one name should be not null"));
-
-    if (arabicName != null)
-      category.ArabicName = arabicName;
-
-    if (englishName != null)
-      category.EnglishName = englishName;
-    
-    if (await _repo.SaveAllAsync()) return Ok("Update successfully");
-
-    return BadRequest(new ApiResponse(400,"Failed to update name"));
-  }
-
-  [HttpDelete]
-  public async Task<ActionResult> DeleteCategory(int categoryId)
-  {
-    var result = await _repo.DeleteCategoryByIdAsync(categoryId);
-    if (result) return Ok("Deleted Successfully");
-    return BadRequest(new ApiResponse(400, "Failed to delete category"));
-  }
+*/
+  
 }

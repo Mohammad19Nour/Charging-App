@@ -52,10 +52,13 @@ public class PaymentsController : BaseApiController
             SecretNumber = dto.SecretNumber,
             ReceiptNumber = dto.ReceiptNumber,
             PaymentAgent = agent.EnglishName,
-            PaymentType = "Companies"
+            PaymentType = "Companies",
+            Succeed = true,
+            Checked = true
         };
 
         _paymentRepo.AddPayment(payment);
+        user.Balance += dto.AddedValue;
 
         if (await _paymentRepo.SaveAllChangesAsync())
             return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
@@ -89,10 +92,13 @@ public class PaymentsController : BaseApiController
             SecretNumber = null,
             ReceiptNumber = null,
             PaymentAgent = agent.EnglishName,
-            PaymentType = "Offices"
+            PaymentType = "Offices",
+            Succeed = true,
+            Checked = true
         };
 
         _paymentRepo.AddPayment(payment);
+        user.Balance += dto.AddedValue;
 
         if (await _paymentRepo.SaveAllChangesAsync())
             return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
@@ -118,10 +124,14 @@ public class PaymentsController : BaseApiController
             Username = dto.Username,
             SecretNumber = null,
             ReceiptNumber = null,
-            PaymentType = "USDT"
+            PaymentType = "USDT",
+            Succeed = true,
+            Checked = true
+            
         };
 
         _paymentRepo.AddPayment(payment);
+        user.Balance += dto.AddedValue;
 
         if (await _paymentRepo.SaveAllChangesAsync())
             return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
@@ -139,7 +149,7 @@ public class PaymentsController : BaseApiController
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(403, "you have no access to do this recourse"));
 
-        email = email.ToLower();
+        email = email?.ToLower();
         return  Ok( new ApiOkResponse( await _paymentRepo.GetPaymentsForUserAsync(email)));
     }
 }
