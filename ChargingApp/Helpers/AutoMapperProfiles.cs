@@ -19,7 +19,7 @@ public class AutoMapperProfiles : Profile
         CreateMap<Category, CategoryWithProductsDto>();
         CreateMap<RechargeMethod, RechargeMethodDto>()
             .ForMember(dest=>dest.Agents,opt=>
-                opt.MapFrom(src=>src.ChangerAndCompanies??new List<ChangerAndCompany>()))
+                opt.MapFrom(src=>src.ChangerAndCompanies))
             .ForMember(dest=>dest.MethodId,opt=>
                 opt.MapFrom(src=>src.Id));
         CreateMap<ChangerAndCompany, AgentDto>()

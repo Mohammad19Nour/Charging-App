@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ChargingApp.Migrations
 {
-    public partial class Initial : Migration
+    public partial class a : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -231,7 +231,7 @@ namespace ChargingApp.Migrations
                     AddedValue = table.Column<int>(type: "INTEGER", nullable: false),
                     SecretNumber = table.Column<string>(type: "TEXT", nullable: true),
                     ReceiptNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    Approved = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Checked = table.Column<bool>(type: "INTEGER", nullable: false),
                     Succeed = table.Column<bool>(type: "INTEGER", nullable: false),
                     Username = table.Column<string>(type: "TEXT", nullable: false),
                     PaymentType = table.Column<string>(type: "TEXT", nullable: false),
