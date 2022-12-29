@@ -42,7 +42,10 @@ builder.Services.AddDbContext<DataContext>(options =>
 {
     var connectionString =
         "Data source=chargingapp.db";
-    options.UseSqlite(connectionString);
+    var servConnectionString =
+        "Data Source=SQL8002.site4now.net;Initial Catalog=db_a91f76_chargdb;User Id=db_a91f76_chargdb_admin;Password=Mohamed09914";
+
+    options.UseSqlite(servConnectionString);
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

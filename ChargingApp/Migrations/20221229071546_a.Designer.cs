@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221225085537_Initial")]
-    partial class Initial
+    [Migration("20221229071546_a")]
+    partial class a
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -259,7 +259,7 @@ namespace ChargingApp.Migrations
                     b.Property<int>("AddedValue")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Approved")
+                    b.Property<bool>("Checked")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedDate")

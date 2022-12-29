@@ -21,7 +21,7 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
     public async Task<List<RechargeMethodDto>?> GetRechargeMethodsAsync()
     {
         return await _context.RechargeMethods
-            .Include(x => x.ChangerAndCompanies)
+           // .Include(x => x.ChangerAndCompanies)
             .ProjectTo<RechargeMethodDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
