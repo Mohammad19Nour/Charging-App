@@ -16,24 +16,13 @@ namespace ChargingApp.Controllers;
 
 public class HomeController : BaseApiController
 {
-    private readonly ICategoryRepository _categoryRepo;
-    private readonly IOrdersRepository _orderRepo;
-    private readonly DataContext _context;
-    private readonly IProductRepository _productRepo;
-    private readonly IVipLevelRepository _vipRepo;
-    private readonly IUserRepository _userRepo;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public HomeController(ICategoryRepository categoryRepo, IOrdersRepository orderRepo
-        , DataContext context, IProductRepository productRepo,
-        IUserRepository userRepo,IMapper mapper
+    public HomeController(IUnitOfWork unitOfWork,IMapper mapper
     )
     {
-        _categoryRepo = categoryRepo;
-        _orderRepo = orderRepo;
-        _context = context;
-        _productRepo = productRepo;
-        _userRepo = userRepo;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -42,7 +31,7 @@ public class HomeController : BaseApiController
     {
         var res = new HomeDto
         {
-            Categories = await _categoryRepo.GetAllCategoriesAsync()
+            Categories = await _unitOfWork.CategoryRepository.GetAllCategoriesAsync()
         };
         return res;
     }

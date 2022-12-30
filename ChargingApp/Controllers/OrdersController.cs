@@ -8,68 +8,53 @@ using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ChargingApp.Controllers;
 
 [Authorize]
 public class OrdersController : BaseApiController
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IOrdersRepository _ordersRepository;
-    private readonly IProductRepository _productRepo;
-    private readonly IPaymentGatewayRepository _paymentGatewayRepo;
-    private readonly IVipLevelRepository _vipLevelRepo;
-    private readonly DataContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public OrdersController(IUserRepository userRepository, IOrdersRepository ordersRepository,
-        IProductRepository productRepo, IPaymentGatewayRepository paymentGatewayRepo,
-        IVipLevelRepository vipLevelRepo, DataContext context, IMapper mapper
-    )
+    public OrdersController(IUnitOfWork unitOfWork, DataContext context, IMapper mapper)
     {
-        _userRepository = userRepository;
-        _ordersRepository = ordersRepository;
-        _productRepo = productRepo;
-        _paymentGatewayRepo = paymentGatewayRepo;
-        _vipLevelRepo = vipLevelRepo;
-        _context = context;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
-        var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
         if (user.VIPLevel != 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        return Ok(new ApiOkResponse(await _ordersRepository.GetNormalUserOrdersAsync(user.Id)));
+        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
     }
 
     [HttpGet("vip-my-order")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
-        var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        return Ok(new ApiOkResponse(await _ordersRepository.GetVipUserOrdersAsync(user.Id)));
+        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
     }
 
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
-        var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        var product = await _productRepo.GetProductByIdAsync(dto.ProductId);
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
         if (product is null)
             return BadRequest(new ApiResponse(404, "the product is not found"));
@@ -77,15 +62,15 @@ public class OrdersController : BaseApiController
         if (!CheckIfAvailable(product))
             return BadRequest(new ApiResponse(404, "this product is not available now"));
 
-        var lastOrder = await _ordersRepository.GetLastOrderForUserByIdAsync(user.Id);
+        var lastOrder = await _unitOfWork.OrdersRepository.GetLastOrderForUserByIdAsync(user.Id);
 
         if (lastOrder != null)
         {
-            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0)
+            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.UtcNow) > 0)
             {
                 return BadRequest(new ApiResponse(400,
                     "you can make a new order after " +
-                    CalcSeconds(lastOrder.CreatedAt.AddMinutes(1).Second , DateTime.Now.Second) + " seconds"));
+                    CalcSeconds(lastOrder.CreatedAt.AddMinutes(1).Second, DateTime.UtcNow.Second) + " seconds"));
             }
         }
 
@@ -99,61 +84,51 @@ public class OrdersController : BaseApiController
             return BadRequest(new ApiResponse(400,
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
-        await using (var transaction = await _context.Database.BeginTransactionAsync())
+        var order = new Order
         {
-            try
-            {
-                var order = new Order
-                {
-                    Product = product,
-                    User = user,
-                    PlayerId = dto.PlayerId,
-                    TotalPrice = SomeUsefulFunction.CalcTotalePrice(dto.Quantity, product.Price, user,
-                        await _vipLevelRepo.GetAllVipLevelsAsync()),
-                    Quantity = dto.Quantity,
-                    OrderType = "VIP",
-                    Succeed = true,
-                    Checked = true
-                };
-                if (order.TotalPrice > user.Balance)
-                    return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
+            Product = product,
+            User = user,
+            PlayerId = dto.PlayerId,
+            TotalPrice = SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product.Price, user,
+                await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync()),
+            Quantity = dto.Quantity,
+            OrderType = "VIP",
+            Succeed = true,
+            Checked = true
+        };
+        if (order.TotalPrice > user.Balance)
+            return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
 
-                user.Balance -= order.TotalPrice;
-                _ordersRepository.AddOrder(order);
+        user.Balance -= order.TotalPrice;
+        _unitOfWork.OrdersRepository.AddOrder(order);
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return Ok(new ApiOkResponse(_mapper.Map<OrderDto>(order)));
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return BadRequest(new ApiResponse(400, "Something went wrong"));
-            }
-        }
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiOkResponse(_mapper.Map<OrderDto>(order)));
+
+        return BadRequest(new ApiResponse(400, "Something went wrong"));
     }
-
-    
 
     // new order 
     [HttpPost("normal-order")]
     public async Task<IActionResult> PlaceOrder([FromBody] NewNormalOrderDto dto)
     {
-        var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+      
         if (user is null) return BadRequest(new ApiResponse(401));
+        
         if (user.VIPLevel != 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        var product = await _productRepo.GetProductByIdAsync(dto.ProductId);
-
-
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
+        
         if (product is null)
             return BadRequest(new ApiResponse(404, "the product is not found"));
 
         if (!CheckIfAvailable(product))
             return BadRequest(new ApiResponse(404, "this product is not available now"));
 
-        var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
+        var paymentGateway =
+            await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
 
         if (paymentGateway is null)
             return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
@@ -168,7 +143,6 @@ public class OrdersController : BaseApiController
             return BadRequest(new ApiResponse(400,
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
-        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm")+"\n\n");
         var order = new Order
         {
             Product = product,
@@ -181,10 +155,10 @@ public class OrdersController : BaseApiController
             OrderType = "Normal",
             Succeed = true,
             Checked = true,
-           // CreatedAt = DateTime.Now.tos
+            // CreatedAt = DateTime.Now.tos
         };
-        _ordersRepository.AddOrder(order);
-        if (await _ordersRepository.SaveAllChangesAsync())
+        _unitOfWork.OrdersRepository.AddOrder(order);
+        if (await _unitOfWork.Complete())
         {
             //change to return dto
             return Ok(new ApiOkResponse(_mapper.Map<NormalOrderDto>(order)));
@@ -196,44 +170,34 @@ public class OrdersController : BaseApiController
     [HttpDelete]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
-        var user = await _userRepository.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to do this action"));
 
-        var order = await _ordersRepository.GetOrderByIdAsync(orderId);
+        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
         if (order is null)
             return BadRequest(new ApiResponse(400, "this order isn't exist"));
 
-        if (order.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) < 0)
+        if (order.CreatedAt.AddMinutes(1).CompareTo(DateTime.UtcNow) < 0)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it's been 1 minute"));
-        using (var transaction = _context.Database.BeginTransaction())
-        {
-            try
-            {
-                var price = order.TotalPrice;
-                user.Balance += price;
-                user.TotalPurchasing -= price;
 
-                user.VIPLevel = await _vipLevelRepo.GetVipLevelForPurchasingAsync(user.TotalPurchasing);
+        var price = order.TotalPrice;
+        user.Balance += price;
+        user.TotalPurchasing -= price;
 
-                _ordersRepository.DeleteOrderById(orderId);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+        user.VIPLevel =
+            await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(user.TotalPurchasing);
 
-                return Ok(new ApiResponse(201, "order deleted successfully"));
-            }
-            catch (Exception e)
-            {
-                await transaction.RollbackAsync();
-                return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
-            }
-        }
+        _unitOfWork.OrdersRepository.DeleteOrder(order);
+
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(201, "order deleted successfully"));
+        return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
     }
-
-
+    
     private bool CheckIfAvailable(Product product)
     {
         if (!product.CanChooseQuantity)
@@ -243,9 +207,10 @@ public class OrdersController : BaseApiController
 
         return product.Category.Available;
     }
+
     private int CalcSeconds(int second, int nowSecond)
     {
         if (nowSecond <= second) return Math.Max(1, second - nowSecond);
-        return Math.Max(second + 60 - nowSecond , 1);
+        return Math.Max(second + 60 - nowSecond, 1);
     }
 }

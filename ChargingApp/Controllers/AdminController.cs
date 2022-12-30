@@ -9,12 +9,10 @@ namespace ChargingApp.Controllers;
 [Authorize (Policy = "RequiredAdminRole")]
 public class AdminController :BaseApiController
 {
-  private readonly ICategoryRepository _repo;
   private readonly IPhotoService _photoService;
 
-  public AdminController(ICategoryRepository repo , IPhotoService photoService)
+  public AdminController(IPhotoService photoService)
   {
-    _repo = repo;
     _photoService = photoService;
   }
 /*

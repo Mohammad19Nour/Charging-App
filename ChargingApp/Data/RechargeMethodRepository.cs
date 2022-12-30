@@ -33,14 +33,9 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
         method.ChangerAndCompanies.Add(agent);
     }
 
-    public async Task<bool> DeleteAgent(int agentId)
+    public  void DeleteAgent(ChangerAndCompany agent)
     {
-        var agent = await _context.ChangerAndCompanies
-            .FirstOrDefaultAsync(x => x.Id == agentId);
-        if (agent is null) return false;
-        
         _context.ChangerAndCompanies.Remove(agent);
-        return await SaveAllChangesAsync();
     }
 
     public async Task<RechargeMethod?> GetRechargeMethodByIdAsync(int methodId)
@@ -50,10 +45,4 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
             .FirstOrDefaultAsync(x => x.Id == methodId);
         
     }
-
-    public async Task<bool> SaveAllChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
-
 }

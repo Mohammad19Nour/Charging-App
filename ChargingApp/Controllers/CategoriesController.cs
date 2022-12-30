@@ -11,19 +11,13 @@ namespace ChargingApp.Controllers;
 
 public class CategoriesController : BaseApiController
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IUserRepository _userRepo;
-    private readonly IVipLevelRepository _vipRepo;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
     private readonly IMapper _mapper;
 
-    public CategoriesController(ICategoryRepository categoryRepository, IUserRepository userRepo
-        , IVipLevelRepository vipRepo, IPhotoService photoService, IMapper mapper
-    )
+    public CategoriesController(IUnitOfWork unitOfWork, IPhotoService photoService, IMapper mapper)
     {
-        _categoryRepository = categoryRepository;
-        _userRepo = userRepo;
-        _vipRepo = vipRepo;
+        _unitOfWork = unitOfWork;
         _photoService = photoService;
         _mapper = mapper;
     }
@@ -31,22 +25,22 @@ public class CategoriesController : BaseApiController
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CategoryResultDto?>> GetCategoryById(int id)
     {
-        if (await _categoryRepository.GetCategoryByIdAsync(id) is null)
+        if (await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(id) is null)
             return BadRequest(new ApiResponse(400, "This category isn't exist"));
 
         var res = new CategoryResultDto
         {
-            Category = await _categoryRepository.GetCategoryByIdProjectedAsync(id)
+            Category = await _unitOfWork.CategoryRepository.GetCategoryByIdProjectedAsync(id)
         };
 
         var email = User.GetEmail();
         if (email is null)
             return Ok(new ApiOkResponse(res));
 
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user is null) return res;
 
-        var discount = await _vipRepo.GetVipLevelDiscount(user.VIPLevel);
+        var discount = await _unitOfWork.VipLevelRepository.GetVipLevelDiscount(user.VIPLevel);
         for (int i = 0; i < res.Category.Products.Count; i++)
         {
             res.Category.Products[i].Price -= res.Category.Products[i].Price *
@@ -78,25 +72,25 @@ public class CategoriesController : BaseApiController
 
         category.Photo = photo;
 
-        _categoryRepository.AddCategory(category);
+        _unitOfWork.CategoryRepository.AddCategory(category);
 
-        if (await _categoryRepository.SaveAllAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(201, "Category added"));
 
         return BadRequest(new ApiResponse(400, "something went wrong"));
     }
 
     [HttpDelete]
-    public async Task<ActionResult> DeleteCategoty(int categoryId)
+    public async Task<ActionResult> DeleteCategory(int categoryId)
     {
-        var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
         if (category is null)
             return NotFound(new ApiResponse(403, "category not found"));
 
-        var res = await _categoryRepository.DeleteCategoryByIdAsync(categoryId);
+        _unitOfWork.CategoryRepository.DeleteCategory(category);
 
-        if (res) return Ok(new ApiResponse(201, "Deleted successfully"));
+        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(201, "Deleted successfully"));
 
         return BadRequest(new ApiResponse(400, "Failed to delete category"));
     }
@@ -104,7 +98,7 @@ public class CategoriesController : BaseApiController
     [HttpPut("{categoryId:int}")]
     public async Task<ActionResult> UpdateCategory(int categoryId, [FromForm] CategoryUpdateDto dto)
     {
-        var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
@@ -130,9 +124,9 @@ public class CategoriesController : BaseApiController
             }
         }
 
-        _categoryRepository.UpdateCategory(category);
+        _unitOfWork.CategoryRepository.UpdateCategory(category);
 
-        await _categoryRepository.SaveAllAsync();
+        await _unitOfWork.Complete();
         return Ok();
     }
 }

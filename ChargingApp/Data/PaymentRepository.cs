@@ -23,6 +23,7 @@ public class PaymentRepository : IPaymentRepository
         userEmail = userEmail.ToLower();
        return await _context.Payments
             .Where(x => x.User.Email == userEmail)
+            .OrderByDescending(x=>x.CreatedDate)
             .ProjectTo<CompanyPaymentDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
@@ -30,11 +31,6 @@ public class PaymentRepository : IPaymentRepository
     public void AddPayment(Payment payment)
     {
         _context.Payments.Add(payment);
-    }
-
-    public async Task<bool> SaveAllChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<ChangerAndCompany?> GetPaymentAgentByIdAsync(int? id)

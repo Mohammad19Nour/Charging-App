@@ -29,19 +29,13 @@ public class UserRepository : IUserRepository
         _context.Entry(user).State = EntityState.Modified;
     }
 
-    public async Task<bool> SaveAllAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
-
     public async Task<bool> DeleteUserByEmail(string? email)
     {
         var user = await GetUserByEmailAsync(email);
         if (user == null) return false;
         
         _context.Users.Remove(user);
-
-        return await SaveAllAsync();
+        return true;
     }
 
     public async Task<int> GetDisCountAsync(string? email)

@@ -11,16 +11,12 @@ namespace ChargingApp.Controllers;
 
 public class PaymentsController : BaseApiController
 {
-    private readonly IPaymentRepository _paymentRepo;
-    private readonly IUserRepository _userRepo;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public PaymentsController(IPaymentRepository paymentRepo, IUserRepository userRepo
-        , IMapper mapper
-    )
+    public PaymentsController(IUnitOfWork unitOfWork, IMapper mapper)
     {
-        _paymentRepo = paymentRepo;
-        _userRepo = userRepo;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -28,15 +24,15 @@ public class PaymentsController : BaseApiController
     public async Task<ActionResult<PaymentDto>> AddPaymentComp(int agentId, [FromBody] NewCompanyPaymentDto dto)
     {
         var email = User.GetEmail();
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user == null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(403, "you can't do this action"));
-        
-        var agent = await _paymentRepo.GetPaymentAgentByIdAsync(agentId);
 
-        if ( agent is null)
+        var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
+
+        if (agent is null)
             return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
         if ((dto.SecretNumber is null) || (dto.ReceiptNumber is null))
@@ -57,29 +53,29 @@ public class PaymentsController : BaseApiController
             Checked = true
         };
 
-        _paymentRepo.AddPayment(payment);
+        _unitOfWork.PaymentRepository.AddPayment(payment);
         user.Balance += dto.AddedValue;
 
-        if (await _paymentRepo.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
 
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
 
-    
+
     [HttpPost("add-payment/office/{agentId:int}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentOff(int agentId, [FromBody] NewPaymentDto dto)
     {
         var email = User.GetEmail();
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user == null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(403, "you can't do this action"));
 
-        var agent = await _paymentRepo.GetPaymentAgentByIdAsync(agentId);
+        var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
 
-        if ( agent is null)
+        if (agent is null)
             return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
         var payment = new Payment
@@ -97,24 +93,25 @@ public class PaymentsController : BaseApiController
             Checked = true
         };
 
-        _paymentRepo.AddPayment(payment);
+        _unitOfWork.PaymentRepository.AddPayment(payment);
         user.Balance += dto.AddedValue;
 
-        if (await _paymentRepo.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
 
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
+
     [HttpPost("add-payment/usdt")]
     public async Task<ActionResult<PaymentDto>> AddPaymentUsdt([FromBody] NewPaymentDto dto)
     {
         var email = User.GetEmail();
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user == null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(403, "you can't do this action"));
-        
+
         var payment = new Payment
         {
             User = user,
@@ -127,29 +124,28 @@ public class PaymentsController : BaseApiController
             PaymentType = "USDT",
             Succeed = true,
             Checked = true
-            
         };
 
-        _paymentRepo.AddPayment(payment);
+        _unitOfWork.PaymentRepository.AddPayment(payment);
         user.Balance += dto.AddedValue;
 
-        if (await _paymentRepo.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
 
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
-    
+
     [HttpGet("my-payments")]
     public async Task<ActionResult<List<CompanyPaymentDto>>> GetMyPayment()
     {
         var email = User.GetEmail();
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user == null) return Unauthorized(new ApiResponse(401));
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(403, "you have no access to do this recourse"));
 
         email = email?.ToLower();
-        return  Ok( new ApiOkResponse( await _paymentRepo.GetPaymentsForUserAsync(email)));
+        return Ok(new ApiOkResponse(await _unitOfWork.PaymentRepository.GetPaymentsForUserAsync(email)));
     }
 }

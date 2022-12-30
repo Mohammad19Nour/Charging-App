@@ -19,9 +19,4 @@ public class PaymentGatewayRepository : IPaymentGatewayRepository
         return await 
             _context.PaymentGateways.FirstOrDefaultAsync(x=>x.Name.ToLower() == name);
     }
-
-    public async Task<bool> SaveAllChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
 }

@@ -21,11 +21,21 @@ public class RechargeCodeRepository : IRechargeCodeRepository
 
     public async Task<List<string>?>GenerateCodesWithValue(int numberOfCodes, int valueOfCode)
     {
+        var c = 0;
         var codeList = new List<string>();
 
         for (int i = 1; i <= numberOfCodes; i++)
         {
             var code = GenerateCode();
+            if (await GetCodeAsync(code) != null)
+            {
+                c++;
+                if (c < numberOfCodes * 5)
+                {
+                    i--;
+                    continue;
+                }
+            }
             _context.RechargeCodes.Add(new RechargeCode{Code = code , Value = valueOfCode});
             codeList.Add(code);
         }
