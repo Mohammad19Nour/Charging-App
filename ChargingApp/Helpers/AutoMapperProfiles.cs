@@ -63,16 +63,19 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src =>
                     (!src.Checked ? "Pending" : (src.Checked && !src.Succeed) ? "Rejected" : "Succeed")))
-            .ForMember(dest => dest.CreatedAt, opt =>
-                opt.MapFrom(src => src.CreatedAt.ToString("g")));
-
+           ;// .ForMember(dest => dest.CreatedAt, opt =>
+              //  opt.MapFrom(src => src.CreatedAt.ToString("g")));
+ 
         CreateMap<Order, NormalOrderDto>()
             .ForMember(dest => dest.ProductName, opt =>
                 opt.MapFrom(src => src.Product.EnglishName))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src =>
                     (!src.Checked ? "Pending" : (src.Checked && !src.Succeed) ? "Rejected" : "Succeed")))
-            .ForMember(dest => dest.CreatedAt, opt =>
-                opt.MapFrom(src => src.CreatedAt.ToString("g")));
+            ;//.ForMember(dest => dest.CreatedAt, opt =>
+               // opt.MapFrom(src => src.CreatedAt.ToString("g")));
+         CreateMap<DateTime, DateTime>()
+            .ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
     }
+    //"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"
 }

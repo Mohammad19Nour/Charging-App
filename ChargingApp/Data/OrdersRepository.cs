@@ -23,23 +23,16 @@ public class OrdersRepository : IOrdersRepository
         _context.Orders.Add(order);
         // return await SaveAllChangesAsync();
     }
-
-    public async Task<bool> SaveAllChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
-
     public async Task<bool> DeleteOrderByIdAsync(int orderId)
     {
         var order = await _context.Orders.FindAsync(orderId);
         if (order is null) return false;
         _context.Remove(order);
-        return await SaveAllChangesAsync();
+        return true;
     }
 
-    public async void DeleteOrderById(int orderId)
+    public void DeleteOrder(Order order)
     {
-        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
         _context.Orders.Remove(order);
     }
 
@@ -52,6 +45,7 @@ public class OrdersRepository : IOrdersRepository
     {
         return await _context.Orders
             .Where(p=>p.UserId==userId)
+            .OrderByDescending(x=>x.CreatedAt)
             .ProjectTo<NormalOrderDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
@@ -60,6 +54,7 @@ public class OrdersRepository : IOrdersRepository
     {
         return await _context.Orders
             .Where(p=>p.UserId==userId)
+            .OrderByDescending(x=>x.CreatedAt)
             .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }

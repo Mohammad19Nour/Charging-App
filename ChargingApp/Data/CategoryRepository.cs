@@ -21,7 +21,6 @@ public class CategoryRepository : ICategoryRepository
     public void AddCategory(Category category)
     {
         _context.Categories.Add(category);
-        // return await SaveAllAsync();
     }
 
     public async Task<Category?> GetCategoryByIdAsync(int categoryId)
@@ -43,11 +42,6 @@ public class CategoryRepository : ICategoryRepository
         // .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<bool> SaveAllAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
-    }
-
     public Task<Category?> GetCategoryById(int categoryId)
     {
         return null;
@@ -64,12 +58,9 @@ public class CategoryRepository : ICategoryRepository
         _context.Entry(updatedCat).State = EntityState.Modified;
     }
 
-    public async Task<bool> DeleteCategoryByIdAsync(int categoryId)
+    public void DeleteCategory(Category category)
     {
-        var category = await GetCategoryByIdAsync(categoryId);
-        if (category is null) return false;
         _context.Categories.Remove(category);
-        return await SaveAllAsync();
     }
     
     public async Task<Category?> GetCategoryByEnglishNameAsync(string categoryName)

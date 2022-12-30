@@ -26,17 +26,9 @@ public class ProductRepository : IProductRepository
         _context.Products.Add(product);
     }
 
-    public async Task<bool> DeleteProductFromCategory(int productId)
+    public void DeleteProductFromCategory(Product product)
     {
-        var product = await GetProductByIdAsync(productId);
-
         _context.Products.Remove(product);
-        return await SaveAllChangesAsync();
-    }
-
-    public async Task<bool> SaveAllChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<Product?> GetProductByIdAsync(int productId)

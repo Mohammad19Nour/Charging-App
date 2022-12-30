@@ -4,7 +4,7 @@ namespace ChargingApp.Helpers;
 
 public static class SomeUsefulFunction
 {
-    public static double CalcTotalePrice(int dtoQuantity, double productPrice , AppUser user , List<VIPLevels> vipLevels)
+    public static double CalcTotalPrice(int dtoQuantity, double productPrice , AppUser user , List<VIPLevels> vipLevels)
     {
         double total = dtoQuantity * productPrice;
         

@@ -10,23 +10,18 @@ namespace ChargingApp.Controllers;
 [Authorize]
 public class RechargeCodeController : BaseApiController
 {
-    private readonly IRechargeCodeRepository _rechargeCodeRepo;
-    private readonly DataContext _context;
-    private readonly IUserRepository _userRpo;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RechargeCodeController(IRechargeCodeRepository rechargeCodeRepo, DataContext context
-        , IUserRepository userRpo)
+    public RechargeCodeController(IUnitOfWork unitOfWork)
     {
-        _rechargeCodeRepo = rechargeCodeRepo;
-        _context = context;
-        _userRpo = userRpo;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpPost]
     public async Task<ActionResult> Recharge([FromBody] MyClass obj)
     {
         var email = User.GetEmail();
-        var user = await _userRpo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
         if (user is null)
             return Unauthorized(new ApiResponse(404));
@@ -34,42 +29,36 @@ public class RechargeCodeController : BaseApiController
         if (user.VIPLevel == 0)
             return Unauthorized(new ApiResponse(403, "you can't do this action"));
 
-        var tmpCode = await _rechargeCodeRepo.GetCodeAsync(obj.Code);
+        var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
         if (tmpCode is null || tmpCode.Istaked)
             return BadRequest(new ApiResponse(401, "Invalid Code"));
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            tmpCode.Istaked = true;
-            tmpCode.User = user;
-            user.Balance += tmpCode.Value;
-            tmpCode.TakedTime = DateTime.Now;
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return Ok(new ApiResponse(201, "Recharged successfully. your balance is: "+user.Balance));
-        }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync();
-            return BadRequest(new ApiResponse(400, "something went wrong"));
-        }
+        tmpCode.Istaked = true;
+        tmpCode.User = user;
+        user.Balance += tmpCode.Value;
+        tmpCode.TakedTime = DateTime.Now;
+
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(201, "Recharged successfully. your balance is: " + user.Balance));
+
+        return BadRequest(new ApiResponse(400, "something went wrong"));
     }
- 
-    
+
+
     [HttpGet]
-  //  [Authorize (Policy = "RequiredAdminRole")]
+    //  [Authorize (Policy = "RequiredAdminRole")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {
-        var codes = await _rechargeCodeRepo.GenerateCodesWithValue(codeNumber, codeValue);
+        var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);
 
         if (codes is null)
             return BadRequest(new ApiResponse(400, "something happened"));
 
         return Ok(new ApiOkResponse(codes));
     }
-  public class MyClass
-  {
-      public string Code { get; set; }
-  }
+
+    public class MyClass
+    {
+        public string Code { get; set; }
+    }
 }

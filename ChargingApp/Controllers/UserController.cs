@@ -14,14 +14,14 @@ namespace ChargingApp.Controllers;
 [Authorize]
 public class UserController : BaseApiController
 {
-    private readonly IUserRepository _userRepo;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly UserManager<AppUser> _userManager;
 
-    public UserController(IUserRepository userRepo, IMapper mapper,
+    public UserController(IUnitOfWork unitOfWork, IMapper mapper,
         UserManager<AppUser> userManager)
     {
-        _userRepo = userRepo;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
         _userManager = userManager;
     }
@@ -30,19 +30,19 @@ public class UserController : BaseApiController
     public async Task<ActionResult> UpdateUser(UpdateUserInfoDto updateUserInfoDto)
     {
         var email = User.GetEmail();
-        var user = await _userRepo.GetUserByEmailAsync(email);
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
         _mapper.Map(updateUserInfoDto, user);
-        _userRepo.UpdateUserInfo(user);
+        _unitOfWork.UserRepository.UpdateUserInfo(user);
 
-        if (await _userRepo.SaveAllAsync()) return Ok(new ApiResponse(200, "Updated"));
+        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200, "Updated"));
         return BadRequest(new ApiResponse(400, "Failed to update"));
     }
 
     [HttpGet("user-info")]
     public async Task<ActionResult<UserInfoDto>> GetUserInfo()
     {
-        var user = await _userRepo.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
         return Ok(new ApiOkResponse(_mapper.Map<UserInfoDto>(user)));
     }
@@ -50,7 +50,7 @@ public class UserController : BaseApiController
     [HttpPut("change-password")]
     public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
     {
-        var user = await _userRepo.GetUserByEmailAsync(User.GetEmail());
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null)
             return Unauthorized(new ApiResponse(403));
         var res = 
@@ -70,6 +70,6 @@ public class UserController : BaseApiController
 
         if (email is null) return Unauthorized(new ApiResponse(401));
 
-        return Ok(new ApiOkResponse( (await _userRepo.GetUserByEmailAsync(email)).Balance));
+        return Ok(new ApiOkResponse( (await _unitOfWork.UserRepository.GetUserByEmailAsync(email)).Balance));
     }
 }

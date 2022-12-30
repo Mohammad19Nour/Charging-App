@@ -3,15 +3,10 @@ using ChargingApp.Interfaces;
 
 namespace ChargingApp.Data;
 
-public class UnitOfWork
+public class UnitOfWork : IUnitOfWork
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
-    private CategoryRepository? _categoryRepo;
-    private OrdersRepository? _orderRepo;
-    private PaymentGatewayRepository? _paymentGatewayRepo;
-    private PaymentRepository? _paymentRepo;
-    private ProductRepository? _productRepo;
 
 
     public UnitOfWork(DataContext context, IMapper mapper)
@@ -20,53 +15,23 @@ public class UnitOfWork
         _mapper = mapper;
     }
 
-    public CategoryRepository CategoryRepo
+    public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
+    public IUserRepository UserRepository => new UserRepository(_context, mapper: _mapper);
+
+    public IOrdersRepository OrdersRepository => new OrdersRepository(_context, _mapper);
+    public IPaymentRepository PaymentRepository => new PaymentRepository(_context, _mapper);
+    public IPaymentGatewayRepository PaymentGatewayRepository => new PaymentGatewayRepository(_context);
+    public IProductRepository ProductRepository => new ProductRepository(_context);
+    public IRechargeCodeRepository RechargeCodeRepository => new RechargeCodeRepository(_context);
+    public IRechargeMethodeRepository RechargeMethodeRepository => new RechargeMethodRepository(_context,mapper:_mapper);
+    public IVipLevelRepository VipLevelRepository => new VipLevelRepository(_context);
+    public async Task<bool> Complete()
     {
-        get
-        {
-            if (_categoryRepo is null) _categoryRepo = new CategoryRepository(_context, _mapper);
-            return _categoryRepo;
-        }
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public OrdersRepository OrdersRepo
+    public bool HasChanges()
     {
-        get
-        {
-            if (_orderRepo is null) 
-                _orderRepo = new OrdersRepository(_context, _mapper);
-            return _orderRepo;
-        }
-    }
-
-    public PaymentGatewayRepository PaymentGatewayRepo
-    {
-        get
-        {
-            if (_paymentGatewayRepo is null) 
-                _paymentGatewayRepo = new PaymentGatewayRepository(_context);
-            return _paymentGatewayRepo;
-        }
-    }
-
-
-    public PaymentRepository PaymentRepo
-    {
-        get
-        {
-            if (_paymentRepo is null)
-                _paymentRepo = new PaymentRepository(_context, _mapper);
-            return _paymentRepo;
-        }
-    }
-    
-    public ProductRepository ProductRepo
-    {
-        get
-        {
-            if (_productRepo is null) 
-                _productRepo = new ProductRepository(_context);
-            return _productRepo;
-        }
+        return _context.ChangeTracker.HasChanges(); 
     }
 }

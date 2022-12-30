@@ -11,26 +11,19 @@ namespace ChargingApp.Controllers;
 
 public class ProductsController : BaseApiController
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly IOrdersRepository _ordersRepository;
-    private readonly ICategoryRepository _categoryRepo;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
 
-    public ProductsController(IUserRepository userRepository, IProductRepository productRepository,
-        IOrdersRepository ordersRepository, ICategoryRepository categoryRepo, IPhotoService photoService)
+    public ProductsController(IUnitOfWork unitOfWork, IPhotoService photoService)
     {
-        _userRepository = userRepository;
-        _productRepository = productRepository;
-        _ordersRepository = ordersRepository;
-        _categoryRepo = categoryRepo;
+        _unitOfWork = unitOfWork;
         _photoService = photoService;
     }
 
     [HttpPost("add-product/{categoryId:int}")]
     public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto)
     {
-        var category = await _categoryRepo.GetCategoryByIdAsync(categoryId);
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
@@ -61,9 +54,9 @@ public class ProductsController : BaseApiController
             MinimumQuantityAllowed = dto.MinimumQuantityAllowed
         };
 
-        _productRepository.AddProduct(product);
+        _unitOfWork.ProductRepository.AddProduct(product);
 
-        if (await _productRepository.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "product added successfully"));
         return BadRequest(new ApiResponse(400, "Failed to add product"));
     }
@@ -71,12 +64,14 @@ public class ProductsController : BaseApiController
     [HttpDelete("{productId:int}")]
     public async Task<ActionResult> DeleteProduct(int productId)
     {
-        var product = await _productRepository.GetProductByIdAsync(productId);
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
         if (product is null)
             return NotFound(new ApiResponse(403, "this product isn't exist"));
 
-        if (await _productRepository.DeleteProductFromCategory(productId))
+        _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
+        
+        if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(201, "product deleted"));
 
         return BadRequest(new ApiResponse(400, "Failed to delete product"));
@@ -85,7 +80,7 @@ public class ProductsController : BaseApiController
     [HttpPatch("update-info/{productId:int}")]
     public async Task<ActionResult> UpdateProduct(int productId, JsonPatchDocument patch)
     {
-        var product = await _productRepository.GetProductByIdAsync(productId);
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
         if (product is null)
             return BadRequest(new ApiResponse(400, "this product isn't exist"));
@@ -103,7 +98,7 @@ public class ProductsController : BaseApiController
 
         patch.ApplyTo(product);
 
-        if (await _productRepository.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "updated successfully"));
         return BadRequest(new ApiResponse(400, "Failed to update product"));
     }
@@ -111,7 +106,7 @@ public class ProductsController : BaseApiController
     [HttpPut("update-photo/{productId:int}")]
     public async Task<ActionResult> UpdateProductPhoto(int productId, IFormFile file)
     {
-        var product = await _productRepository.GetProductByIdAsync(productId);
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
         if (product is null)
             return BadRequest(new ApiResponse(400, "this product isn't exist"));
@@ -131,7 +126,7 @@ public class ProductsController : BaseApiController
             throw new Exception("Failed to update image");
         }
 
-        return Ok(new ApiResponse(200,"image updated"));
+        return Ok(new ApiResponse(200, "image updated"));
     }
 
     private async Task<ActionResult> AddNewProductWithQuantity(NewProductDto dto, Category category)
@@ -163,9 +158,9 @@ public class ProductsController : BaseApiController
         product.AvailableQuantities =
             dto.AvailableQuantities.Select(x => new Quantity { Value = x, Product = product }).ToList();
 
-        _productRepository.AddProduct(product);
+        _unitOfWork.ProductRepository.AddProduct(product);
 
-        if (await _productRepository.SaveAllChangesAsync())
+        if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(201, "Product added"));
         return BadRequest(new ApiException(400, "Failed to add product"));
     }

@@ -5,5 +5,4 @@ namespace ChargingApp.Interfaces;
 public interface IPaymentGatewayRepository
 {
     public Task<PaymentGateway?> GetPaymentGatewayByNameAsync(string name);
-    public Task<bool> SaveAllChangesAsync();
 }

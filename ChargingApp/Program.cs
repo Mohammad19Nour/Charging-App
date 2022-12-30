@@ -21,22 +21,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRechargeMethodeRepository, RechargeMethodRepository>();
-builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
-//builder.Services.AddScoped<ISellsRepository, SellsRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddSwaggerGen();;
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 builder.Services.AddTransient<IEmailHelper, EmailSenderService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IPaymentGatewayRepository, PaymentGatewayRepository>();
-builder.Services.AddScoped<IRechargeCodeRepository, RechargeCodeRepository>();
-//builder.Services.AddScoped<IPenddingOrderRepository, PenddingOrderRepository>();
-builder.Services.AddScoped<IVipLevelRepository, VipLevelRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddDbContext<DataContext>(options =>
 {
