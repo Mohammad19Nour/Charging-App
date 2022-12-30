@@ -153,18 +153,6 @@ public class OrdersController : BaseApiController
         if (!CheckIfAvailable(product))
             return BadRequest(new ApiResponse(404, "this product is not available now"));
 
-        var lastOrder = await _ordersRepository.GetLastOrderForUserByIdAsync(user.Id);
-
-        if (lastOrder != null)
-        {
-            if (lastOrder.CreatedAt.AddMinutes(1).CompareTo(DateTime.Now) > 0)
-            {
-                return BadRequest(new ApiResponse(400,
-                    "you can make a new order after " +
-                    CalcSeconds(lastOrder.CreatedAt.AddMinutes(1).Second , DateTime.Now.Second) + " seconds"));
-            }
-        }
-
         var paymentGateway = await _paymentGatewayRepo.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
 
         if (paymentGateway is null)
@@ -180,6 +168,7 @@ public class OrdersController : BaseApiController
             return BadRequest(new ApiResponse(400,
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
+        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm")+"\n\n");
         var order = new Order
         {
             Product = product,
@@ -191,8 +180,8 @@ public class OrdersController : BaseApiController
             PaymentGateway = paymentGateway,
             OrderType = "Normal",
             Succeed = true,
-            Checked = true
-            //  CreatedAt = DateTime.Now
+            Checked = true,
+           // CreatedAt = DateTime.Now.tos
         };
         _ordersRepository.AddOrder(order);
         if (await _ordersRepository.SaveAllChangesAsync())
