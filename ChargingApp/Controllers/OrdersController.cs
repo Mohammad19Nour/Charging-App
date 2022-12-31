@@ -23,6 +23,7 @@ public class OrdersController : BaseApiController
         _mapper = mapper;
     }
 
+    [Authorize(Policy = "RequiredNormalRole")]
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
@@ -35,6 +36,7 @@ public class OrdersController : BaseApiController
     }
 
     [HttpGet("vip-my-order")]
+    [Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
@@ -46,6 +48,7 @@ public class OrdersController : BaseApiController
     }
 
     [HttpPost("vip-order")]
+    [Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
@@ -110,6 +113,7 @@ public class OrdersController : BaseApiController
 
     // new order 
     [HttpPost("normal-order")]
+    [Authorize(Policy = "RequiredNormalRole")]
     public async Task<IActionResult> PlaceOrder([FromBody] NewNormalOrderDto dto)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
@@ -168,6 +172,7 @@ public class OrdersController : BaseApiController
     }
 
     [HttpDelete]
+    [Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());

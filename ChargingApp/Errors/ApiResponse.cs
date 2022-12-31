@@ -19,7 +19,7 @@ public class ApiResponse
             201 => "Created",
             400 => "A bad request, you have made",
             401 => "unauthorized",
-            403 => "Sorry, you're forbidden from accessing this recourse, only admin can",
+            403 => "Sorry, you're forbidden from accessing this recourse",
             404 => "Resource not found",
             500 => "Errors server",
             405 => "The target method doesn't support the request methode",

@@ -114,6 +114,8 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("RequiredAdminRole",policy => policy.RequireRole("Admin"));
+    opt.AddPolicy("RequiredNormalRole",policy => policy.RequireRole("Normal"));
+    opt.AddPolicy("RequiredVIPRole",policy => policy.RequireRole("VIP")); 
 });
 var app = builder.Build();
 
