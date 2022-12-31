@@ -20,6 +20,7 @@ public class PaymentsController : BaseApiController
         _mapper = mapper;
     }
 
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost("add-payment/company/{agentId:int}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentComp(int agentId, [FromBody] NewCompanyPaymentDto dto)
     {
@@ -63,6 +64,8 @@ public class PaymentsController : BaseApiController
     }
 
 
+    
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost("add-payment/office/{agentId:int}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentOff(int agentId, [FromBody] NewPaymentDto dto)
     {
@@ -102,6 +105,8 @@ public class PaymentsController : BaseApiController
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
 
+    
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost("add-payment/usdt")]
     public async Task<ActionResult<PaymentDto>> AddPaymentUsdt([FromBody] NewPaymentDto dto)
     {
@@ -135,6 +140,8 @@ public class PaymentsController : BaseApiController
         return BadRequest(new ApiResponse(400, "Failed to add payment"));
     }
 
+    
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpGet("my-payments")]
     public async Task<ActionResult<List<CompanyPaymentDto>>> GetMyPayment()
     {

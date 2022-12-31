@@ -18,6 +18,7 @@ public class RechargeMethodsController : BaseApiController
         _mapper = mapper;
     }
 
+    
     [HttpGet("recharge-methods-available")]
     public async Task<ActionResult<List<RechargeMethodDto>?>> GetAllRechargeMethods()
     {

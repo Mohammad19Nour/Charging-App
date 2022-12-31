@@ -14,7 +14,9 @@ public static class Seed
         var roles = new List<AppRole>
         {
             new() {Name = "Admin"},
-            new() {Name = "Member"},
+            new() {Name = "Normal"},
+            new() {Name = "VIP"},
+
         };
 
         foreach (var role in roles)
@@ -33,6 +35,7 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
+        
          user = new AppUser
         {
             UserName = "mm@d.com",
@@ -44,7 +47,7 @@ public static class Seed
             Country = "ha",
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Member");
+        await userManager.AddToRoleAsync(user,"VIP");
         user = new AppUser
         {
             UserName = "yy@d.com",
@@ -56,7 +59,7 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Member");
+        await userManager.AddToRoleAsync(user,"Normal");
         
         user = new AppUser
         {
@@ -69,7 +72,7 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Member");
+        await userManager.AddToRoleAsync(user,"Normal");
         
         user = new AppUser
         {
@@ -82,7 +85,7 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Member");
+        await userManager.AddToRoleAsync(user,"VIP");
       
         var admin = new AppUser { FirstName = "Admin" , LastName = "Admin" , 
             Email = "moh@gmail.com" , UserName = "moh@gmail.com"};

@@ -17,6 +17,8 @@ public class RechargeCodeController : BaseApiController
         _unitOfWork = unitOfWork;
     }
 
+    
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost]
     public async Task<ActionResult> Recharge([FromBody] MyClass obj)
     {
