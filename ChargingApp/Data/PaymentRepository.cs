@@ -23,6 +23,7 @@ public class PaymentRepository : IPaymentRepository
         userEmail = userEmail.ToLower();
        return await _context.Payments
             .Where(x => x.User.Email == userEmail)
+            .Include(p=>p.Photo)
             .OrderByDescending(x=>x.CreatedDate)
             .ProjectTo<CompanyPaymentDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
@@ -39,5 +40,25 @@ public class PaymentRepository : IPaymentRepository
         
         return await _context.ChangerAndCompanies
             .FirstOrDefaultAsync(x=>x.Id == id);
+    }
+
+    public async Task<Payment?> GetPaymentByIdAsync(int id)
+    {
+        return await _context.Payments
+            .Where(p => p.Id == id)
+            .Include(u=>u.User)
+            .Include(p=>p.Photo)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<PaymentAdminDto>> GetAllPendingPaymentsAsync()
+    {
+        return await _context.Payments
+            .Where(c=>!c.Checked)
+            .Include(u=>u.User)
+            .Include(p=>p.Photo)
+            .OrderByDescending(p=>p.CreatedDate)
+            .ProjectTo<PaymentAdminDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
     }
 }

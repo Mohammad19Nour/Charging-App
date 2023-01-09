@@ -1,4 +1,5 @@
-﻿using ChargingApp.Entity;
+﻿using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,4 +45,5 @@ public class ProductRepository : IProductRepository
     {
         return _context.Products.AsQueryable();
     }
+
 }

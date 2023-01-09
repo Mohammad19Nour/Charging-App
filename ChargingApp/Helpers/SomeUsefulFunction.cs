@@ -6,10 +6,10 @@ public static class SomeUsefulFunction
 {
     public static double CalcTotalPrice(int dtoQuantity, double productPrice , AppUser user , List<VIPLevels> vipLevels)
     {
-        double total = dtoQuantity * productPrice;
+        var total = dtoQuantity * productPrice;
         
-        List<int> discounts = new List<int>();
-        List<int> minimumP = new List<int>();
+        var discounts = new List<int>();
+        var minimumP = new List<int>();
         foreach (var x in vipLevels)
         {
             discounts.Add(x.Discount);
@@ -20,26 +20,27 @@ public static class SomeUsefulFunction
         
         minimumP.Add(1000000000);
 
-        for (int i = 0; i < discounts.Count; i++)
+        for (var i = 0; i < discounts.Count; i++)
         {
             if (total == 0) break;
             
-            if (minimumP[i] < user.TotalPurchasing && minimumP[i+1] < user.TotalPurchasing) continue;
+            if (minimumP[i] < user.TotalForVIPLevel && minimumP[i+1] < user.TotalForVIPLevel) continue;
 
-            total = total - total * discounts[i] / 100;
+            total -= total * discounts[i] / 100;
             
-            double d = minimumP[i + 1] - user.TotalPurchasing;
+            var d = minimumP[i + 1] - user.TotalForVIPLevel;
 
             d = Math.Min(d , total);
 
             total -= d ;
             
             user.TotalPurchasing += d ;
+            user.TotalForVIPLevel += d;
             price += d ;
             user.VIPLevel = vipLevels[i].VIP_Level;
             if(total == 0) break;
 
-            total = total + total * discounts[i] / 100;
+            total += total * discounts[i] / 100;
         }
         return price;
     }

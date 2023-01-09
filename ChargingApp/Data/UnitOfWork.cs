@@ -25,6 +25,9 @@ public class UnitOfWork : IUnitOfWork
     public IRechargeCodeRepository RechargeCodeRepository => new RechargeCodeRepository(_context);
     public IRechargeMethodeRepository RechargeMethodeRepository => new RechargeMethodRepository(_context,mapper:_mapper);
     public IVipLevelRepository VipLevelRepository => new VipLevelRepository(_context);
+    public ICurrencyRepository CurrencyRepository => new CurrencyRepository(_context , _mapper);
+    public IOurAgentsRepository OurAgentsRepository => new OurAgentsRepository(_context, _mapper);
+
     public async Task<bool> Complete()
     {
         return await _context.SaveChangesAsync() > 0;

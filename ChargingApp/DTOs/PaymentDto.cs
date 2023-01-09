@@ -5,21 +5,21 @@ public class PaymentDto
     public int Id { get; set; }
     public DateTime CreatedDate { get; set; }
     public string? Notes { get; set; }
-    public int AddedValue { get; set; }
-
+    public double AddedValue { get; set; }
     public string Status { get; set; }
     public string Username { get; set; }
     public string PaymentType { get; set; }
+    public string? ReceiptNumberUrl { get; set; }
 }
 
 public class CompanyPaymentDto : PaymentDto
 {
-    public string? SecretNumber { get; set; }
-    public string? ReceiptNumber { get; set; }
-    public string? PaymentAgent { get; set; }
+    public string? PaymentAgentArabicName { get; set; }
+    public string? PaymentAgentEnglishName { get; set; }
 }
 
 public class OfficePaymentDto : PaymentDto
 {
-    public string? PaymentAgent { get; set; }
+    public string? PaymentAgentArabicName { get; set; }
+    public string? PaymentAgentEnglishName { get; set; }
 }

@@ -10,6 +10,6 @@ public interface IOrdersRepository
     public Task<Order?> GetOrderByIdAsync(int orderId);
     public Task<List<NormalOrderDto>> GetNormalUserOrdersAsync(int userId);
     public Task<List<OrderDto>> GetVipUserOrdersAsync(int userId);
-
     public Task<Order?> GetLastOrderForUserByIdAsync(int userId);
+    public Task<List<PendingOrderDto>> GetUnprovedOrdersAsync();
 }

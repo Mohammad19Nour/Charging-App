@@ -20,9 +20,16 @@ public class RechargeMethodsController : BaseApiController
 
     
     [HttpGet("recharge-methods-available")]
-    public async Task<ActionResult<List<RechargeMethodDto>?>> GetAllRechargeMethods()
+    public async Task<ActionResult<PaymentAndRechargeMethodDto>> GetAllRechargeMethods()
     {
-        return Ok(new ApiOkResponse(result: await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodsAsync()));
+        var res = new PaymentAndRechargeMethodDto();
+        
+        var forRecharge = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodsAsync();
+        var forBoth = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewaysAsync();
+
+        res.ForPaymentAndRecharge = forBoth;
+        res.ForRecharge = forRecharge;
+        return Ok(new ApiOkResponse(result: res));
     }
 
     [HttpPost("add-agent/{rechargeMethodId:int}")]

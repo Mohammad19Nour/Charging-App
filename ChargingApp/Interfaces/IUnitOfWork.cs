@@ -11,6 +11,8 @@ public interface IUnitOfWork
     IRechargeCodeRepository RechargeCodeRepository { get; }
     IRechargeMethodeRepository RechargeMethodeRepository { get; }
     IVipLevelRepository VipLevelRepository { get; }
+    ICurrencyRepository CurrencyRepository { get; }
+    IOurAgentsRepository OurAgentsRepository { get; }
 
     Task<bool> Complete();
     bool HasChanges();
