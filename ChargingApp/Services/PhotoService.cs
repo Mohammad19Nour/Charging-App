@@ -34,7 +34,17 @@ public class PhotoService :IPhotoService
                 Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
             };
 
-            uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            try
+            {
+
+                uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                
+                throw new Exception("Failed to upload photo.. check your internet");
+            }
         }
 
         return uploadResult;

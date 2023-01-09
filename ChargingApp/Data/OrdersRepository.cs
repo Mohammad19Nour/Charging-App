@@ -38,7 +38,10 @@ public class OrdersRepository : IOrdersRepository
 
     public async Task<Order?> GetOrderByIdAsync(int orderId)
     {
-        return await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        return await _context.Orders
+            .Include(u=>u.User)
+            .Include(p=>p.Product)
+            .FirstOrDefaultAsync(x => x.Id == orderId);
     }
 
     public async Task<List<NormalOrderDto>> GetNormalUserOrdersAsync(int userId)
@@ -66,5 +69,13 @@ public class OrdersRepository : IOrdersRepository
             .FirstOrDefaultAsync(x => x.UserId == userId);
 
         return order; 
+    }
+    
+    
+    public async Task<List<PendingOrderDto>> GetUnprovedOrdersAsync()
+    {
+      return  await _context.Orders.Where(x => x.Checked == false)
+            .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
     }
 }

@@ -33,18 +33,25 @@ public class CategoriesController : BaseApiController
             Category = await _unitOfWork.CategoryRepository.GetCategoryByIdProjectedAsync(id)
         };
 
+        var syria = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+        var turkey = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+
         var email = User.GetEmail();
         if (email is null)
             return Ok(new ApiOkResponse(res));
 
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user is null) return res;
+        if (user is null) return Ok(new ApiOkResponse(res));
 
         var discount = await _unitOfWork.VipLevelRepository.GetVipLevelDiscount(user.VIPLevel);
-        for (int i = 0; i < res.Category.Products.Count; i++)
+
+        foreach (var t in res.Category.Products)
         {
-            res.Category.Products[i].Price -= res.Category.Products[i].Price *
+            t.Price -= t.Price *
                 (discount) / 100;
+            
+            t.TurkishPrice = t.Price * turkey;
+            t.SyrianPrice = t.Price * syria;
         }
 
         return Ok(new ApiOkResponse(res));

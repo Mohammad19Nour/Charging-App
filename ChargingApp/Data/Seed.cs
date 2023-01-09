@@ -6,17 +6,15 @@ namespace ChargingApp.Data;
 
 public static class Seed
 {
-
-    public static async Task SeedUsers(UserManager<AppUser> userManager , RoleManager<AppRole>roleManager)
+    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
     {
         if (await userManager.Users.AnyAsync()) return;
 
         var roles = new List<AppRole>
         {
-            new() {Name = "Admin"},
-            new() {Name = "Normal"},
-            new() {Name = "VIP"},
-
+            new() { Name = "Admin" },
+            new() { Name = "Normal" },
+            new() { Name = "VIP" },
         };
 
         foreach (var role in roles)
@@ -24,7 +22,7 @@ public static class Seed
             await roleManager.CreateAsync(role);
         }
 
-        var  user = new AppUser
+        var user = new AppUser
         {
             UserName = "mm@d.comwd",
             Email = "mm@d.comwd",
@@ -35,8 +33,8 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        
-         user = new AppUser
+
+        user = new AppUser
         {
             UserName = "mm@d.com",
             Email = "mm@d.com",
@@ -47,7 +45,7 @@ public static class Seed
             Country = "ha",
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"VIP");
+        await userManager.AddToRoleAsync(user, "VIP");
         user = new AppUser
         {
             UserName = "yy@d.com",
@@ -59,8 +57,8 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Normal");
-        
+        await userManager.AddToRoleAsync(user, "Normal");
+
         user = new AppUser
         {
             UserName = "oo@d.com",
@@ -72,8 +70,8 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"Normal");
-        
+        await userManager.AddToRoleAsync(user, "Normal");
+
         user = new AppUser
         {
             UserName = "kk@d.com",
@@ -85,24 +83,26 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user,"VIP");
-      
-        var admin = new AppUser { FirstName = "Admin" , LastName = "Admin" , 
-            Email = "moh@gmail.com" , UserName = "moh@gmail.com"};
-        await userManager.CreateAsync(admin, "Admin!1");
-        await userManager.AddToRolesAsync(admin , new []{"Admin"});
+        await userManager.AddToRoleAsync(user, "VIP");
 
+        var admin = new AppUser
+        {
+            FirstName = "Admin", LastName = "Admin",
+            Email = "moh@gmail.com", UserName = "moh@gmail.com"
+        };
+        await userManager.CreateAsync(admin, "Admin!1");
+        await userManager.AddToRolesAsync(admin, new[] { "Admin" });
     }
 
     public static async Task SeedVipLevels(DataContext context)
     {
         if (await context.VipLevels.AnyAsync()) return;
 
-        context.VipLevels.Add(new VIPLevels{Discount = 0 , VIP_Level = 0 });
-        context.VipLevels.Add(new VIPLevels{Discount = 10 , VIP_Level = 1});
-        context.VipLevels.Add(new VIPLevels{Discount = 20 , VIP_Level = 2 , MinimumPurchase = 1000});
-        context.VipLevels.Add(new VIPLevels{Discount = 30 , VIP_Level = 3 , MinimumPurchase = 2000});
-        context.VipLevels.Add(new VIPLevels{Discount = 40 , VIP_Level = 4,MinimumPurchase = 3000});
+        context.VipLevels.Add(new VIPLevels { Discount = 0, VIP_Level = 0 });
+        context.VipLevels.Add(new VIPLevels { Discount = 10, VIP_Level = 1 });
+        context.VipLevels.Add(new VIPLevels { Discount = 20, VIP_Level = 2, MinimumPurchase = 1000 });
+        context.VipLevels.Add(new VIPLevels { Discount = 30, VIP_Level = 3, MinimumPurchase = 2000 });
+        context.VipLevels.Add(new VIPLevels { Discount = 40, VIP_Level = 4, MinimumPurchase = 3000 });
 
         await context.SaveChangesAsync();
     }
@@ -111,14 +111,14 @@ public static class Seed
     {
         if (await context.Categories.AnyAsync()) return;
 
-        context.Categories.Add(new Category {EnglishName = "pubg" , ArabicName = "arabic",HasSubCategories = true});
+        context.Categories.Add(new Category { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true });
         context.Categories.Add(new Category
         {
-            EnglishName = "clash royal",ArabicName = "arabic",HasSubCategories = false
+            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false
         });
         await context.SaveChangesAsync();
-        
     }
+
     public static async Task SeedProducts(DataContext context)
     {
         if (await context.Products.AnyAsync()) return;
@@ -134,7 +134,7 @@ public static class Seed
                 EnglishDetails = "pubg 50 card",
                 CategoryId = 1
             });
-        
+
         context.Products.Add(new
             Product
             {
@@ -148,23 +148,23 @@ public static class Seed
             });
 
         var product = new Product
-            {
-                OriginalPrice = 100,
-                Price = 120,
-                ArabicName = "pubg 100 card",
-                EnglishName = "pubg 100 card",
-                ArabicDetails = "pubg 100 card",
-                EnglishDetails = "pubg 100 card",
-                CanChooseQuantity = true,
-                CategoryId = 2
-            };
+        {
+            OriginalPrice = 100,
+            Price = 120,
+            ArabicName = "pubg 100 card",
+            EnglishName = "pubg 100 card",
+            ArabicDetails = "pubg 100 card",
+            EnglishDetails = "pubg 100 card",
+            CanChooseQuantity = true,
+            CategoryId = 2
+        };
         context.Products.Add(product);
         await context.SaveChangesAsync();
         var quantities = new List<Quantity>
         {
-            new(){Product = product,Value = 10},
-            new(){Product = product,Value = 70},
-            new(){Product = product,Value = 90},
+            new() { Product = product, Value = 10 },
+            new() { Product = product, Value = 70 },
+            new() { Product = product, Value = 90 },
         };
         context.Quantities.AddRange(quantities);
         product.AvailableQuantities = quantities;
@@ -173,74 +173,42 @@ public static class Seed
 
     public static async Task SeedPayments(DataContext context)
     {
-       
         if (await context.PaymentGateways.AnyAsync()) return;
         context.PaymentGateways.Add(new PaymentGateway
         {
-            Name = "PayPal",
+            EnglishName = "lord",
+            ArabicName = "اللورد للحوالات المالية",
             BagAddress = "2654jhjh"
-        });context.PaymentGateways.Add(new PaymentGateway
+        });
+        context.PaymentGateways.Add(new PaymentGateway
         {
-            Name = "VisaCard",
+            EnglishName = "USDT",
+            ArabicName = "USDT",
             BagAddress = "hku5416"
         });
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "Payeer",
+            ArabicName = "Payeer",
+            BagAddress = "lscwlncwlc"
+        });
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "Binance",
+            ArabicName = "Binance",
+            BagAddress = "cdncwlkcnlscm"
+        });
 
-/*
-        context.PenddingOrders.Add(new PenddingOrder { UserId = 1,
-            
-            });
-        
-        context.PenddingOrders.Add(new PenddingOrder { UserId = 1 });
-        context.PenddingOrders.Add(new PenddingOrder { UserId = 2, 
-            Products = new List<OrderProductPendding>
-            {
-                new OrderProductPendding
-                {
-                    OrderId = 3,
-                    ProdudctId = 1
-                }
-            }
-            
-        });*/
         await context.SaveChangesAsync();
-        
     }
+
     public static async Task SeedPaymentMethods(DataContext context)
     {
         if (await context.RechargeMethods.AnyAsync()) return;
 
-        context.RechargeMethods.Add(new RechargeMethod {ArabicName = "USDT" , EnglishName = "USDT"});
-        context.RechargeMethods.Add(new RechargeMethod {ArabicName = "USDT" , EnglishName = "Companies"});
-        context.RechargeMethods.Add(new RechargeMethod {ArabicName = "USDT" , EnglishName = "Changers"});
+        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "شركات التحويل", EnglishName = "Companies" });
+        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "مكاتب الصرافين", EnglishName = "Offices" });
         await context.SaveChangesAsync();
-
-       /* PaymentMethods met = await context.PaymentMethods.FirstOrDefaultAsync(x => x.Id == 2);
-        met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "company1"
-        });
-        met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "company2"
-        });met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "company3"
-        });
-        
-        met = await context.PaymentMethods.FirstOrDefaultAsync(x => x.Id == 3);
-        met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "office1"
-        });
-        met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "office2"
-        });met.Providers.Add(new ChangerAndCompany
-        {
-            EnglishName = "office3"
-        });
-     await context.SaveChangesAsync();*/
-
     }
 
     public static async Task SeedCompanies(DataContext context)
@@ -248,25 +216,33 @@ public static class Seed
         if (await context.ChangerAndCompanies.AnyAsync()) return;
 
         var com = await context.RechargeMethods.FirstOrDefaultAsync(x => x.Id == 2);
-       com.ChangerAndCompanies.Add(new ChangerAndCompany
-       {
-           EnglishName = "eng",
-           ArabicName = "arb"
-       });
-       com.ChangerAndCompanies.Add(new ChangerAndCompany
-       {
-           EnglishName = "popo",
-           ArabicName = "baba"
-       });
+        com.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "eng",
+            ArabicName = "arb"
+        });
+        com.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "popo",
+            ArabicName = "baba"
+        });
         await context.SaveChangesAsync();
-        
     }
-    public static async Task SeedChangers(DataContext context)
-    {
 
-      /*  var com = await context.PaymentMethods.FirstOrDefaultAsync(x => x.Id == 3);
-        com.ChangerOffices.Add(new ChangerOffice(){EnglishName = "nname" , ArabicName = "arabic"});
-        await context.SaveChangesAsync();*/
-        
+    public static async Task SeedCurrency(DataContext context)
+    {
+        if (await context.Currencies.AnyAsync()) return;
+
+        context.Currencies.Add(new Currency
+        {
+            Name = "Turkish",
+            ValuePerDollar = 20,
+        });
+        context.Currencies.Add(new Currency
+        {
+            Name = "Syrian",
+            ValuePerDollar = 6000,
+        });
+        await context.SaveChangesAsync();
     }
 }

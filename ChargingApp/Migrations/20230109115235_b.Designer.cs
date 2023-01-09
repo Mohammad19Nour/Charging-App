@@ -3,6 +3,7 @@ using System;
 using ChargingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230109115235_b")]
+    partial class b
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.7");
@@ -244,9 +246,6 @@ namespace ChargingApp.Migrations
                     b.Property<int?>("PaymentGatewayId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("PhotoId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("PlayerId")
                         .HasColumnType("TEXT");
 
@@ -254,6 +253,9 @@ namespace ChargingApp.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ReceiptPhotoId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Succeed")
@@ -269,36 +271,13 @@ namespace ChargingApp.Migrations
 
                     b.HasIndex("PaymentGatewayId");
 
-                    b.HasIndex("PhotoId");
-
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ReceiptPhotoId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.OurAgent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OurAgents");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.Payment", b =>
@@ -329,7 +308,7 @@ namespace ChargingApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PhotoId")
+                    b.Property<int?>("ReceiptPhotoId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Succeed")
@@ -343,7 +322,7 @@ namespace ChargingApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhotoId");
+                    b.HasIndex("ReceiptPhotoId");
 
                     b.HasIndex("UserId");
 
@@ -655,15 +634,15 @@ namespace ChargingApp.Migrations
                         .WithMany()
                         .HasForeignKey("PaymentGatewayId");
 
-                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
-                        .WithMany()
-                        .HasForeignKey("PhotoId");
-
                     b.HasOne("ChargingApp.Entity.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("ChargingApp.Entity.Photo", "ReceiptPhoto")
+                        .WithMany()
+                        .HasForeignKey("ReceiptPhotoId");
 
                     b.HasOne("ChargingApp.Entity.AppUser", "User")
                         .WithMany()
@@ -673,18 +652,18 @@ namespace ChargingApp.Migrations
 
                     b.Navigation("PaymentGateway");
 
-                    b.Navigation("Photo");
-
                     b.Navigation("Product");
+
+                    b.Navigation("ReceiptPhoto");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.Payment", b =>
                 {
-                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                    b.HasOne("ChargingApp.Entity.Photo", "ReceiptPhoto")
                         .WithMany()
-                        .HasForeignKey("PhotoId");
+                        .HasForeignKey("ReceiptPhotoId");
 
                     b.HasOne("ChargingApp.Entity.AppUser", "User")
                         .WithMany()
@@ -692,7 +671,7 @@ namespace ChargingApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Photo");
+                    b.Navigation("ReceiptPhoto");
 
                     b.Navigation("User");
                 });

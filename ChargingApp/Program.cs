@@ -6,11 +6,12 @@ using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using ChargingApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -27,13 +28,21 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 builder.Services.AddTransient<IEmailHelper, EmailSenderService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+/*builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"h:\root\home\mohammad09nour-001\www\site1\directory\"))
+    .UseCryptographicAlgorithms(
+        new AuthenticatedEncryptorConfiguration
+        {
+            EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+            ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+        });;*/
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddDbContext<DataContext>(options =>
 {
     var connectionString =
         "Data source=chargingapp.db";
     var servConnectionString =
-        "Data Source=SQL8002.site4now.net;Initial Catalog=db_a91f76_chargdb;User Id=db_a91f76_chargdb_admin;Password=Mohamed09914";
+        "Data Source=SQL8004.site4now.net;Initial Catalog=db_a91f76_appdbb;User Id=db_a91f76_appdbb_admin;Password=Mohamed09914";
 
     options.UseSqlite(connectionString);
 });
@@ -100,7 +109,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = context =>
     {
         var errors = context.ModelState
-            .Where(e => e.Value.Errors.Count > 0)
+            .Where(e => e.Value != null && e.Value.Errors.Count > 0)
             .SelectMany(x => x.Value.Errors)
             .Select(x => x.ErrorMessage).ToArray();
 
@@ -135,6 +144,7 @@ try
     await Seed.SeedPayments(context);
     await Seed.SeedPaymentMethods(context);
     await Seed.SeedCompanies(context);
+    await Seed.SeedCurrency(context);
 }
 catch (Exception e)
 {

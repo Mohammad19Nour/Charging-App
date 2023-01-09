@@ -1,4 +1,5 @@
-﻿using ChargingApp.Entity;
+﻿using AutoMapper;
+using ChargingApp.Entity;
 using ChargingApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,13 @@ public class PaymentGatewayRepository : IPaymentGatewayRepository
     {
         name = name.ToLower();
         return await 
-            _context.PaymentGateways.FirstOrDefaultAsync(x=>x.Name.ToLower() == name);
+            _context.PaymentGateways.FirstOrDefaultAsync(x=>x.EnglishName.ToLower() == name);
+    }
+
+    public async Task<List<PaymentGateway>> GetPaymentGatewaysAsync()
+    {
+        return await _context.PaymentGateways.
+            
+            ToListAsync();
     }
 }

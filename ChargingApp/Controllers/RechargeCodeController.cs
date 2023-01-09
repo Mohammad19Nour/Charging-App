@@ -1,4 +1,5 @@
 ﻿using ChargingApp.Data;
+using ChargingApp.DTOs;
 using ChargingApp.Errors;
 using ChargingApp.Extentions;
 using ChargingApp.Interfaces;
@@ -20,7 +21,7 @@ public class RechargeCodeController : BaseApiController
     
     [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost]
-    public async Task<ActionResult> Recharge([FromBody] MyClass obj)
+    public async Task<ActionResult<double>> Recharge([FromBody] MyClass obj)
     {
         var email = User.GetEmail();
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
@@ -40,8 +41,9 @@ public class RechargeCodeController : BaseApiController
         user.Balance += tmpCode.Value;
         tmpCode.TakedTime = DateTime.Now;
 
+        
         if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "Recharged successfully. your balance is: " + user.Balance));
+            return Ok(new ApiOkResponse("Recharge successfully. your balance is " + user.Balance));
 
         return BadRequest(new ApiResponse(400, "something went wrong"));
     }

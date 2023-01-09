@@ -17,18 +17,20 @@ public class AccountController : BaseApiController
     private readonly ITokenService _tokenService;
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
+    private readonly IUnitOfWork _unitOfWork;
 
     public AccountController(IEmailHelper emailSender, ITokenService tokenService, UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager)
+        SignInManager<AppUser> signInManager , IUnitOfWork unitOfWork)
     {
         _emailSender = emailSender;
         _tokenService = tokenService;
         _userManager = userManager;
         _signInManager = signInManager;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+    public async Task<ActionResult> Register(RegisterDto registerDto)
     {
         registerDto.Email = registerDto.Email.ToLower();
 
@@ -69,7 +71,7 @@ public class AccountController : BaseApiController
         var respons = await GenerateTokenAndSendEmailForUser(user);
 
         IdentityResult roleResult;
-        if (registerDto.AccountType == "Normal")
+        if (registerDto.AccountType == "normal")
             roleResult = await _userManager.AddToRoleAsync(user, "Normal");
         else roleResult = await _userManager.AddToRoleAsync(user, "VIP");
         
@@ -111,15 +113,39 @@ public class AccountController : BaseApiController
             return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
         }
 
+        var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+        var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+
+        var myWallet = new WalletDto
+        {
+            DollarBalance = user.Balance,
+            SyrianBalance = user.Balance * syrian,
+            TurkishBalance = user.Balance * turkish,
+            
+            DollarDebit = user.Debit,
+            SyrianDebit = user.Debit * syrian,
+            TurkishDebit = user.Debit * turkish,
+            
+            DollarTotalPurchase = user.TotalPurchasing,
+            SyrianTotalPurchase = user.TotalPurchasing * syrian,
+            TurkishTotalPurchase = user.TotalPurchasing * turkish,
+        };
+        if (user.Debit > 0)
+        {
+            myWallet.TurkishBalance *= -1;
+            myWallet.SyrianBalance *= -1;
+            myWallet.DollarBalance *= -1;
+        }
+        
         var x = new UserDto
         {
             FirstName = user.FirstName.ToLower(),
             LastName = user.LastName.ToLower(),
             Token = await _tokenService.CreateToken(user),
-            Balance = user.Balance,
             PhoneNumber = user.PhoneNumber,
             City = user.City,
             Country = user.Country,
+            MyWallet = myWallet,
             AccountType = user.VIPLevel switch
             {
                 0 => "Normal",

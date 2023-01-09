@@ -5,7 +5,7 @@ namespace ChargingApp.Errors;
 
 public class ApiResponse
 {
-    public ApiResponse(int statusCode, string message = null)
+    public ApiResponse(int statusCode, string? message = null)
     {
         StatusCode = statusCode;
         Message = message ?? GetDefaultMessageForStatusCode(statusCode);

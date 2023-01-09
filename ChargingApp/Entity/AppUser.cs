@@ -13,6 +13,8 @@ public class AppUser : IdentityUser<int>
     public double Balance { get; set; } = 0;
     public int VIPLevel { get; set; } = 0;
     public double TotalPurchasing { get; set; } = 0;
+    public double Debit { get; set; } = 0;
+    public double TotalForVIPLevel { get; set; } = 0;
     public ICollection<AppUserRole> UserRoles { get; set; }
 
 }

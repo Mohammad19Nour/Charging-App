@@ -1,4 +1,5 @@
-﻿using ChargingApp.Entity;
+﻿using ChargingApp.DTOs;
+using ChargingApp.Entity;
 
 namespace ChargingApp.Interfaces;
 

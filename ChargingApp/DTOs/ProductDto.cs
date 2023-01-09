@@ -16,6 +16,8 @@ public class ProductDto : ProductInfo
     public bool CanChooseQuantity { get; set; } = false;
     public ICollection<int>? AvailableQuantities { get; set; }
     public int MinimumQuantityAllowed { get; set; }
+    public double TurkishPrice { get; set; }
+    public double SyrianPrice { get; set; }
 }
 
 public class ProductToUpdateDto : ProductInfo

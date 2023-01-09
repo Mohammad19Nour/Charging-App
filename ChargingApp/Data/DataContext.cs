@@ -30,6 +30,8 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<ChangerAndCompany> ChangerAndCompanies { get; set; }
     public DbSet<PaymentGateway> PaymentGateways { get; set; }
     public DbSet<RechargeCode> RechargeCodes { get; set; }
+    public DbSet<Currency> Currencies { get; set; }
+    public DbSet<OurAgent> OurAgents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -2,6 +2,7 @@
 
 public class PaymentGateway :BaseEntity
 {
-    public string Name { get; set; }
+    public string EnglishName { get; set; }
+    public string ArabicName { get; set; }
     public string BagAddress { get; set; }
 }
