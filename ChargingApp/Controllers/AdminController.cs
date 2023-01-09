@@ -31,6 +31,11 @@ public class AdminController :BaseApiController
     payment.Checked = true;
     payment.Succeed = true;
 
+    var mn = Math.Min(payment.AddedValue, payment.User.Debit);
+
+    payment.User.Debit -= mn;
+    payment.AddedValue -= mn;
+    
     payment.User.Balance += payment.AddedValue;
 
     if (await _unitOfWork.Complete())
