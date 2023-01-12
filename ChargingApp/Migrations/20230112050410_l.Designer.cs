@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230109141610_e")]
-    partial class e
+    [Migration("20230112050410_l")]
+    partial class l
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -153,6 +153,26 @@ namespace ChargingApp.Migrations
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.BenefitPercentInSpecificVilLevel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("BenefitPercent")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VipLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SpecificBenefit");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -223,6 +243,21 @@ namespace ChargingApp.Migrations
                     b.ToTable("Currencies");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ProductId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Favorites");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -286,11 +321,15 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ArabicName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("EnglishName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -398,9 +437,6 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ArabicDetails")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("ArabicName")
                         .HasColumnType("TEXT");
 
@@ -413,17 +449,11 @@ namespace ChargingApp.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("EnglishDetails")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("EnglishName")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("MinimumQuantityAllowed")
                         .HasColumnType("INTEGER");
-
-                    b.Property<double>("OriginalPrice")
-                        .HasColumnType("REAL");
 
                     b.Property<int?>("PhotoId")
                         .HasColumnType("INTEGER");
@@ -508,13 +538,38 @@ namespace ChargingApp.Migrations
                     b.ToTable("RechargeMethods");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("ProductPrice")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VipLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SpecificPriceForUsers");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.VIPLevels", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Discount")
+                    b.Property<int>("BenefitPercent")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("MinimumPurchase")
@@ -651,6 +706,25 @@ namespace ChargingApp.Migrations
                     b.Navigation("RechargeMethodMethod");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Order", b =>
                 {
                     b.HasOne("ChargingApp.Entity.PaymentGateway", "PaymentGateway")
@@ -730,6 +804,17 @@ namespace ChargingApp.Migrations
                     b.HasOne("ChargingApp.Entity.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

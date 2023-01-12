@@ -2,19 +2,18 @@
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
-using ChargingApp.Extentions;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-public class ProductsController : BaseApiController
+public class AdminProductController : AdminController
 {
-    private readonly IUnitOfWork _unitOfWork;
+     private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
 
-    public ProductsController(IUnitOfWork unitOfWork, IPhotoService photoService)
+    public AdminProductController(IUnitOfWork unitOfWork, IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
@@ -48,7 +47,6 @@ public class ProductsController : BaseApiController
             ArabicName = dto.ArabicName,
             CanChooseQuantity = dto.CanChooseQuantity,
             Price = dto.Price,
-            OriginalPrice = dto.OriginalPrice,
             Category = category,
             Photo = photo,
             MinimumQuantityAllowed = dto.MinimumQuantityAllowed
@@ -149,7 +147,6 @@ public class ProductsController : BaseApiController
             ArabicName = dto.ArabicName,
             CanChooseQuantity = dto.CanChooseQuantity,
             Price = dto.Price,
-            OriginalPrice = dto.OriginalPrice,
             Category = category,
             Photo = photo,
             MinimumQuantityAllowed = dto.MinimumQuantityAllowed,
@@ -165,9 +162,4 @@ public class ProductsController : BaseApiController
         return BadRequest(new ApiException(400, "Failed to add product"));
     }
 
-    /*[HttpPost("new-product")]
-    public async Task<ActionResult> AddNewProduct([FromBody] NewProductDto dto)
-    {
-        
-    }*/
 }

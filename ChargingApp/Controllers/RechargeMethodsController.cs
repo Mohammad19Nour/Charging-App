@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-public class RechargeMethodsController : BaseApiController
+public class RechargeMethodsController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -18,7 +18,6 @@ public class RechargeMethodsController : BaseApiController
         _mapper = mapper;
     }
 
-    
     [HttpGet("recharge-methods-available")]
     public async Task<ActionResult<PaymentAndRechargeMethodDto>> GetAllRechargeMethods()
     {
@@ -29,6 +28,14 @@ public class RechargeMethodsController : BaseApiController
 
         res.ForPaymentAndRecharge = forBoth;
         res.ForRecharge = forRecharge;
+        return Ok(new ApiOkResponse(result: res));
+    }
+    
+    [HttpGet("normal-recharge-methods")]
+    public async Task<ActionResult<List<PaymentGateway>>> GetNormalRechargeMethods()
+    {
+        var res = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewaysAsync();
+
         return Ok(new ApiOkResponse(result: res));
     }
 

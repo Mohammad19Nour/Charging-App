@@ -14,7 +14,6 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         _mapper = mapper;
     }
-
     public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
     public IUserRepository UserRepository => new UserRepository(_context, mapper: _mapper);
 
@@ -27,6 +26,11 @@ public class UnitOfWork : IUnitOfWork
     public IVipLevelRepository VipLevelRepository => new VipLevelRepository(_context);
     public ICurrencyRepository CurrencyRepository => new CurrencyRepository(_context , _mapper);
     public IOurAgentsRepository OurAgentsRepository => new OurAgentsRepository(_context, _mapper);
+    public ISpecificPriceForUserRepository SpecificPriceForUserRepository =>
+        new SpecificPriceForUserRepository(_context);
+    public IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository =>
+        new BenefitPercentInSpecificVipLevelRepository(_context);
+    public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
 
     public async Task<bool> Complete()
     {

@@ -98,11 +98,11 @@ public static class Seed
     {
         if (await context.VipLevels.AnyAsync()) return;
 
-        context.VipLevels.Add(new VIPLevels { Discount = 0, VIP_Level = 0 });
-        context.VipLevels.Add(new VIPLevels { Discount = 10, VIP_Level = 1 });
-        context.VipLevels.Add(new VIPLevels { Discount = 20, VIP_Level = 2, MinimumPurchase = 1000 });
-        context.VipLevels.Add(new VIPLevels { Discount = 30, VIP_Level = 3, MinimumPurchase = 2000 });
-        context.VipLevels.Add(new VIPLevels { Discount = 40, VIP_Level = 4, MinimumPurchase = 3000 });
+        context.VipLevels.Add(new VIPLevels { BenefitPercent = 30, VIP_Level = 0 });
+        context.VipLevels.Add(new VIPLevels { BenefitPercent = 20, VIP_Level = 1 });
+        context.VipLevels.Add(new VIPLevels { BenefitPercent = 15, VIP_Level = 2, MinimumPurchase = 1000 });
+        context.VipLevels.Add(new VIPLevels { BenefitPercent = 10, VIP_Level = 3, MinimumPurchase = 2000 });
+        context.VipLevels.Add(new VIPLevels { BenefitPercent = 5, VIP_Level = 4, MinimumPurchase = 3000 });
 
         await context.SaveChangesAsync();
     }
@@ -126,35 +126,26 @@ public static class Seed
         context.Products.Add(new
             Product
             {
-                OriginalPrice = 50,
                 Price = 60,
                 ArabicName = "pubg 50 card",
                 EnglishName = "pubg 50 card",
-                ArabicDetails = "pubg 50 card",
-                EnglishDetails = "pubg 50 card",
                 CategoryId = 1
             });
 
         context.Products.Add(new
             Product
             {
-                OriginalPrice = 100,
                 Price = 120,
                 ArabicName = "pubg 100 card",
                 EnglishName = "pubg 100 card",
-                ArabicDetails = "pubg 100 card",
-                EnglishDetails = "pubg 100 card",
                 CategoryId = 1
             });
 
         var product = new Product
         {
-            OriginalPrice = 100,
             Price = 120,
             ArabicName = "pubg 100 card",
             EnglishName = "pubg 100 card",
-            ArabicDetails = "pubg 100 card",
-            EnglishDetails = "pubg 100 card",
             CanChooseQuantity = true,
             CategoryId = 2
         };
@@ -215,7 +206,8 @@ public static class Seed
     {
         if (await context.ChangerAndCompanies.AnyAsync()) return;
 
-        var com = await context.RechargeMethods.FirstOrDefaultAsync(x => x.Id == 2);
+        var com = await context.RechargeMethods
+            .FirstOrDefaultAsync(x => x.Id == 2);
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "eng",
@@ -224,7 +216,16 @@ public static class Seed
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "popo",
-            ArabicName = "baba"
+            ArabicName = "عربي"
+        });
+        
+        
+        var cc = await context.RechargeMethods
+            .FirstOrDefaultAsync(x => x.Id == 1);
+        cc.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "eng",
+            ArabicName = "اسم عربي"
         });
         await context.SaveChangesAsync();
     }
@@ -243,6 +244,27 @@ public static class Seed
             Name = "Syrian",
             ValuePerDollar = 6000,
         });
+        await context.SaveChangesAsync();
+    }
+    public static async Task SeedOurAgents(DataContext context)
+    {
+        if (await context.OurAgents.AnyAsync()) return;
+
+        context.OurAgents.Add(new OurAgent
+        {
+            EnglishName = "dss",
+            ArabicName = "عربي",
+            City = "homs",
+            PhoneNumber = "656566451"
+        });
+        context.OurAgents.Add(new OurAgent
+        {
+            EnglishName = "dss",
+            ArabicName = "عربي",
+            City = "homs",
+            PhoneNumber = "656566451"
+        });
+
         await context.SaveChangesAsync();
     }
 }

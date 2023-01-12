@@ -145,6 +145,7 @@ try
     await Seed.SeedPaymentMethods(context);
     await Seed.SeedCompanies(context);
     await Seed.SeedCurrency(context);
+    await Seed.SeedOurAgents(context);
 }
 catch (Exception e)
 {
