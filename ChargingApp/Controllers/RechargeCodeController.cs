@@ -49,7 +49,7 @@ public class RechargeCodeController : BaseApiController
     }
 
 
-    [HttpGet]
+    [HttpGet("generate-codes")]
     //  [Authorize (Policy = "RequiredAdminRole")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {

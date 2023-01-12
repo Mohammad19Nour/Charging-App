@@ -102,8 +102,8 @@ public class OrdersController : BaseApiController
             Product = product,
             User = user,
             PlayerId = dto.PlayerId,
-            TotalPrice = SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product.Price, user,
-                await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync()),
+            TotalPrice = await SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product, user,
+                _unitOfWork),
             Quantity = dto.Quantity,
             OrderType = "VIP"
         };

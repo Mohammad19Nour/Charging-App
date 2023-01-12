@@ -13,6 +13,9 @@ public interface IUnitOfWork
     IVipLevelRepository VipLevelRepository { get; }
     ICurrencyRepository CurrencyRepository { get; }
     IOurAgentsRepository OurAgentsRepository { get; }
+    ISpecificPriceForUserRepository SpecificPriceForUserRepository { get; }
+    IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository { get; }
+    IFavoriteRepository FavoriteRepository { get; }
 
     Task<bool> Complete();
     bool HasChanges();

@@ -74,6 +74,21 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OurAgents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    City = table.Column<string>(type: "TEXT", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OurAgents", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentGateways",
                 columns: table => new
                 {
@@ -117,13 +132,28 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SpecificBenefit",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
+                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SpecificBenefit", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VipLevels",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VIP_Level = table.Column<int>(type: "INTEGER", nullable: false),
-                    Discount = table.Column<int>(type: "INTEGER", nullable: false),
+                    BenefitPercent = table.Column<int>(type: "INTEGER", nullable: false),
                     MinimumPurchase = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -260,6 +290,28 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SpecificPriceForUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProductPrice = table.Column<double>(type: "REAL", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SpecificPriceForUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SpecificPriceForUsers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
@@ -290,7 +342,7 @@ namespace ChargingApp.Migrations
                     CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Notes = table.Column<string>(type: "TEXT", nullable: true),
                     AddedValue = table.Column<double>(type: "REAL", nullable: false),
-                    ReceiptPhotoId = table.Column<int>(type: "INTEGER", nullable: true),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
                     Checked = table.Column<bool>(type: "INTEGER", nullable: false),
                     Succeed = table.Column<bool>(type: "INTEGER", nullable: false),
                     Username = table.Column<string>(type: "TEXT", nullable: true),
@@ -309,8 +361,8 @@ namespace ChargingApp.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Payments_Photos_ReceiptPhotoId",
-                        column: x => x.ReceiptPhotoId,
+                        name: "FK_Payments_Photos_PhotoId",
+                        column: x => x.PhotoId,
                         principalTable: "Photos",
                         principalColumn: "Id");
                 });
@@ -343,11 +395,8 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Price = table.Column<double>(type: "REAL", nullable: false),
-                    OriginalPrice = table.Column<double>(type: "REAL", nullable: false),
                     EnglishName = table.Column<string>(type: "TEXT", nullable: true),
                     ArabicName = table.Column<string>(type: "TEXT", nullable: true),
-                    EnglishDetails = table.Column<string>(type: "TEXT", nullable: true),
-                    ArabicDetails = table.Column<string>(type: "TEXT", nullable: true),
                     CanChooseQuantity = table.Column<bool>(type: "INTEGER", nullable: false),
                     Available = table.Column<bool>(type: "INTEGER", nullable: false),
                     PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
@@ -378,7 +427,7 @@ namespace ChargingApp.Migrations
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     TotalPrice = table.Column<double>(type: "REAL", nullable: false),
-                    ReceiptPhotoId = table.Column<int>(type: "INTEGER", nullable: true),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
                     PlayerId = table.Column<string>(type: "TEXT", nullable: true),
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
                     Quantity = table.Column<int>(type: "INTEGER", nullable: false),
@@ -403,8 +452,8 @@ namespace ChargingApp.Migrations
                         principalTable: "PaymentGateways",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Orders_Photos_ReceiptPhotoId",
-                        column: x => x.ReceiptPhotoId,
+                        name: "FK_Orders_Photos_PhotoId",
+                        column: x => x.PhotoId,
                         principalTable: "Photos",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -488,14 +537,14 @@ namespace ChargingApp.Migrations
                 column: "PaymentGatewayId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_PhotoId",
+                table: "Orders",
+                column: "PhotoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_ProductId",
                 table: "Orders",
                 column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_ReceiptPhotoId",
-                table: "Orders",
-                column: "ReceiptPhotoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
@@ -503,9 +552,9 @@ namespace ChargingApp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_ReceiptPhotoId",
+                name: "IX_Payments_PhotoId",
                 table: "Payments",
-                column: "ReceiptPhotoId");
+                column: "PhotoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_UserId",
@@ -530,6 +579,11 @@ namespace ChargingApp.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_RechargeCodes_UserId",
                 table: "RechargeCodes",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SpecificPriceForUsers_UserId",
+                table: "SpecificPriceForUsers",
                 column: "UserId");
         }
 
@@ -560,6 +614,9 @@ namespace ChargingApp.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
+                name: "OurAgents");
+
+            migrationBuilder.DropTable(
                 name: "Payments");
 
             migrationBuilder.DropTable(
@@ -567,6 +624,12 @@ namespace ChargingApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "RechargeCodes");
+
+            migrationBuilder.DropTable(
+                name: "SpecificBenefit");
+
+            migrationBuilder.DropTable(
+                name: "SpecificPriceForUsers");
 
             migrationBuilder.DropTable(
                 name: "VipLevels");

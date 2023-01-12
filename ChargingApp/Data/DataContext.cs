@@ -32,6 +32,9 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<RechargeCode> RechargeCodes { get; set; }
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<OurAgent> OurAgents { get; set; }
+    public DbSet<SpecificPriceForUser> SpecificPriceForUsers { get; set; }
+    public DbSet<BenefitPercentInSpecificVilLevel> SpecificBenefit { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -47,5 +50,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
             .WithOne(u => u.Role)
             .HasForeignKey(ur => ur.RoleId)
             .IsRequired();
+        builder.Entity<Favorite>()
+            .HasKey(p => new { p.ProductId, p.UserId });
     }
 }

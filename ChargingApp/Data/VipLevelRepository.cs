@@ -18,12 +18,12 @@ public class VipLevelRepository :IVipLevelRepository
         return _context.VipLevels.ToList();
     }
 
-    public async Task<int> GetVipLevelDiscount(int vipLevel)
+    public async Task<double> GetBenefitPercentForVipLevel(int vipLevel)
     {
-        var ress = await _context.VipLevels.FirstOrDefaultAsync(x => x.VIP_Level == vipLevel);
-
-        return ress.Discount;
-    }
+        var res = await _context.VipLevels.FirstAsync(x => x.VIP_Level == vipLevel);
+        
+        return res.BenefitPercent;
+    } 
 
     public async Task<bool> CheckIfExist(int vipLevel)
     {
@@ -37,5 +37,13 @@ public class VipLevelRepository :IVipLevelRepository
             .ThenByDescending(x=>x.VIP_Level)
             .FirstOrDefaultAsync(x => x.MinimumPurchase <= purchase);
         return v.VIP_Level;
+    }
+
+    public async Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel)
+    {
+        var v = await _context.VipLevels
+            .Where(x => x.VIP_Level == vipLevel)
+            .FirstAsync();
+        return v.MinimumPurchase;
     }
 }
