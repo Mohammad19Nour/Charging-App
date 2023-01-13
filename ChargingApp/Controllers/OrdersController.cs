@@ -36,9 +36,7 @@ public class OrdersController : BaseApiController
         if (user.VIPLevel != 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
-        var res = await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id);
-
-        return Ok(new ApiOkResponse(res));
+        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
     }
 
     [HttpGet("vip-my-order")]
@@ -51,10 +49,8 @@ public class OrdersController : BaseApiController
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
-
-        var res = await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id);
-
-        return Ok(new ApiOkResponse(res));
+        
+        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
     }
 
     [HttpPost("vip-order")]
@@ -198,7 +194,7 @@ public class OrdersController : BaseApiController
 
         if (user.VIPLevel == 0)
             return BadRequest(new ApiResponse(400, "you're not allowed to do this action"));
-
+        
         var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
         if (order is null)
@@ -209,19 +205,16 @@ public class OrdersController : BaseApiController
 
         if (order.Checked)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it has been checked by admin"));
+        
+        if (order.StatusIfCanceled != 0)
+            return BadRequest(new ApiResponse(400, "you can't delete this order because it has been canceled"));
 
-        var price = order.TotalPrice;
-        user.Balance += price;
-        user.TotalPurchasing -= price;
-        user.TotalForVIPLevel -= price;
-
-        user.VIPLevel =
-            await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
-
-        _unitOfWork.OrdersRepository.DeleteOrder(order);
+        order.StatusIfCanceled = 1;
+       // _unitOfWork.OrdersRepository.DeleteOrder(order);
 
         if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "order deleted successfully"));
+            return Ok(new ApiResponse(201, "wait the admin to confirm the cancelation"));
+       
         return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
     }
 

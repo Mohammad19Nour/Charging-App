@@ -10,12 +10,11 @@ public class AutoMapperProfiles : Profile
 {
     public AutoMapperProfiles()
     {
-        CreateMap<Favorite,Product>().ConstructUsing(x=>x.Product);
+        CreateMap<SliderPhoto,SliderPhotoDto>();
         CreateMap<AppUser, UserDto>();
         CreateMap<UpdateUserInfoDto, AppUser>();
         CreateMap<RegisterDto, AppUser>();
         CreateMap<NewAgentDto, ChangerAndCompany>();
-
         CreateMap<Category, CategoryDto>();
         CreateMap<Category, CategoryWithProductsDto>();
         CreateMap<RechargeMethod, RechargeMethodDto>()
@@ -69,20 +68,30 @@ public class AutoMapperProfiles : Profile
                 opt.MapFrom(src => src.Product.EnglishName))
             .ForMember(dest => dest.ProductArabicName, opt =>
                 opt.MapFrom(src => src.Product.ArabicName))
+            .ForMember(dest => dest.StatusIfCanceled, opt =>
+                opt.MapFrom(src =>
+                    (src.StatusIfCanceled == 1 ? "Waiting" : (src.StatusIfCanceled == 2) ?
+                        "Cancelation Accepted" : (src.StatusIfCanceled == 3) ? "Cancelation Rejected": "Not canceled")))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src =>
-                    (!src.Checked ? "Pending" : (src.Checked && !src.Succeed) ? "Rejected" : "Succeed")))
-            ; // .ForMember(dest => dest.CreatedAt, opt =>
+                    (!src.Checked ? "Pending" : (src.Checked && !src.Succeed) ? "Rejected" : "Succeed"))); // .ForMember(dest => dest.CreatedAt, opt =>
         //  opt.MapFrom(src => src.CreatedAt.ToString("g")));
 
+        CreateMap<Order, OrderAdminDto>() .ForMember(dest => dest.EnglishName, opt =>
+                opt.MapFrom(src => src.Product.EnglishName))
+            .ForMember(dest => dest.ArabicName, opt =>
+                opt.MapFrom(src => src.Product.ArabicName))
+            ;
         CreateMap<Order, NormalOrderDto>()
+            .ForMember(dest => dest.StatusIfCanceled, opt =>
+                opt.MapFrom(src => "Not allowed"))
+
             .ForMember(dest => dest.ProductEnglishName, opt =>
                 opt.MapFrom(src => src.Product.EnglishName))
             .ForMember(dest => dest.ProductArabicName, opt =>
                 opt.MapFrom(src => src.Product.ArabicName))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo))
-
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src =>
                     (!src.Checked ? "Pending" : (src.Checked && !src.Succeed) ? "Rejected" : "Succeed")))
@@ -106,6 +115,10 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<NewOurAgentDto, OurAgent>();
         CreateMap<OurAgent , OurAgentsDto>();
+        CreateMap<UpdateOurAgentDto, OurAgent>()
+            .ForAllMembers(opt=>
+                opt.Condition((src , dest , srcMember) => srcMember != null)
+            );
     }
     //"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"
 }

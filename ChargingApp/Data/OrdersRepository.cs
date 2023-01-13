@@ -63,9 +63,32 @@ public class OrdersRepository : IOrdersRepository
             .ToListAsync();
     }
 
+    public async Task<List<OrderAdminDto>> GetCanceledOrdersRequestAsync(string? userEmail = null)
+    {
+        if (userEmail != null)
+            return await _context.Orders
+                .Include(x => x.User)
+                .Include(x => x.Product)
+                .Where(x=>x.StatusIfCanceled == 1 && !x.Checked && !x.Succeed)
+                .Where(x => x.User.Email == userEmail.ToLower())
+                .OrderByDescending(x => x.CreatedAt)
+                .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+        Console.WriteLine("\n\n**\n");
+        return await _context.Orders
+            .Include(x => x.User)
+            .Include(x => x.Product)
+            .Where(x=>x.StatusIfCanceled == 1 && !x.Checked && !x.Succeed)
+            .OrderByDescending(x => x.CreatedAt)
+            .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+    }
+
     public async Task<Order?> GetLastOrderForUserByIdAsync(int userId)
     {
         var order = await _context.Orders
+            .Where(p => p.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(x => x.UserId == userId);
 
@@ -77,17 +100,17 @@ public class OrdersRepository : IOrdersRepository
     {
         if (email == "")
             return await _context.Orders
-                .Include(x=>x.User)
-                .OrderByDescending(x=>x.CreatedAt)
+                .Include(x => x.User)
+                .OrderByDescending(x => x.CreatedAt)
                 .Where(x => x.Checked == false)
                 .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-        
+
         return await _context.Orders
             .Include(x => x.User)
             .Where(x => x.Checked == false)
-            .Where(x=>x.User.Email == email)
-            .OrderByDescending(x=>x.CreatedAt)
+            .Where(x => x.User.Email == email)
+            .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }

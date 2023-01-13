@@ -35,7 +35,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<SpecificPriceForUser> SpecificPriceForUsers { get; set; }
     public DbSet<BenefitPercentInSpecificVilLevel> SpecificBenefit { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
-
+    public DbSet<SliderPhoto> SliderPhotos { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -51,6 +51,6 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
             .HasForeignKey(ur => ur.RoleId)
             .IsRequired();
         builder.Entity<Favorite>()
-            .HasKey(p => new { p.ProductId, p.UserId });
+            .HasKey(p => new { p.CategoryId, p.UserId });
     }
 }

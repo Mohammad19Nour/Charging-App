@@ -11,9 +11,10 @@ public class OrderDto
     public int Quantity { get; set; }
     public string Status { get; set; }
     public string Notes { get; set; }
+    public string StatusIfCanceled { get; set; }
 }
 
 public class NormalOrderDto : OrderDto
-{
+{ 
     public string? ReceiptNumberUrl { get; set; }
 }

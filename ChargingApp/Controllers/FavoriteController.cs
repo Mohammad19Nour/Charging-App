@@ -17,8 +17,8 @@ public class FavoriteController : BaseApiController
         _unitOfWork = unitOfWork;
     }
     
-    [HttpGet("favorite-products")]
-    public async Task<ActionResult<List<ProductDto>>> GetFavoriteProducts()
+    [HttpGet("favorite")]
+    public async Task<ActionResult<List<CategoryDto>>> GetFavoriteProducts()
     {
         var email = User.GetEmail();
         if (email is null) return Unauthorized(new ApiResponse(401));
@@ -27,20 +27,13 @@ public class FavoriteController : BaseApiController
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user is null) return Unauthorized(new ApiResponse(401));
 
-        var res = await _unitOfWork.FavoriteRepository.GetFavoriteProductsForUserAsync(user.Id);
+        var res = await _unitOfWork.FavoriteRepository.GetFavoriteCategoriesForUserAsync(user.Id);
 
-        var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
-        var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-        foreach (var t in res)
-        {
-            t.TurkishPrice = t.Price * turkish;
-            t.SyrianPrice = t.Price * syrian;
-        }
         return Ok(new ApiOkResponse(res));
     }
 
-    [HttpPost("{productId:int}")]
-    public async Task<ActionResult> ToggleFavorite(int productId)
+    [HttpPost("{categoryId:int}")]
+    public async Task<ActionResult> ToggleFavorite(int categoryId)
     {
         var email = User.GetEmail();
         if (email is null) return Unauthorized(new ApiResponse(403));
@@ -48,23 +41,22 @@ public class FavoriteController : BaseApiController
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user is null) return Unauthorized(new ApiResponse(403));
 
-        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
-        if (product is null) return NotFound(new ApiResponse(404, "product not found"));
+        if (category is null) return NotFound(new ApiResponse(404, "category not found"));
 
         var fav = new Favorite
         {
             User = user,
-            Product = product,
-            ProductId = product.Id,
-            UserId = user.Id
+            UserId = user.Id,
+            Category = category,
+            CategoryId = category.Id
         };
-        var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id , product.Id);
-        Console.WriteLine(res+"\n\n");
+        var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id , category.Id);
 
         if (!res)
-            _unitOfWork.FavoriteRepository.AddFavoriteProduct(fav);
-        else _unitOfWork.FavoriteRepository.DeleteFavoriteProduct(fav);
+            _unitOfWork.FavoriteRepository.AddFavoriteCategory(fav);
+        else _unitOfWork.FavoriteRepository.DeleteFavoriteCategory(fav);
 
         if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200));
         return BadRequest(new ApiResponse(400, "something went wrong"));

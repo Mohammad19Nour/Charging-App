@@ -27,4 +27,19 @@ public class OurAgentsRepository : IOurAgentsRepository
     {
         _context.OurAgents.Add(newAgent);
     }
+
+    public async Task<OurAgent?> GetAgentById(int agentId)
+    {
+        return await _context.OurAgents.FirstOrDefaultAsync(x => x.Id == agentId);
+    }
+
+    public void DeleteAgent(OurAgent agent)
+    {
+        _context.OurAgents.Remove(agent);
+    }
+
+    public void UpdateAgent(OurAgent agent)
+    {
+        _context.Entry(agent).State = EntityState.Modified;
+    }
 }

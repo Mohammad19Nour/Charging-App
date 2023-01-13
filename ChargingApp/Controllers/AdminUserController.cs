@@ -117,8 +117,27 @@ public class AdminUserController : AdminController
             return Ok(new ApiResponse(200, "Updated successfully"));
 
         return BadRequest(new ApiResponse(400, "Failed to Updated price for user"));
-        
-        
     }
 
+    [HttpPost("add-debit")]
+    public async Task<ActionResult> AddDebit(string userEmail, double debitValue)
+    {
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(userEmail);
+
+        if (user is null)
+            return NotFound(new ApiResponse(404, "user not found"));
+
+        if (debitValue <= 0)
+            return BadRequest(new ApiResponse(400, "value should be greater than 0"));
+
+        user.Balance += debitValue;
+        user.Debit += debitValue;
+        
+        _unitOfWork.UserRepository.UpdateUserInfo(user);
+
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(200, "update successfully"));
+
+        return BadRequest(new ApiResponse(400, "Failed tp add debit"));
+    }
 }

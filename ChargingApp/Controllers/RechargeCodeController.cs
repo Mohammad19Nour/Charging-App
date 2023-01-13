@@ -41,7 +41,6 @@ public class RechargeCodeController : BaseApiController
         user.Balance += tmpCode.Value;
         tmpCode.TakedTime = DateTime.Now;
 
-        
         if (await _unitOfWork.Complete())
             return Ok(new ApiOkResponse("Recharge successfully. your balance is " + user.Balance));
 
