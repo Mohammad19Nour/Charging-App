@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using ChargingApp.Entity;
 using ChargingApp.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;
 
@@ -31,6 +33,7 @@ public class UnitOfWork : IUnitOfWork
     public IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository =>
         new BenefitPercentInSpecificVipLevelRepository(_context);
     public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
+    public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);
 
     public async Task<bool> Complete()
     {
@@ -40,5 +43,10 @@ public class UnitOfWork : IUnitOfWork
     public bool HasChanges()
     {
         return _context.ChangeTracker.HasChanges(); 
+    }
+
+    public void UpdateEntity(BaseEntity entity)
+    {
+        _context.Entry(entity).State = EntityState.Modified;
     }
 }

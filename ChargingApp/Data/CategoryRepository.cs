@@ -34,7 +34,8 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<CategoryWithProductsDto?> GetCategoryByIdProjectedAsync(int id)
     {
-        return await _context.Categories.Include(c => c.Products)
+        return await _context.Categories
+            .Include(c => c.Products)
             .Include(p=>p.Photo)
             .Where(c => c.Id == id)
             .ProjectTo<CategoryWithProductsDto>(_mapper.ConfigurationProvider)

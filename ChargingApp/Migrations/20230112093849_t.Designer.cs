@@ -3,6 +3,7 @@ using System;
 using ChargingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230112093849_t")]
+    partial class t
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.7");
@@ -171,6 +173,22 @@ namespace ChargingApp.Migrations
                     b.ToTable("SpecificBenefit");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.CanceledOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CanceledOrders");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -243,13 +261,13 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
                 {
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("CategoryId", "UserId");
+                    b.HasKey("ProductId", "UserId");
 
                     b.HasIndex("UserId");
 
@@ -261,6 +279,10 @@ namespace ChargingApp.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdminMessage")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("Checked")
                         .HasColumnType("INTEGER");
@@ -289,9 +311,6 @@ namespace ChargingApp.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("StatusIfCanceled")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Succeed")
@@ -539,22 +558,6 @@ namespace ChargingApp.Migrations
                     b.ToTable("RechargeMethods");
                 });
 
-            modelBuilder.Entity("ChargingApp.Entity.SliderPhoto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("PhotoId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoId");
-
-                    b.ToTable("SliderPhotos");
-                });
-
             modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>
                 {
                     b.Property<int>("Id")
@@ -703,6 +706,17 @@ namespace ChargingApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.CanceledOrder", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Category", b =>
                 {
                     b.HasOne("ChargingApp.Entity.Photo", "Photo")
@@ -725,9 +739,9 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
                 {
-                    b.HasOne("ChargingApp.Entity.Category", "Category")
+                    b.HasOne("ChargingApp.Entity.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("CategoryId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -737,7 +751,7 @@ namespace ChargingApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Category");
+                    b.Navigation("Product");
 
                     b.Navigation("User");
                 });
@@ -823,17 +837,6 @@ namespace ChargingApp.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.SliderPhoto", b =>
-                {
-                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
-                        .WithMany()
-                        .HasForeignKey("PhotoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Photo");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>

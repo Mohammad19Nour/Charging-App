@@ -16,4 +16,5 @@ public class Order :BaseEntity
     public PaymentGateway? PaymentGateway { get; set; }
     public string OrderType { get; set; } = "Normal";
     public string Notes { get; set; }= "Pending";
+    public int StatusIfCanceled { get; set; } = 0;
 }

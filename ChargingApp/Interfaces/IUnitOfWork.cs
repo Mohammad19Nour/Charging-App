@@ -16,6 +16,7 @@ public interface IUnitOfWork
     ISpecificPriceForUserRepository SpecificPriceForUserRepository { get; }
     IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository { get; }
     IFavoriteRepository FavoriteRepository { get; }
+    ISliderRepository SliderRepository { get; }
 
     Task<bool> Complete();
     bool HasChanges();

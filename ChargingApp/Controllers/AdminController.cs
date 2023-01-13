@@ -11,4 +11,14 @@ namespace ChargingApp.Controllers;
 
 public class AdminController :BaseApiController
 {
+    private readonly IUnitOfWork _unitOfWork;
+
+    public AdminController()
+    {
+    }
+
+    public AdminController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
 }

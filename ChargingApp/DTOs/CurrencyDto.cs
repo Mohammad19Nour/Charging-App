@@ -1,7 +1,9 @@
-﻿namespace ChargingApp.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ChargingApp.DTOs;
 
 public class CurrencyDto
 {
-    public string Name { get; set; }
-    public double ValuePerDollar { get; set; }
+   [Required]  public string Name { get; set; }
+   [Required] public double ValuePerDollar { get; set; }
 }

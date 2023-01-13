@@ -18,35 +18,33 @@ public class FavoriteRepository : IFavoriteRepository
         _mapper = mapper;
     }
 
-    public void AddFavoriteProduct(Favorite fav)
+    public void AddFavoriteCategory(Favorite fav)
     {
         _context.Favorites.Add(fav);
     }
 
-    public void DeleteFavoriteProduct(Favorite fav)
+    public void DeleteFavoriteCategory(Favorite fav)
     {
         _context.Favorites.Remove(fav);
     }
 
-    public async Task<List<ProductDto>> GetFavoriteProductsForUserAsync(int userId)
+    public async Task<List<CategoryWithProductsDto>> GetFavoriteCategoriesForUserAsync(int userId)
     {
-      var res = await _context.Favorites
-            .Include(x=>x.User)
-            .Include(x=>x.Product)
-            .Include(x=>x.Product.AvailableQuantities)
-            .Include(x=>x.Product.Photo)
-            .Where(x=>x.UserId == userId)
-          //  .ProjectTo<Product>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+        var res = _context.Favorites
+            .Include(x => x.User)
+            .Include(x => x.Category)
+            .Include(x => x.Category.Photo)
+            .Include(x=>x.Category.Products)
+            .Where(x => x.UserId == userId);
 
-      return res.Select(t => _mapper.Map<ProductDto>(t.Product)).ToList();
+      return await (_mapper.ProjectTo<CategoryWithProductsDto>(res.Select(t=>t.Category))).ToListAsync();
     }
 
-    public async Task<bool> CheckIfExist(int userId , int productId)
+    public async Task<bool> CheckIfExist(int userId , int categoryId)
     {
         var res = await _context.Favorites
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.CategoryId == categoryId);
         return res != null;
     }
 }

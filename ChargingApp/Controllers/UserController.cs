@@ -30,8 +30,13 @@ public class UserController : BaseApiController
     public async Task<ActionResult> UpdateUser(UpdateUserInfoDto updateUserInfoDto)
     {
         var email = User.GetEmail();
+
+        if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
+        
+        if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
+        
         _mapper.Map(updateUserInfoDto, user);
         _unitOfWork.UserRepository.UpdateUserInfo(user);
 
@@ -84,11 +89,12 @@ public class UserController : BaseApiController
     public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+        
         if (user is null)
             return Unauthorized(new ApiResponse(403));
+        
         var res = 
             await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
-
         
         if (!res.Succeeded)
             return BadRequest(new ApiResponse(400, "Failed to update password"));
