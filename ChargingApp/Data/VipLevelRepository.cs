@@ -46,4 +46,9 @@ public class VipLevelRepository :IVipLevelRepository
             .FirstAsync();
         return v.MinimumPurchase;
     }
+
+    public async Task<VIPLevels?> GetVipLevelAsync(int vipLevel)
+    {
+        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VIP_Level == vipLevel);
+    }
 }

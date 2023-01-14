@@ -8,7 +8,7 @@ namespace ChargingApp.Services;
 
 public class PhotoService :IPhotoService
 {
-    private readonly Cloudinary _cloudinary;
+    /* private readonly Cloudinary _cloudinary;
     
     public PhotoService(IOptions<CloudinarySettings>config)
     {
@@ -18,11 +18,36 @@ public class PhotoService :IPhotoService
             config.Value.ApiSecret
             );
         _cloudinary = new Cloudinary(acc);
-    }
+    }*/
 
-    public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
+   public PhotoService()
+   {
+   }
+
+    public async Task<(bool , string ,string)> AddPhotoAsync(IFormFile file)
     {
-        var uploadResult = new ImageUploadResult();
+        try
+        {
+            var fileName = file.FileName;
+
+            fileName =  DateTime.Now.ToString("yyyyMMddHHmmss_") + Path.GetFileName(fileName);
+
+            var uploadPath = Path.Combine("wwwroot/images/", fileName);
+
+            var stream = new FileStream(uploadPath, FileMode.Create);
+
+            await file.CopyToAsync(stream);
+            await stream.DisposeAsync();
+            
+            var imageLink ="/images/" + fileName;
+            return (true,imageLink , "done");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return (false,"", "Failed tp upload photo");
+        }
+      /*  var uploadResult = new ImageUploadResult();
 
         if (file.Length > 0)
         { 
@@ -47,13 +72,20 @@ public class PhotoService :IPhotoService
             }
         }
 
-        return uploadResult;
+        return uploadResult;*/
     }
-    public async Task<DeletionResult> DeletePhotoAsync(string publicId)
+    public async Task<bool> DeletePhotoAsync(string name)
     {
-        var deleteParams = new DeletionParams(publicId);
-        var result = await _cloudinary.DestroyAsync(deleteParams);
+       // var deleteParams = new DeletionParams(publicId);
+        //var result = await _cloudinary.DestroyAsync(deleteParams);
 
-        return result;
+       // name = name[8..];
+        if (File.Exists("wwwroot" + name))//check file exsit or not  
+        {  
+            File.Delete( "wwwroot" +name);
+            return true;
+        }  
+        Console.WriteLine(name);
+        return false;
     }
 }

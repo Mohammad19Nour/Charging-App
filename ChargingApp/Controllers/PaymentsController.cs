@@ -39,13 +39,12 @@ public class PaymentsController : BaseApiController
             return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
         var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (result.Error != null)
-            return BadRequest(new ApiResponse(400, result.Error.Message));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
         
         var payment = new Payment
@@ -59,11 +58,11 @@ public class PaymentsController : BaseApiController
             PaymentAgentArabicName = agent.ArabicName,
             Photo = photo,
             PaymentType = "Companies",
-            Succeed = true,
-            Checked = true
+            //Succeed = true,
+            //Checked = true
         };
 
-        user.Balance += payment.AddedValue;
+       // user.Balance += payment.AddedValue;
         _unitOfWork.PaymentRepository.AddPayment(payment);
         
         if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
@@ -89,13 +88,12 @@ public class PaymentsController : BaseApiController
             return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
         var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (result.Error != null)
-            return BadRequest(new ApiResponse(400, result.Error.Message));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
         
         var payment = new Payment
@@ -109,11 +107,11 @@ public class PaymentsController : BaseApiController
             PaymentAgentArabicName = agent.ArabicName,
             Photo = photo,
             PaymentType = "Offices",
-            Succeed = true,
-            Checked = true
+          //  Succeed = true,
+          //  Checked = true
         };
 
-        user.Balance += payment.AddedValue;
+        //user.Balance += payment.AddedValue;
         
         _unitOfWork.PaymentRepository.AddPayment(payment);
 
@@ -151,13 +149,12 @@ public class PaymentsController : BaseApiController
             return BadRequest(new ApiResponse(400, "can't find the target method"));
 
         var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (result.Error != null)
-            return BadRequest(new ApiResponse(400, "Failed to upload image"));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
         var payment = new Payment
         {
@@ -167,12 +164,12 @@ public class PaymentsController : BaseApiController
             Notes = dto.Notes,
             Photo = photo,
             PaymentType = name,
-            Succeed = true,
-            Checked = true
+            //Succeed = true,
+            //Checked = true
         };
 
         _unitOfWork.PaymentRepository.AddPayment(payment);
-        user.Balance += payment.AddedValue;
+      //  user.Balance += payment.AddedValue;
         
         if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
         

@@ -8,6 +8,7 @@ namespace ChargingApp.Helpers;
 
 public class AutoMapperProfiles : Profile
 {
+    
     public AutoMapperProfiles()
     {
         CreateMap<SliderPhoto,SliderPhotoDto>();
@@ -28,8 +29,8 @@ public class AutoMapperProfiles : Profile
         
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(src => src.Photo == null ? "No Photo" : src.Photo.Url));
-        CreateMap<Photo, string>().ConvertUsing(p => p.Url ?? "No Photo");
+                opt.MapFrom(src => src.Photo == null ? "No Photo" :"https://localhost:7217"+src.Photo.Url));
+        CreateMap<Photo, string>().ConvertUsing(p => (p.Url == null) ? "No Photo": "https://localhost:7217" + p.Url );
         CreateMap<Quantity, int>().ConvertUsing(q => q.Value);
         // CreateMap<JsonPatchDocument<ProductToUpdateDto>, JsonPatchDocument<Product>>();
         // CreateMap<Operation<ProductToUpdateDto>, Operation<Product>>();
@@ -57,7 +58,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
 
-        CreateMap<CategoryUpdateDto, Category>();
+        CreateMap<CategoryUpdateDto, Category>()
+            .ForAllMembers( opt=>opt.Condition((src,dest,srcMember)=> srcMember!=null));
 
         CreateMap<UpdateUserInfoDto, AppUser>().ForAllMembers
         (opt =>

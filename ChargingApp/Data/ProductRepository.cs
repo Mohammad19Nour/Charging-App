@@ -30,6 +30,7 @@ public class ProductRepository : IProductRepository
 
     public void DeleteProductFromCategory(Product product)
     {
+        _context.Photos.Remove(product.Photo);
         _context.Products.Remove(product);
     }
 

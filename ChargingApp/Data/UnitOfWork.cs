@@ -34,6 +34,7 @@ public class UnitOfWork : IUnitOfWork
         new BenefitPercentInSpecificVipLevelRepository(_context);
     public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
     public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);
+    public IPhotoRepository PhotoRepository => new PhotoRepository(_context);
 
     public async Task<bool> Complete()
     {

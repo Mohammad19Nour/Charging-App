@@ -17,6 +17,7 @@ public interface IUnitOfWork
     IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository { get; }
     IFavoriteRepository FavoriteRepository { get; }
     ISliderRepository SliderRepository { get; }
+    IPhotoRepository PhotoRepository { get; }
 
     Task<bool> Complete();
     bool HasChanges();

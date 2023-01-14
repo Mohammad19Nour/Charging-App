@@ -12,4 +12,5 @@ public class PendingOrderDto
     public string ProductArabicName { get; set; }
     public string UserName { get; set; }
     public string OrderType { get; set; } = "Normal";
+    public string Photo { get; set; }
 }

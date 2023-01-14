@@ -9,4 +9,5 @@ public interface IVipLevelRepository
     public Task<bool> CheckIfExist(int vipLevel);
     public Task<int> GetVipLevelForPurchasingAsync(double purchase);
     public Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel);
+    public Task<VIPLevels?> GetVipLevelAsync(int vipLevel);
 } 
