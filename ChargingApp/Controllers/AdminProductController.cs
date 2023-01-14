@@ -10,7 +10,7 @@ namespace ChargingApp.Controllers;
 
 public class AdminProductController : AdminController
 {
-     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
 
     public AdminProductController(IUnitOfWork unitOfWork, IPhotoService photoService)
@@ -33,14 +33,14 @@ public class AdminProductController : AdminController
         }
 
         var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
-
-        if (result.Error != null) return BadRequest(new ApiResponse(400, "Failed to upload photo"));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
+
         var product = new Product
         {
             EnglishName = dto.EnglishName,
@@ -68,7 +68,7 @@ public class AdminProductController : AdminController
             return NotFound(new ApiResponse(403, "this product isn't exist"));
 
         _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
-        
+
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(201, "product deleted"));
 
@@ -104,27 +104,32 @@ public class AdminProductController : AdminController
     [HttpPut("update-photo/{productId:int}")]
     public async Task<ActionResult> UpdateProductPhoto(int productId, IFormFile file)
     {
-        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
-
-        if (product is null)
-            return BadRequest(new ApiResponse(400, "this product isn't exist"));
-
         try
         {
-            var result = await _photoService.AddPhotoAsync(file);
-            if (result.Error != null)
-                return BadRequest(new ApiResponse(400, result.Error.Message));
+            var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
+            if (product is null)
+                return BadRequest(new ApiResponse(400, "this product isn't exist"));
+
+
+            var result = await _photoService.AddPhotoAsync(file);
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, result.Message));
+
+            var photo = new Photo
+            {
+                Url = result.Url
+            };
             product.Photo ??= new Photo();
-            product.Photo.Url = result.SecureUrl.AbsoluteUri;
-            product.Photo.PublicId = result.PublicId;
+            product.Photo = photo;
+
+            return Ok(new ApiResponse(200, "image updated"));
         }
         catch (Exception e)
         {
-            throw new Exception("Failed to update image");
+            Console.WriteLine(e);
+            return  BadRequest(new ApiResponse(400, "Some thing went wrong"));
         }
-
-        return Ok(new ApiResponse(200, "image updated"));
     }
 
     private async Task<ActionResult> AddNewProductWithQuantity(NewProductDto dto, Category category)
@@ -133,13 +138,12 @@ public class AdminProductController : AdminController
             return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
 
         var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
-
-        if (result.Error != null) return BadRequest(new ApiResponse(400, "Failed to upload photo"));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
         var product = new Product
         {
@@ -161,5 +165,4 @@ public class AdminProductController : AdminController
             return Ok(new ApiResponse(201, "Product added"));
         return BadRequest(new ApiException(400, "Failed to add product"));
     }
-
 }

@@ -4,6 +4,6 @@ namespace ChargingApp.Interfaces;
 
 public interface IPhotoService
 {
-    Task<ImageUploadResult> AddPhotoAsync(IFormFile file);
-    Task<DeletionResult> DeletePhotoAsync(string publicId);
+    Task< (bool Success , string Url,string Message)> AddPhotoAsync(IFormFile file);
+    Task<bool> DeletePhotoAsync(string publicId);
 }

@@ -157,13 +157,12 @@ public class OrdersController : BaseApiController
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
-        if (result.Error != null)
-            return BadRequest(new ApiResponse(400, "Failed to upload image"));
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
 
         var photo = new Photo
         {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
+            Url = result.Url
         };
         var order = new Order
         {

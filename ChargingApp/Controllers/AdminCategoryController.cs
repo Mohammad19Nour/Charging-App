@@ -1,4 +1,5 @@
-﻿using ChargingApp.DTOs;
+﻿using AutoMapper;
+using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
@@ -10,91 +11,131 @@ public class AdminCategoryController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
+    private readonly IMapper _mapper;
 
-    public AdminCategoryController(IUnitOfWork unitOfWork , IPhotoService photoService)
+    public AdminCategoryController(IUnitOfWork unitOfWork, IPhotoService photoService,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
+        _mapper = mapper;
     }
 
     [HttpPost("add-category")]
     public async Task<ActionResult> AddCategory([FromForm] NewCategoryDto dto)
     {
+        try
+        {
+            var category = new Category
+            {
+                EnglishName = dto.EnglishName,
+                ArabicName = dto.ArabicName,
+                HasSubCategories = dto.HasSubCategories
+            };
+            var photo = await _unitOfWork.PhotoRepository.AddPhotoAsync(dto.ImageFile);
+
+            if (photo is null)
+                return BadRequest(new ApiResponse(400, "Failed to upload photo"));
+
+            category.Photo = photo;
+
+            _unitOfWork.CategoryRepository.AddCategory(category);
+
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(201, "Category added"));
+
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
         //Console.WriteLine(photoFile.Length);
-        var category = new Category
-        {
-            EnglishName = dto.EnglishName,
-            ArabicName = dto.ArabicName,
-            HasSubCategories = dto.HasSubCategories
-        };
-        var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (result.Error != null)
-            return BadRequest(new ApiResponse(400, result.Error.Message));
-
-        var photo = new Photo
-        {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId
-        };
-
-        category.Photo = photo;
-
-        _unitOfWork.CategoryRepository.AddCategory(category);
-
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "Category added"));
-
-        return BadRequest(new ApiResponse(400, "something went wrong"));
     }
 
     [HttpDelete]
     public async Task<ActionResult> DeleteCategory(int categoryId)
     {
-        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
+        try
+        {
+            var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
-        if (category is null)
-            return NotFound(new ApiResponse(403, "category not found"));
+            if (category is null)
+                return NotFound(new ApiResponse(403, "category not found"));
 
-        _unitOfWork.CategoryRepository.DeleteCategory(category);
+            var name = category.Photo.Url;
 
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(201, "Deleted successfully"));
+            foreach (var t in category.Products)
+            {
+                var y = await _unitOfWork.ProductRepository.GetProductByIdAsync(t.Id);
+                _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
+            }
+            _unitOfWork.CategoryRepository.DeleteCategory(category);
+           var tmp = await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id);
 
-        return BadRequest(new ApiResponse(400, "Failed to delete category"));
+            if (_unitOfWork.HasChanges() && tmp)
+            {
+                await _unitOfWork.Complete();
+                await _photoService.DeletePhotoAsync(name);
+                return Ok(new ApiResponse(201, "Deleted successfully"));
+            }
+
+            return BadRequest(new ApiResponse(400, "Failed to delete category"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
     }
 
-    [HttpPut("{categoryId:int}")]
-    public async Task<ActionResult> UpdateCategory(int categoryId, [FromForm] CategoryUpdateDto dto)
+    [HttpPut("update-cat-name/{categoryId:int}")]
+    public async Task<ActionResult> UpdateCategory(int categoryId, [FromBody] CategoryUpdateDto dto)
+    {
+        try
+        {
+            var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
+
+            if (category is null)
+                return NotFound(new ApiResponse(404, "category not found"));
+
+            category = _mapper.Map<Category>(dto);
+
+            _unitOfWork.CategoryRepository.UpdateCategory(category);
+
+            await _unitOfWork.Complete();
+            return Ok(new ApiResponse(200));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
+    }
+
+    [HttpPut("update-cat-photo/{categoryId:int}")]
+    public async Task<ActionResult> UpdatePhoto(int categoryId, IFormFile? imageFile)
     {
         var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
 
+        if (imageFile == null) return BadRequest(new ApiResponse(400, "image file is required"));
 
-        if (dto.EnglishName != null && dto.EnglishName.Length > 0) category.EnglishName = dto.EnglishName;
-        if (dto.ArabicName != null && dto.ArabicName.Length > 0) category.ArabicName = dto.ArabicName;
 
-        if (dto.ImageFile != null)
+        var result = await _photoService.AddPhotoAsync(imageFile);
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
+        
+        category.Photo.Url = result.Url;
+
+        if (await _unitOfWork.Complete())
         {
-            try
-            {
-                var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-                if (result.Error != null)
-                    return BadRequest(new ApiResponse(400, result.Error.Message));
-
-                category.Photo.Url = result.SecureUrl.AbsoluteUri;
-                category.Photo.PublicId = result.PublicId;
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to update image");
-            }
+            return Ok(new ApiResponse(200, "File uploaded successfully."));
         }
 
-        _unitOfWork.CategoryRepository.UpdateCategory(category);
-
-        await _unitOfWork.Complete();
-        return Ok();
+        return BadRequest(new ApiResponse(400, "Failed"));
     }
-
 }

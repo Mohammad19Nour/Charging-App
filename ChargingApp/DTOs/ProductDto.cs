@@ -20,14 +20,8 @@ public class ProductDto : ProductInfo
     public double SyrianPrice { get; set; }
 }
 
-public class ProductToUpdateDto : ProductInfo
-{
-    public double OriginalPrice { get; set; }
-}
-
 public class NewProductDto : ProductInfo
 {
-    public double OriginalPrice { get; set; }
     public bool CanChooseQuantity { get; set; }
     public ICollection<int>? AvailableQuantities { get; set; } = new List<int>();
     public IFormFile PhotoFile { get; set; }

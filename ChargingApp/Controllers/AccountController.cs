@@ -32,7 +32,9 @@ public class AccountController : BaseApiController
     [HttpPost("register")]
     public async Task<ActionResult> Register(RegisterDto registerDto)
     {
-        registerDto.Email = registerDto.Email.ToLower();
+        try
+        {
+registerDto.Email = registerDto.Email.ToLower();
 
         var user = await _userManager.FindByEmailAsync(registerDto.Email);
         if (user != null)
@@ -82,6 +84,13 @@ public class AccountController : BaseApiController
 
         return Ok(new ApiResponse(200, "The confirmation link was send to your email successfully, " +
                                        "please check your email and confirm your account."));
+   
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
     }
 
     private async Task<bool> GenerateTokenAndSendEmailForUser(AppUser user)
@@ -100,60 +109,68 @@ public class AccountController : BaseApiController
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
-        loginDto.Email = loginDto.Email.ToLower();
-
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email);
-        if (user == null) return Unauthorized(new ApiResponse(401, "Invalid Email"));
-
-        var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-        if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
-
-        if (!await _userManager.IsEmailConfirmedAsync(user))
+        try
         {
-            return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
-        }
+            loginDto.Email = loginDto.Email.ToLower();
 
-        var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-        var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email);
+            if (user == null) return Unauthorized(new ApiResponse(401, "Invalid Email"));
 
-        var myWallet = new WalletDto
-        {
-            DollarBalance = user.Balance,
-            SyrianBalance = user.Balance * syrian,
-            TurkishBalance = user.Balance * turkish,
-            
-            DollarDebit = user.Debit,
-            SyrianDebit = user.Debit * syrian,
-            TurkishDebit = user.Debit * turkish,
-            
-            DollarTotalPurchase = user.TotalPurchasing,
-            SyrianTotalPurchase = user.TotalPurchasing * syrian,
-            TurkishTotalPurchase = user.TotalPurchasing * turkish,
-        };
-        if (user.Debit > 0)
-        {
-            myWallet.TurkishBalance *= -1;
-            myWallet.SyrianBalance *= -1;
-            myWallet.DollarBalance *= -1;
-        }
-        
-        var x = new UserDto
-        {
-            FirstName = user.FirstName.ToLower(),
-            LastName = user.LastName.ToLower(),
-            Token = await _tokenService.CreateToken(user),
-            PhoneNumber = user.PhoneNumber,
-            City = user.City,
-            Country = user.Country,
-            MyWallet = myWallet,
-            AccountType = user.VIPLevel switch
+            var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
             {
-                0 => "Normal",
-                _ => "Vip " + (user.VIPLevel)
+                return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
             }
-        };
 
-        return Ok(new ApiOkResponse(x));
+            var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+            var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+
+            var myWallet = new WalletDto
+            {
+                DollarBalance = user.Balance,
+                SyrianBalance = user.Balance * syrian,
+                TurkishBalance = user.Balance * turkish,
+            
+                DollarDebit = user.Debit,
+                SyrianDebit = user.Debit * syrian,
+                TurkishDebit = user.Debit * turkish,
+            
+                DollarTotalPurchase = user.TotalPurchasing,
+                SyrianTotalPurchase = user.TotalPurchasing * syrian,
+                TurkishTotalPurchase = user.TotalPurchasing * turkish,
+            };
+            if (user.Debit > 0)
+            {
+                myWallet.TurkishBalance *= -1;
+                myWallet.SyrianBalance *= -1;
+                myWallet.DollarBalance *= -1;
+            }
+        
+            var x = new UserDto
+            {
+                FirstName = user.FirstName.ToLower(),
+                LastName = user.LastName.ToLower(),
+                Token = await _tokenService.CreateToken(user),
+                PhoneNumber = user.PhoneNumber,
+                City = user.City,
+                Country = user.Country,
+                MyWallet = myWallet,
+                AccountType = user.VIPLevel switch
+                {
+                    0 => "Normal",
+                    _ => "Vip " + (user.VIPLevel)
+                }
+            };
+
+            return Ok(new ApiOkResponse(x));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
     }
 
     [HttpGet("confirm-email")]
@@ -183,55 +200,71 @@ public class AccountController : BaseApiController
     [AllowAnonymous]
     public async Task<ActionResult> ForgetPassword(UpdateEmailDto dto)
     {
-        var email = dto.Email?.ToLower();
-        if (email is null) return BadRequest(new ApiResponse(400, "email must be provided"));
-        var user = await _userManager.FindByEmailAsync(email);
-
-        if (user == null)
+        try
         {
-            return BadRequest(new ApiResponse(400, "user was not found"));
+            var email = dto.Email?.ToLower();
+            if (email is null) return BadRequest(new ApiResponse(400, "email must be provided"));
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(400, "user was not found"));
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var code = ConfirmationCodesService.GenerateCode(user.Id, token);
+
+            var confirmationLink = Url.Action("ResetPassword", "Account",
+                new { userId = user.Id, token = token }, Request.Scheme);
+
+            var text = "<html><body> The code to reset your password is : " + code +
+                       "</body></html>";
+            var res = await _emailSender.SendEmailAsync(user.Email, "Reset Password", text);
+
+            if (!res)
+                return BadRequest(new ApiResponse(400, "Failed to send email."));
+
+            return Ok(new ApiResponse(200, "The Code was sent to your email"));
         }
-
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-        var code = ConfirmationCodesService.GenerateCode(user.Id, token);
-
-        var confirmationLink = Url.Action("ResetPassword", "Account",
-            new { userId = user.Id, token = token }, Request.Scheme);
-
-        var text = "<html><body> The code to reset your password is : " + code +
-                   "</body></html>";
-        var res = await _emailSender.SendEmailAsync(user.Email, "Reset Password", text);
-
-        if (!res)
-            return BadRequest(new ApiResponse(400, "Failed to send email."));
-
-        return Ok(new ApiResponse(200, "The Code was sent to your email"));
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
     }
 
     [HttpPost("reset-password")]
     [AllowAnonymous]
     public async Task<ActionResult> ResetPassword(RestDto restDto)
     {
-        var newPassword = restDto.NewPassword;
-        var code = restDto.Code;
-        if (newPassword == null || code == null)
-            return BadRequest(new ApiResponse(400, "The password should not be empty"));
-        var val = ConfirmationCodesService.GetUserIdAndToken(code);
+        try
+        {
+            var newPassword = restDto.NewPassword;
+            var code = restDto.Code;
+            if (newPassword == null || code == null)
+                return BadRequest(new ApiResponse(400, "The password should not be empty"));
+            var val = ConfirmationCodesService.GetUserIdAndToken(code);
 
-        if (val is null)
-            return BadRequest(new ApiResponse(400, "the code is incorrect"));
-        var userId = val.Value.userId;
-        var token = val.Value.token;
+            if (val is null)
+                return BadRequest(new ApiResponse(400, "the code is incorrect"));
+            var userId = val.Value.userId;
+            var token = val.Value.token;
 
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return BadRequest(new ApiResponse(400, "this user is not registered"));
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return BadRequest(new ApiResponse(400, "this user is not registered"));
 
-        var res = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            var res = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
-        if (res.Succeeded == false) return BadRequest(new ApiResponse(400, "Cannot reset password"));
+            if (res.Succeeded == false) return BadRequest(new ApiResponse(400, "Cannot reset password"));
 
-        ConfirmationCodesService.RemoveUserCodes(userId);
-        return Ok(new ApiResponse(200, "Password was reset successfully"));
+            ConfirmationCodesService.RemoveUserCodes(userId);
+            return Ok(new ApiResponse(200, "Password was reset successfully"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
     }
 }
