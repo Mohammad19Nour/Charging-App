@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230111125654_w")]
-    partial class w
+    [Migration("20230114145825_a")]
+    partial class a
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -245,19 +245,13 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ProductId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
+                    b.HasKey("CategoryId", "UserId");
 
                     b.HasIndex("UserId");
 
@@ -299,6 +293,9 @@ namespace ChargingApp.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("StatusIfCanceled")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("Succeed")
                         .HasColumnType("INTEGER");
 
@@ -327,11 +324,15 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ArabicName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("EnglishName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -421,9 +422,6 @@ namespace ChargingApp.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("PublicId")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
                         .HasColumnType("TEXT");
@@ -538,6 +536,22 @@ namespace ChargingApp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RechargeMethods");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.SliderPhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PhotoId");
+
+                    b.ToTable("SliderPhotos");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>
@@ -710,9 +724,9 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.Favorite", b =>
                 {
-                    b.HasOne("ChargingApp.Entity.Product", "Product")
+                    b.HasOne("ChargingApp.Entity.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -722,7 +736,7 @@ namespace ChargingApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Product");
+                    b.Navigation("Category");
 
                     b.Navigation("User");
                 });
@@ -808,6 +822,17 @@ namespace ChargingApp.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.SliderPhoto", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Photo");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>
