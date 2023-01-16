@@ -3,6 +3,7 @@ using System;
 using ChargingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230116090644_s")]
+    partial class s
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.7");
@@ -262,6 +264,9 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Checked")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -282,20 +287,16 @@ namespace ChargingApp.Migrations
                     b.Property<string>("PlayerId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PlayerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("StatusIfCanceled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("StatusIfCanceled")
+                    b.Property<bool>("Succeed")
                         .HasColumnType("INTEGER");
 
                     b.Property<double>("TotalPrice")
@@ -353,6 +354,9 @@ namespace ChargingApp.Migrations
                     b.Property<double>("AddedValue")
                         .HasColumnType("REAL");
 
+                    b.Property<bool>("Checked")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
@@ -372,7 +376,7 @@ namespace ChargingApp.Migrations
                     b.Property<int?>("PhotoId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Status")
+                    b.Property<bool>("Succeed")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
@@ -749,7 +753,9 @@ namespace ChargingApp.Migrations
 
                     b.HasOne("ChargingApp.Entity.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ChargingApp.Entity.AppUser", "User")
                         .WithMany()

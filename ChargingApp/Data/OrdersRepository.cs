@@ -69,17 +69,16 @@ public class OrdersRepository : IOrdersRepository
             return await _context.Orders
                 .Include(x => x.User)
                 .Include(x => x.Product)
-                .Where(x=>x.StatusIfCanceled == 1 && !x.Checked && !x.Succeed)
+                .Where(x=>x.StatusIfCanceled == 1 && x.Status == 0)
                 .Where(x => x.User.Email == userEmail.ToLower())
                 .OrderByDescending(x => x.CreatedAt)
                 .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-        Console.WriteLine("\n\n**\n");
         return await _context.Orders
             .Include(x => x.User)
             .Include(x => x.Product)
-            .Where(x=>x.StatusIfCanceled == 1 && !x.Checked && !x.Succeed)
+            .Where(x=>x.StatusIfCanceled == 1 && x.Status == 0)
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
@@ -102,13 +101,13 @@ public class OrdersRepository : IOrdersRepository
             return await _context.Orders
                 .Include(x => x.User)
                 .OrderByDescending(x => x.CreatedAt)
-                .Where(x => x.Checked == false)
+                .Where(x => x.Status == 0)
                 .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
         return await _context.Orders
             .Include(x => x.User)
-            .Where(x => x.Checked == false)
+            .Where(x => x.Status== 0)
             .Where(x => x.User.Email == email)
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
@@ -121,7 +120,7 @@ public class OrdersRepository : IOrdersRepository
 
         var res = await _context.Orders
             .Include(x => x.User)
-            .Where(x => x.Checked == false && x.User.Email.ToLower() == email)
+            .Where(x => x.Status == 0 && x.User.Email.ToLower() == email)
             .FirstOrDefaultAsync();
 
         return res != null;

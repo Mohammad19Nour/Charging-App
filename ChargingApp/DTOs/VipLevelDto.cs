@@ -5,7 +5,9 @@ public class VipLevelInfo
     public int BenefitPercent { get; set; }
     public int MinimumPurchase { get; set; } = 0;
 }
-public class VipLevelDto:VipLevelInfo
+
+public class VipLevelDto
 {
-    public int VIP_Level { get; set; }
+    public int VipLevel { get; set; }
+    public int MinimumPurchase { get; set; }
 }

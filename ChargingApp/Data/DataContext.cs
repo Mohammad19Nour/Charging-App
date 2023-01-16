@@ -20,7 +20,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
         
     }
 
-    public DbSet<VIPLevels> VipLevels { get; set; }
+    public DbSet<VIPLevel> VipLevels { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Payment> Payments { get; set; }

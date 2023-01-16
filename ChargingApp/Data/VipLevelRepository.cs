@@ -13,42 +13,43 @@ public class VipLevelRepository :IVipLevelRepository
         _context = context;
     }
 
-    public async Task<List<VIPLevels>> GetAllVipLevelsAsync()
+    public async Task<List<VIPLevel>> GetAllVipLevelsAsync()
     {
         return _context.VipLevels.ToList();
     }
 
     public async Task<double> GetBenefitPercentForVipLevel(int vipLevel)
     {
-        var res = await _context.VipLevels.FirstAsync(x => x.VIP_Level == vipLevel);
+        var res = await _context.VipLevels.FirstAsync(x => x.VipLevel == vipLevel);
         
         return res.BenefitPercent;
     } 
 
     public async Task<bool> CheckIfExist(int vipLevel)
     {
-        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VIP_Level == vipLevel) != null;
+        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel) != null;
     }
 
     public async Task<int> GetVipLevelForPurchasingAsync(double purchase)
     {
         var v = await _context.VipLevels
+           // .Where(x=>x.VipLevel != 0)
             .OrderByDescending(x =>x.MinimumPurchase)
-            .ThenByDescending(x=>x.VIP_Level)
+            .ThenByDescending(x=>x.VipLevel)
             .FirstOrDefaultAsync(x => x.MinimumPurchase <= purchase);
-        return v.VIP_Level;
+        return v.VipLevel;
     }
 
     public async Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel)
     {
         var v = await _context.VipLevels
-            .Where(x => x.VIP_Level == vipLevel)
+            .Where(x => x.VipLevel == vipLevel)
             .FirstAsync();
         return v.MinimumPurchase;
     }
 
-    public async Task<VIPLevels?> GetVipLevelAsync(int vipLevel)
+    public async Task<VIPLevel?> GetVipLevelAsync(int vipLevel)
     {
-        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VIP_Level == vipLevel);
+        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel);
     }
 }
