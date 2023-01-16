@@ -11,13 +11,17 @@ public static class SomeUsefulFunction
     {
         var specificPrice = await unitOfWork.SpecificPriceForUserRepository
             .GetProductPriceForUserAsync(product.Id, user);
+        
         var priceX = product.Price;
 
         if (specificPrice != null)
         {
             priceX = (double)specificPrice * dtoQuantity;
-
+            
+            if (user.VIPLevel == 0) return priceX;
+            
             user.TotalPurchasing += priceX;
+            
             user.TotalForVIPLevel += priceX;
             user.VIPLevel = await unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
@@ -25,28 +29,39 @@ public static class SomeUsefulFunction
             return priceX;
         }
 
+        
         var vipLevels = await unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
+
+        var total = dtoQuantity * priceX;
+        
+        if (user.VIPLevel == 0)
+        {
+            total += total * vipLevels[0].BenefitPercent / 100;
+            return total;
+        }
+        
         var benefitPercent = new List<int>();
         var minimumP = new List<int>();
 
+       vipLevels = vipLevels.Where(x => x.VipLevel != 0).ToList();
+        
         foreach (var x in vipLevels)
         {
             benefitPercent.Add(x.BenefitPercent);
             minimumP.Add(x.MinimumPurchase);
         }
-
-        var total = dtoQuantity * priceX;
-
+        
         double price = 0;
+        var level = 0;
 
         minimumP.Add(1000000000);
 
         for (var i = 0; i < benefitPercent.Count; i++)
         {
             if (total == 0) break;
-
             if (minimumP[i] < user.TotalForVIPLevel && minimumP[i + 1] < user.TotalForVIPLevel) continue;
 
+            
             var specificBenefit = await unitOfWork.BenefitPercentInSpecificVipLevelRepository
                 .GetBenefitPercentForProductAsync(product.Id, user.VIPLevel);
             var globalBenefit = benefitPercent[i];
@@ -58,13 +73,12 @@ public static class SomeUsefulFunction
             var d = minimumP[i + 1] - user.TotalForVIPLevel;
 
             d = Math.Min(d, total);
-            
+
             total -= d;
 
             user.TotalPurchasing += d;
-            user.TotalForVIPLevel += d;
             price += d;
-            user.VIPLevel = vipLevels[i].VIP_Level;
+            level = vipLevels[i].VipLevel;
             if (total == 0) break;
 
             if (specificBenefit is null)
@@ -72,6 +86,11 @@ public static class SomeUsefulFunction
             else total -= total * (double)specificBenefit / 100;
         }
 
+        if (user.VIPLevel != 0)
+        {
+            user.TotalForVIPLevel += price;
+            user.VIPLevel = level;
+        }
         return price;
     }
 
@@ -80,7 +99,9 @@ public static class SomeUsefulFunction
     {
         var tmp = products;
 
-        var benefitPercent = await _unitOfWork.VipLevelRepository.GetBenefitPercentForVipLevel(vipLevel);
+        Console.WriteLine(vipLevel + "\n\n");
+        var benefitPercent =
+            await _unitOfWork.VipLevelRepository.GetBenefitPercentForVipLevel(vipLevel);
 
         var syria = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
         var turkey = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
@@ -100,7 +121,7 @@ public static class SomeUsefulFunction
         }
 
         if (user is null || vipLevel == 0) return products;
-        Console.WriteLine(vipLevel+"\n\n");
+        Console.WriteLine(vipLevel + "\n\n");
 
 
         foreach (var t in products)
@@ -110,8 +131,8 @@ public static class SomeUsefulFunction
                     .GetProductPriceForUserAsync(t.Id, user);
 
             if (specificPrice == null) continue;
-            
-            t.Price = (double)specificPrice ;
+
+            t.Price = (double)specificPrice;
             t.TurkishPrice = t.Price * turkey;
             t.SyrianPrice = t.Price * syria;
         }

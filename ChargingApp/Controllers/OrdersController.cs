@@ -88,6 +88,8 @@ public class OrdersController : BaseApiController
             if (product.AvailableQuantities.FirstOrDefault(x => x.Value == dto.Quantity) == null)
                 return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
         }
+        if (dto.PlayerName.Length == 0)
+            return BadRequest(new ApiResponse(400, "player name is required"));
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
             return BadRequest(new ApiResponse(400,
@@ -101,7 +103,8 @@ public class OrdersController : BaseApiController
             TotalPrice = await SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product, user,
                 _unitOfWork),
             Quantity = dto.Quantity,
-            OrderType = "VIP"
+            OrderType = "VIP",
+            PlayerName = dto.PlayerName
         };
 
         if (order.TotalPrice > user.Balance)
@@ -145,6 +148,9 @@ public class OrdersController : BaseApiController
 
         if (paymentGateway is null)
             return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
+       
+        if (dto.PlayerName.Length == 0)
+            return BadRequest(new ApiResponse(400, "player name is required"));
 
         if (product.CanChooseQuantity)
         {
@@ -157,6 +163,7 @@ public class OrdersController : BaseApiController
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
+       
         if (!result.Success)
             return BadRequest(new ApiResponse(400, result.Message));
 
@@ -169,16 +176,27 @@ public class OrdersController : BaseApiController
             Product = product,
             User = user,
             PlayerId = dto.PlayerId,
-            TotalPrice = dto.Quantity * product.Price,
             Quantity = dto.Quantity,
             PaymentGateway = paymentGateway,
             OrderType = "Normal",
-            Photo = photo
+            Photo = photo,
+            PlayerName = dto.PlayerName.ToLower()
             // CreatedAt = DateTime.Now.tos
         };
+
+        if (!product.CanChooseQuantity)
+        {
+            order.TotalPrice = await
+                SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product, user, _unitOfWork);
+            order.Quantity = dto.Quantity;
+        }
+        else
+        {
+        }
         _unitOfWork.OrdersRepository.AddOrder(order);
 
-        if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));
+        if (!await _unitOfWork.Complete()) 
+            return BadRequest(new ApiResponse(400, "Something went wrong"));
 
         var res = _mapper.Map<NormalOrderDto>(order);
         return Ok(new ApiOkResponse(res));
@@ -202,7 +220,7 @@ public class OrdersController : BaseApiController
         if (order.CreatedAt.AddSeconds(15).CompareTo(DateTime.UtcNow) < 0)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it's been 15 seconds"));
 
-        if (order.Checked)
+        if (order.Status != 0)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it has been checked by admin"));
         
         if (order.StatusIfCanceled != 0)

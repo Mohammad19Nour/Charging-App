@@ -28,16 +28,15 @@ public class FavoriteRepository : IFavoriteRepository
         _context.Favorites.Remove(fav);
     }
 
-    public async Task<List<CategoryWithProductsDto>> GetFavoriteCategoriesForUserAsync(int userId)
+    public async Task<List<CategoryDto>> GetFavoriteCategoriesForUserAsync(int userId)
     {
         var res = _context.Favorites
             .Include(x => x.User)
             .Include(x => x.Category)
             .Include(x => x.Category.Photo)
-            .Include(x=>x.Category.Products)
             .Where(x => x.UserId == userId);
 
-      return await (_mapper.ProjectTo<CategoryWithProductsDto>(res.Select(t=>t.Category))).ToListAsync();
+      return await (_mapper.ProjectTo<CategoryDto>(res.Select(t=>t.Category))).ToListAsync();
     }
 
     public async Task<bool> CheckIfExist(int userId , int categoryId)

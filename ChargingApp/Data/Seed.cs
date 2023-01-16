@@ -98,11 +98,11 @@ public static class Seed
     {
         if (await context.VipLevels.AnyAsync()) return;
 
-        context.VipLevels.Add(new VIPLevels { BenefitPercent = 30, VIP_Level = 0 });
-        context.VipLevels.Add(new VIPLevels { BenefitPercent = 20, VIP_Level = 1 });
-        context.VipLevels.Add(new VIPLevels { BenefitPercent = 15, VIP_Level = 2, MinimumPurchase = 1000 });
-        context.VipLevels.Add(new VIPLevels { BenefitPercent = 10, VIP_Level = 3, MinimumPurchase = 2000 });
-        context.VipLevels.Add(new VIPLevels { BenefitPercent = 5, VIP_Level = 4, MinimumPurchase = 3000 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 30, VipLevel = 0 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 20, VipLevel = 1 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 15, VipLevel = 2, MinimumPurchase = 1000 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 10, VipLevel = 3, MinimumPurchase = 2000 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 5, VipLevel = 4, MinimumPurchase = 3000 });
 
         await context.SaveChangesAsync();
     }

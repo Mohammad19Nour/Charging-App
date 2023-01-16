@@ -21,10 +21,9 @@ public class AdminPaymentController : AdminController
 
     if (payment is null) return NotFound(new ApiResponse(401 , "this payment doesn't exist"));
 
-    if (payment.Checked) return BadRequest(new ApiResponse(400, "this payment already checked"));
+    if (payment.Status!=0) return BadRequest(new ApiResponse(400, "this payment already checked"));
 
-    payment.Checked = true;
-    payment.Succeed = true;
+    payment.Status = 1;
 
     var mn = Math.Min(payment.AddedValue, payment.User.Debit);
 
@@ -49,10 +48,9 @@ public class AdminPaymentController : AdminController
 
     if (payment is null) return NotFound(new ApiResponse(401 , "this order doesn't exist"));
 
-    if (payment.Checked) return BadRequest(new ApiResponse(400, "this order already checked"));
+    if (payment.Status != 0) return BadRequest(new ApiResponse(400, "this order already checked"));
 
-    payment.Checked = true;
-    payment.Succeed = false;
+    payment.Status = 2;
     payment.Notes = notes;
 
     if (await _unitOfWork.Complete())
@@ -63,9 +61,10 @@ public class AdminPaymentController : AdminController
   }
   
   [HttpGet("pending-payment")]
-  public async Task<ActionResult<List<PaymentAdminDto>>> GetPendingPayments()
+  public async Task<ActionResult<List<PaymentAdminDto>>> GetPendingPayments(string? user = null)
   {
-    var res = await _unitOfWork.PaymentRepository.GetAllPendingPaymentsAsync();
+    
+    var res = await _unitOfWork.PaymentRepository.GetAllPendingPaymentsAsync(user);
     return Ok(new ApiOkResponse(res));
   }
 

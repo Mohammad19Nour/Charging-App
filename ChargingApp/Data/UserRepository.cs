@@ -42,7 +42,7 @@ public class UserRepository : IUserRepository
     {
         var user = await GetUserByEmailAsync(email);
         var vipLevel = user.VIPLevel;
-        var x = await _context.VipLevels.Where(x => x.VIP_Level == vipLevel).FirstAsync();
+        var x = await _context.VipLevels.Where(x => x.VipLevel == vipLevel).FirstAsync();
         int discount = x.BenefitPercent;
         return discount;
     }

@@ -9,5 +9,5 @@ public interface IPaymentRepository
     public void AddPayment(Payment payment);
     public Task<ChangerAndCompany?> GetPaymentAgentByIdAsync(int? id);
     public Task<Payment?> GetPaymentByIdAsync(int id);
-    public Task<List<PaymentAdminDto>> GetAllPendingPaymentsAsync();
+    public Task<List<PaymentAdminDto>> GetAllPendingPaymentsAsync(string? userEmail);
 } 

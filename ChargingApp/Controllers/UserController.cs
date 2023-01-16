@@ -115,31 +115,7 @@ public class UserController : BaseApiController
 
         try
         {
-            var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-            var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
-        
-            var myWallet = new WalletDto
-            {
-                DollarBalance = user.Balance,
-                SyrianBalance = user.Balance * syrian,
-                TurkishBalance = user.Balance * turkish,
-            
-                DollarDebit = user.Debit,
-                SyrianDebit = user.Debit * syrian,
-                TurkishDebit = user.Debit * turkish,
-            
-            
-                DollarTotalPurchase = user.TotalPurchasing,
-                SyrianTotalPurchase = user.TotalPurchasing * syrian,
-                TurkishTotalPurchase = user.TotalPurchasing * turkish,
-            };
-
-            if (user.Debit > 0)
-            {
-                myWallet.TurkishBalance *= -1;
-                myWallet.SyrianBalance *= -1;
-                myWallet.DollarBalance *= -1;
-            }
+            var myWallet = await getMyWallet(user);
             return Ok(new ApiOkResponse(myWallet));
         }
         catch (Exception e)
@@ -150,8 +126,10 @@ public class UserController : BaseApiController
         }
         
     }
-    [HttpGet("account-type")]
-    public async Task<ActionResult<string>> AccountType()
+
+
+    [HttpGet("account-info")]
+    public async Task<ActionResult> AccountInfo()
     {
         var email = User.GetEmail();
 
@@ -161,10 +139,51 @@ public class UserController : BaseApiController
         
         if (user is null) return Unauthorized(new ApiResponse(401));
 
-        var type = "";
-        if (user.VIPLevel == 0) type = "Normal";
-        else type = "VIP " + user.VIPLevel.ToString();
-            return Ok(new ApiOkResponse(type));
+        if (user.VIPLevel == 0) return Ok(new ApiOkResponse("Normal"));
 
+        var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
+        levels = levels.Where(x => x.VipLevel != 0).ToList();
+        
+        var res = new AccountInfoDto
+        {
+            UserVipLevel = "VIP " + user.VIPLevel,
+            MyWallet = await getMyWallet(user),
+            VipLevels = levels.Select(x=>_mapper.Map<VipLevelDto>(x)).ToList()
+        };
+        
+
+        return Ok(new ApiOkResponse(res));
+    }
+    
+    
+    private async Task<WalletDto> getMyWallet(AppUser user)
+    {
+        var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+        var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+        
+        var myWallet = new WalletDto
+        {
+            DollarBalance = user.Balance,
+            SyrianBalance = user.Balance * syrian,
+            TurkishBalance = user.Balance * turkish,
+            
+            DollarDebit = user.Debit,
+            SyrianDebit = user.Debit * syrian,
+            TurkishDebit = user.Debit * turkish,
+            
+            
+            DollarTotalPurchase = user.TotalPurchasing,
+            SyrianTotalPurchase = user.TotalPurchasing * syrian,
+            TurkishTotalPurchase = user.TotalPurchasing * turkish,
+        };
+
+        if (user.Debit > 0)
+        {
+            myWallet.TurkishBalance *= -1;
+            myWallet.SyrianBalance *= -1;
+            myWallet.DollarBalance *= -1;
+        }
+
+        return myWallet;
     }
 }
