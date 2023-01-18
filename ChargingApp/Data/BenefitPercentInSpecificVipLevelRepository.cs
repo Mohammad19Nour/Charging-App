@@ -27,4 +27,18 @@ public class BenefitPercentInSpecificVipLevelRepository : IBenefitPercentInSpeci
     {
         _context.SpecificBenefit.Add(tmp);
     }
+
+    public async Task<bool> CheckIfExist(int productId , int vipLevel)
+    {
+        return await _context.SpecificBenefit.AsNoTracking()
+            .FirstOrDefaultAsync
+                (x => x.ProductId == productId && x.VipLevel == vipLevel) != null;
+    }
+
+    public async Task<BenefitPercentInSpecificVilLevel?> GetBenefitAsync(int productId, int vipLevel)
+    {
+        return await _context.SpecificBenefit
+            .FirstOrDefaultAsync(x => x.ProductId == productId && x.VipLevel == vipLevel);
+
+    }
 }

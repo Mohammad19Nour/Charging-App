@@ -125,6 +125,7 @@ builder.Services.AddAuthorization(opt =>
     opt.AddPolicy("RequiredAdminRole",policy => policy.RequireRole("Admin"));
     opt.AddPolicy("RequiredNormalRole",policy => policy.RequireRole("Normal"));
     opt.AddPolicy("RequiredVIPRole",policy => policy.RequireRole("VIP")); 
+    opt.AddPolicy("RequiredModerateRole",policy => policy.RequireRole("Admin","Moderator")); 
 });
 var app = builder.Build();
 

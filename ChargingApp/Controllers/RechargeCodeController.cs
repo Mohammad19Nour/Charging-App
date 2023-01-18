@@ -18,7 +18,6 @@ public class RechargeCodeController : BaseApiController
         _unitOfWork = unitOfWork;
     }
 
-    
     [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost]
     public async Task<ActionResult<double>> Recharge([FromBody] MyClass obj)
@@ -28,9 +27,6 @@ public class RechargeCodeController : BaseApiController
 
         if (user is null)
             return Unauthorized(new ApiResponse(404));
-
-        if (user.VIPLevel == 0)
-            return Unauthorized(new ApiResponse(403, "you can't do this action"));
 
         var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
         if (tmpCode is null || tmpCode.Istaked)
@@ -48,8 +44,8 @@ public class RechargeCodeController : BaseApiController
     }
 
 
+    [Authorize(Policy = "RequiredAdminRole")]
     [HttpGet("generate-codes")]
-    //  [Authorize (Policy = "RequiredAdminRole")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {
         var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);

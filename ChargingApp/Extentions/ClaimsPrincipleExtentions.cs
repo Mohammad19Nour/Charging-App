@@ -1,4 +1,7 @@
 ﻿using System.Security.Claims;
+using ChargingApp.Entity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Extentions;
 
@@ -8,10 +11,16 @@ public static class ClaimsPrincipleExtentions
     {
         return user.FindFirst(ClaimTypes.Email)?.Value.ToLower();
     }
-    public static bool HasAtribute(this object objectToCheck, string methodName)
+
+    public static async Task<IEnumerable<string>> GetRoles(this ClaimsPrincipal user , UserManager<AppUser> userManager)
     {
-        var type = objectToCheck.GetType();
-        Console.WriteLine(type.GetProperty(methodName).Name+"frfrfrf\n\n\n");
-        return type.GetMethod(methodName) != null;
-    } 
+        var userEmail = user.GetEmail().ToLower();
+        
+        return await userManager.Users
+            .Where(x => x.Email == userEmail)
+            .Include(x=>x.UserRoles)
+            .ThenInclude(x => x.Role)
+            .Select(u => u.UserRoles.Select(x => x.Role.Name))
+            .FirstAsync();
+    }
 }

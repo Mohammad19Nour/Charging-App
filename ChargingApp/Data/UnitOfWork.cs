@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ChargingApp.Entity;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;
@@ -35,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
     public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
     public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);
     public IPhotoRepository PhotoRepository => new PhotoRepository(_context);
+    public IDebitRepository DebitRepository => new DebitRepository(_context,_mapper);
 
     public async Task<bool> Complete()
     {

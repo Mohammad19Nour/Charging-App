@@ -7,7 +7,7 @@ public class NewOrderDto
     [Required] public string? PlayerId { get; set; }
     [Required] public int ProductId { get; set; }
     [Required] public string PlayerName { get; set; }
-    public int Quantity { get; set; } = 1;
+    public double Quantity { get; set; } = 1;
 }
 
 public class NewNormalOrderDto : NewOrderDto

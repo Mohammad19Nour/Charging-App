@@ -8,7 +8,7 @@ public class OrderDto
     public string ProductArabicName { get; set; }
     public double TotalPrice { get; set; }
     public string PlayerId { get; set; }
-    public int Quantity { get; set; }
+    public double TotalQuantity { get; set; }
     public string Status { get; set; }
     public string Notes { get; set; }
     public string StatusIfCanceled { get; set; }

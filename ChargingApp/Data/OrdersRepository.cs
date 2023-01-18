@@ -41,7 +41,6 @@ public class OrdersRepository : IOrdersRepository
     {
         return await _context.Orders
             .Include(u => u.User)
-            .Include(p => p.Product)
             .FirstOrDefaultAsync(x => x.Id == orderId);
     }
 
@@ -68,8 +67,7 @@ public class OrdersRepository : IOrdersRepository
         if (userEmail != null)
             return await _context.Orders
                 .Include(x => x.User)
-                .Include(x => x.Product)
-                .Where(x=>x.StatusIfCanceled == 1 && x.Status == 0)
+                .Where(x => x.StatusIfCanceled == 1 && x.Status == 0)
                 .Where(x => x.User.Email == userEmail.ToLower())
                 .OrderByDescending(x => x.CreatedAt)
                 .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
@@ -77,8 +75,7 @@ public class OrdersRepository : IOrdersRepository
 
         return await _context.Orders
             .Include(x => x.User)
-            .Include(x => x.Product)
-            .Where(x=>x.StatusIfCanceled == 1 && x.Status == 0)
+            .Where(x => x.StatusIfCanceled == 1 && x.Status == 0)
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
@@ -107,7 +104,7 @@ public class OrdersRepository : IOrdersRepository
 
         return await _context.Orders
             .Include(x => x.User)
-            .Where(x => x.Status== 0)
+            .Where(x => x.Status == 0)
             .Where(x => x.User.Email == email)
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
@@ -124,5 +121,25 @@ public class OrdersRepository : IOrdersRepository
             .FirstOrDefaultAsync();
 
         return res != null;
+    }
+
+    public async Task<List<Order>> GetDoneOrders(DateQueryDto dto, string? userEmail = null)
+    {
+        var query = _context.Orders
+            .Where(x => x.Status == 1)
+            .Include(x => x.User)
+            .Include(x => x.Photo)
+            .AsQueryable();
+
+        if (dto.Day != null)
+            query = query.Where(x => x.CreatedAt.Day == dto.Day);
+        if (dto.Month != null)
+            query = query.Where(x => x.CreatedAt.Month == dto.Month);
+        if (dto.Year != null)
+            query = query.Where(x => x.CreatedAt.Year == dto.Year);
+        if (userEmail != null)
+            query = query.Where(x => x.User.Email == userEmail);
+
+        return await query.ToListAsync();
     }
 }

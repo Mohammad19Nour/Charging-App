@@ -38,7 +38,10 @@ public class CategoriesController : BaseApiController
         var email = User.GetEmail();
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
-        if (user != null) vipLevel = user.VIPLevel;
+        if (user != null)
+        {
+            vipLevel = user.VIPLevel;
+        }
 
 
         res.Category.Products = await SomeUsefulFunction.CalcPriceForProducts

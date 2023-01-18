@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
@@ -7,16 +8,48 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-public class AdminVipLevelController : AdminController
+public class AdminBenefitController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public AdminVipLevelController(IUnitOfWork unitOfWork)
+    public AdminBenefitController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    [HttpPost("update-benefit-minimumpurchasing/{vipLevel:int}")]
+    [HttpPost("add-specific-benefit-for-product")]
+    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId , int vipLevel , double benefitPercent)
+    {
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
+
+        if (product is null)
+            return NotFound(new ApiResponse(404, "product not found"));
+        var vip = await _unitOfWork.VipLevelRepository.CheckIfExist(vipLevel);
+        
+        if (!vip)
+            return NotFound(new ApiResponse(404, "vip level not found"));
+        var spec = await _unitOfWork.BenefitPercentInSpecificVipLevelRepository.GetBenefitAsync(productId, vipLevel);
+
+        if (spec is null)
+        {
+            _unitOfWork.BenefitPercentInSpecificVipLevelRepository.AddBenefitPercentForProduct(
+                new BenefitPercentInSpecificVilLevel
+                {
+                    ProductId = productId,
+                    VipLevel = vipLevel,
+                    BenefitPercent = benefitPercent
+                });
+        }
+        else
+            spec.BenefitPercent = benefitPercent;
+
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(200));
+        
+        return BadRequest(new ApiResponse(400, "something went wrong"));
+
+    }
+    [HttpPost("update-minimumpurchasing/{vipLevel:int}")]
     public async Task<ActionResult> UpdateMinPurchasing(int vipLevel , JsonPatchDocument patch)
     {
         var vip = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(vipLevel);

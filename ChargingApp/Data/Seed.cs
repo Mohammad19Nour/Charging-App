@@ -15,6 +15,7 @@ public static class Seed
             new() { Name = "Admin" },
             new() { Name = "Normal" },
             new() { Name = "VIP" },
+            new() { Name = "Moderator" },
         };
 
         foreach (var role in roles)
@@ -33,6 +34,7 @@ public static class Seed
             Country = "ha"
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
+        await userManager.AddToRoleAsync(user, "VIP");
 
         user = new AppUser
         {
@@ -143,22 +145,24 @@ public static class Seed
 
         var product = new Product
         {
-            Price = 120,
+            Price = 100,
+            Quantity = 70,
             ArabicName = "pubg 100 card",
             EnglishName = "pubg 100 card",
             CanChooseQuantity = true,
             CategoryId = 2
         };
         context.Products.Add(product);
-        await context.SaveChangesAsync();
-        var quantities = new List<Quantity>
+        product = new Product
         {
-            new() { Product = product, Value = 10 },
-            new() { Product = product, Value = 70 },
-            new() { Product = product, Value = 90 },
+            Price = 200,
+            Quantity = 90,
+            ArabicName = "pubg 100 card",
+            EnglishName = "pubg 100 card",
+            CanChooseQuantity = true,
+            CategoryId = 2
         };
-        context.Quantities.AddRange(quantities);
-        product.AvailableQuantities = quantities;
+        context.Products.Add(product);
         await context.SaveChangesAsync();
     }
 

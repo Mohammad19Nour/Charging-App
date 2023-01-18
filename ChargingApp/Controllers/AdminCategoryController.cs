@@ -26,18 +26,21 @@ public class AdminCategoryController : AdminController
     {
         try
         {
-            var category = new Category
-            {
-                EnglishName = dto.EnglishName,
-                ArabicName = dto.ArabicName,
-                HasSubCategories = dto.HasSubCategories
-            };
+            if (dto.ImageFile is null)
+                return BadRequest(new ApiResponse(400,"image file is null"));
+           
             var photo = await _unitOfWork.PhotoRepository.AddPhotoAsync(dto.ImageFile);
 
             if (photo is null)
                 return BadRequest(new ApiResponse(400, "Failed to upload photo"));
-
-            category.Photo = photo;
+            
+            var category = new Category
+            {
+                EnglishName = dto.EnglishName,
+                ArabicName = dto.ArabicName,
+                HasSubCategories = dto.HasSubCategories,
+                Photo = photo
+            };
 
             _unitOfWork.CategoryRepository.AddCategory(category);
 
@@ -74,14 +77,12 @@ public class AdminCategoryController : AdminController
             _unitOfWork.CategoryRepository.DeleteCategory(category);
            var tmp = await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id);
 
-            if (_unitOfWork.HasChanges() && tmp)
-            {
-                await _unitOfWork.Complete();
-                await _photoService.DeletePhotoAsync(name);
-                return Ok(new ApiResponse(201, "Deleted successfully"));
-            }
+           if (!_unitOfWork.HasChanges() || !tmp) return BadRequest(new ApiResponse(400, "Failed to delete category"));
+          
+            await _unitOfWork.Complete();
+            await _photoService.DeletePhotoAsync(name);
+            return Ok(new ApiResponse(201, "Deleted successfully"));
 
-            return BadRequest(new ApiResponse(400, "Failed to delete category"));
         }
         catch (Exception e)
         {
@@ -126,6 +127,7 @@ public class AdminCategoryController : AdminController
 
 
         var result = await _photoService.AddPhotoAsync(imageFile);
+       
         if (!result.Success)
             return BadRequest(new ApiResponse(400, result.Message));
         
