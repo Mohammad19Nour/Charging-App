@@ -13,7 +13,7 @@ public class AutoMapperProfiles : Profile
         var status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong" };
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancelation Accepted", "Cancelation Rejected" };
-      
+
         CreateMap<VIPLevel, VipLevelDto>();
         CreateMap<SliderPhoto, SliderPhotoDto>();
         CreateMap<AppUser, UserDto>();
@@ -56,6 +56,12 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo));
 
+        CreateMap<Order, SellsDto>()
+            .ForMember(dest => dest.UserEmail, opt =>
+                opt.MapFrom(src => src.User.Email))
+            .ForMember(dest => dest.Username, opt =>
+                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
+        
         CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
 
@@ -67,27 +73,15 @@ public class AutoMapperProfiles : Profile
             opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<Order, OrderDto>()
-            .ForMember(dest => dest.ProductEnglishName, opt =>
-                opt.MapFrom(src => src.Product.EnglishName))
-            .ForMember(dest => dest.ProductArabicName, opt =>
-                opt.MapFrom(src => src.Product.ArabicName))
-            .ForMember(dest => dest.StatusIfCanceled, opt =>
+           .ForMember(dest => dest.StatusIfCanceled, opt =>
                 opt.MapFrom(src => statusForCancel[src.StatusIfCanceled]))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
-        CreateMap<Order, OrderAdminDto>().ForMember(dest => dest.EnglishName, opt =>
-                opt.MapFrom(src => src.Product.EnglishName))
-            .ForMember(dest => dest.ArabicName, opt =>
-                opt.MapFrom(src => src.Product.ArabicName))
-            ;
+        CreateMap<Order, OrderAdminDto>();
         CreateMap<Order, NormalOrderDto>()
             .ForMember(dest => dest.StatusIfCanceled, opt =>
                 opt.MapFrom(src => "Not allowed"))
-            .ForMember(dest => dest.ProductEnglishName, opt =>
-                opt.MapFrom(src => src.Product.EnglishName))
-            .ForMember(dest => dest.ProductArabicName, opt =>
-                opt.MapFrom(src => src.Product.ArabicName))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo))
             .ForMember(dest => dest.Status, opt =>
@@ -99,12 +93,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<Currency, CurrencyDto>();
         CreateMap<Order, PendingOrderDto>()
             .ForMember(dest => dest.UserName, opt =>
-                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
-            .ForMember(dest => dest.ProductEnglishName, opt =>
-                opt.MapFrom(src => src.Product.EnglishName))
-            .ForMember(dest => dest.ProductArabicName, opt =>
-                opt.MapFrom(src => src.Product.ArabicName))
-            ;
+                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
+        
         CreateMap<Payment, PaymentAdminDto>()
             .ForMember(dest => dest.Email, opt =>
                 opt.MapFrom(src => src.User.Email));
@@ -115,6 +105,12 @@ public class AutoMapperProfiles : Profile
             .ForAllMembers(opt =>
                 opt.Condition((src, dest, srcMember) => srcMember != null)
             );
+
+        CreateMap<DebitHistory , DebitDto>()
+            .ForMember(dest=>dest.Username,opt=>
+            opt.MapFrom(src=>src.User.FirstName + " " + src.User.LastName))
+            .ForMember(dest=>dest.UserEmail,opt=>
+                opt.MapFrom(src=>src.User.Email));
     }
     //"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"
 }

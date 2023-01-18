@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize]
 public class FavoriteController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -16,14 +17,14 @@ public class FavoriteController : BaseApiController
     {
         _unitOfWork = unitOfWork;
     }
-    
+
     [HttpGet("favorite")]
     public async Task<ActionResult<List<CategoryDto>>> GetFavoriteProducts()
     {
         var email = User.GetEmail();
         if (email is null) return Unauthorized(new ApiResponse(401));
 
-       
+
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user is null) return Unauthorized(new ApiResponse(401));
 
@@ -52,7 +53,7 @@ public class FavoriteController : BaseApiController
             Category = category,
             CategoryId = category.Id
         };
-        var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id , category.Id);
+        var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id, category.Id);
 
         if (!res)
             _unitOfWork.FavoriteRepository.AddFavoriteCategory(fav);

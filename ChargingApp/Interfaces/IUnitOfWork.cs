@@ -1,4 +1,7 @@
-﻿namespace ChargingApp.Interfaces;
+﻿using ChargingApp.Entity;
+using Microsoft.AspNetCore.Identity;
+
+namespace ChargingApp.Interfaces;
 
 public interface IUnitOfWork
 {
@@ -18,6 +21,7 @@ public interface IUnitOfWork
     IFavoriteRepository FavoriteRepository { get; }
     ISliderRepository SliderRepository { get; }
     IPhotoRepository PhotoRepository { get; }
+    IDebitRepository DebitRepository { get; }
 
     Task<bool> Complete();
     bool HasChanges();

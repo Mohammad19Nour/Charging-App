@@ -19,50 +19,42 @@ public class OrdersController : BaseApiController
     private readonly IPhotoService _photoService;
 
     public OrdersController(IUnitOfWork unitOfWork, DataContext context, IMapper mapper
-        ,IPhotoService photoService)
+        , IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _photoService = photoService;
     }
 
-    //  [Authorize(Policy = "RequiredNormalRole")]
+    [Authorize(Policy = "RequiredNormalRole")]
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+       
         if (user is null) return BadRequest(new ApiResponse(401));
-
-        if (user.VIPLevel != 0)
-            return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
         return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
     }
 
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpGet("vip-my-order")]
-    //[Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
         if (user is null) return BadRequest(new ApiResponse(401));
 
-        if (user.VIPLevel == 0)
-            return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
-        
         return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
     }
 
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost("vip-order")]
-    //[Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return BadRequest(new ApiResponse(401));
-
-        if (user.VIPLevel == 0)
-            return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
-
+        
         var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
         if (product is null)
@@ -83,29 +75,56 @@ public class OrdersController : BaseApiController
             }
         }
 
-        if (product.CanChooseQuantity)
+        var resu = await _unitOfWork.OrdersRepository.CheckPendingOrdersForUserByEmailAsync(user.Email);
+
+        if (resu)
         {
-            if (product.AvailableQuantities.FirstOrDefault(x => x.Value == dto.Quantity) == null)
-                return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
+            return BadRequest(new ApiResponse(400, "you have pending order"));
         }
+        /*  if (product.CanChooseQuantity)
+          {
+              if (Math.Abs(product.Quantity - dto.Quantity) > 0.001)
+                  return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
+          }*/
+
         if (dto.PlayerName.Length == 0)
             return BadRequest(new ApiResponse(400, "player name is required"));
 
         if (dto.Quantity < product.MinimumQuantityAllowed)
             return BadRequest(new ApiResponse(400,
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
-        
+
         var order = new Order
         {
-            Product = product,
+            ProductArabicName = product.ArabicName,
+            ProductEnglishName = product.EnglishName,
+            CanChooseQuantity = product.CanChooseQuantity,
+            Quantity = product.Quantity,
+            Price = product.Price,
             User = user,
             PlayerId = dto.PlayerId,
-            TotalPrice = await SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product, user,
-                _unitOfWork),
-            Quantity = dto.Quantity,
             OrderType = "VIP",
             PlayerName = dto.PlayerName
         };
+
+        if (!product.CanChooseQuantity)
+        {
+            order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity, product,
+                user,
+                _unitOfWork);
+            order.TotalQuantity = dto.Quantity;
+        }
+        else
+        {
+            order.TotalQuantity = await
+                SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
+
+            var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                .GetProductPriceForUserAsync(product.Id, user);
+
+            order.TotalPrice = specificPrice ?? product.Price;
+            order.Quantity = product.Quantity;
+        }
 
         if (order.TotalPrice > user.Balance)
             return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
@@ -124,16 +143,13 @@ public class OrdersController : BaseApiController
     }
 
     // new order 
+    [Authorize(Policy = "RequiredNormalRole")]
     [HttpPost("normal-order")]
-    // [Authorize(Policy = "RequiredNormalRole")]
     public async Task<IActionResult> PlaceOrder([FromForm] NewNormalOrderDto dto)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
         if (user is null) return BadRequest(new ApiResponse(401));
-
-        if (user.VIPLevel != 0)
-            return BadRequest(new ApiResponse(400, "you're not allowed to make this request"));
 
         var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
@@ -148,22 +164,22 @@ public class OrdersController : BaseApiController
 
         if (paymentGateway is null)
             return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
-       
+
         if (dto.PlayerName.Length == 0)
             return BadRequest(new ApiResponse(400, "player name is required"));
 
-        if (product.CanChooseQuantity)
-        {
-            if (product.AvailableQuantities.FirstOrDefault(x => x.Value == dto.Quantity) == null)
-                return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
-        }
-
+        /*      if (product.CanChooseQuantity)
+              {
+                  if (Math.Abs(product.Quantity - dto.Quantity) > 0.001)
+                      return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
+              }
+      */
         if (dto.Quantity < product.MinimumQuantityAllowed)
             return BadRequest(new ApiResponse(400,
                 "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
         var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
-       
+
         if (!result.Success)
             return BadRequest(new ApiResponse(400, result.Message));
 
@@ -173,45 +189,53 @@ public class OrdersController : BaseApiController
         };
         var order = new Order
         {
-            Product = product,
+            ProductArabicName = product.ArabicName,
+            ProductEnglishName = product.EnglishName,
+            CanChooseQuantity = product.CanChooseQuantity,
+            Quantity = product.Quantity,
+            Price = product.Price,
             User = user,
             PlayerId = dto.PlayerId,
-            Quantity = dto.Quantity,
             PaymentGateway = paymentGateway,
             OrderType = "Normal",
             Photo = photo,
-            PlayerName = dto.PlayerName.ToLower()
-            // CreatedAt = DateTime.Now.tos
+            PlayerName = dto.PlayerName.ToLower(),
         };
 
         if (!product.CanChooseQuantity)
         {
             order.TotalPrice = await
-                SomeUsefulFunction.CalcTotalPrice(dto.Quantity, product, user, _unitOfWork);
-            order.Quantity = dto.Quantity;
+                SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity, product, user, _unitOfWork);
+            order.TotalQuantity = dto.Quantity;
         }
         else
         {
+            order.TotalQuantity = await
+                SomeUsefulFunction.CalcTotalQuantity((int)dto.Quantity, product, user, _unitOfWork);
+
+            var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                .GetProductPriceForUserAsync(product.Id, user);
+
+            order.TotalPrice = specificPrice ?? product.Price;
+            order.Quantity = product.Quantity;
         }
+
         _unitOfWork.OrdersRepository.AddOrder(order);
 
-        if (!await _unitOfWork.Complete()) 
+        if (!await _unitOfWork.Complete())
             return BadRequest(new ApiResponse(400, "Something went wrong"));
 
         var res = _mapper.Map<NormalOrderDto>(order);
         return Ok(new ApiOkResponse(res));
     }
 
+    [Authorize(Policy = "RequiredVIPRole")]
     [HttpDelete]
-    //   [Authorize(Policy = "RequiredVIPRole")]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
         if (user is null) return Unauthorized(new ApiResponse(401));
 
-        if (user.VIPLevel == 0)
-            return BadRequest(new ApiResponse(400, "you're not allowed to do this action"));
-        
         var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
         if (order is null)
@@ -222,16 +246,16 @@ public class OrdersController : BaseApiController
 
         if (order.Status != 0)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it has been checked by admin"));
-        
+
         if (order.StatusIfCanceled != 0)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it has been canceled"));
 
         order.StatusIfCanceled = 1;
-       // _unitOfWork.OrdersRepository.DeleteOrder(order);
+        // _unitOfWork.OrdersRepository.DeleteOrder(order);
 
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(201, "wait the admin to confirm the cancelation"));
-       
+
         return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
     }
 

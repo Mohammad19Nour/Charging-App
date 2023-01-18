@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ChargingApp.DTOs;
+﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
@@ -19,7 +18,7 @@ public class AdminProductController : AdminController
         _photoService = photoService;
     }
 
-    [HttpPost("add-product/{categoryId:int}")]
+    [HttpPost("add-product-no-quantity/{categoryId:int}")]
     public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto)
     {
         var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
@@ -27,9 +26,13 @@ public class AdminProductController : AdminController
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
 
+        if ((dto.CanChooseQuantity && category.HasSubCategories) ||
+            (!category.HasSubCategories && !dto.CanChooseQuantity))
+            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
+
         if (dto.CanChooseQuantity)
         {
-            return await AddNewProductWithQuantity(dto, category);
+            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
         }
 
         var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
@@ -54,6 +57,51 @@ public class AdminProductController : AdminController
 
         _unitOfWork.ProductRepository.AddProduct(product);
 
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(200, "product added successfully"));
+        return BadRequest(new ApiResponse(400, "Failed to add product"));
+    }
+
+    [HttpPost("add-product-with-quantity/{categoryId:int}")]
+    public async Task<ActionResult> AddProductWithQuantity(int categoryId, [FromForm] NewProductWithQuantityDto dto)
+    {
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
+
+        if (category is null)
+            return NotFound(new ApiResponse(404, "category not found"));
+
+        if ((dto.CanChooseQuantity && category.HasSubCategories) ||
+            (!category.HasSubCategories && !dto.CanChooseQuantity))
+            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
+
+        if (!dto.CanChooseQuantity)
+        {
+            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
+        }
+
+        if (dto.PriceList.Count != dto.QuantityList.Count || dto.PriceList.Count == 0)
+            return BadRequest(new ApiResponse(400, "price and quantity lists should be with the same size"));
+
+        using var quantity = dto.QuantityList.GetEnumerator();
+        using var price = dto.PriceList.GetEnumerator();
+        
+        foreach (var t in dto.PriceList)
+        {
+            quantity.MoveNext();
+            price.MoveNext();
+            var product = new Product
+            {
+                EnglishName = category.EnglishName,
+                ArabicName = category.ArabicName,
+                CanChooseQuantity = dto.CanChooseQuantity,
+                Category = category,
+                Price = price.Current,
+
+                Quantity = quantity.Current,
+            };
+            
+            _unitOfWork.ProductRepository.AddProduct(product);
+        }
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "product added successfully"));
         return BadRequest(new ApiResponse(400, "Failed to add product"));
@@ -84,7 +132,8 @@ public class AdminProductController : AdminController
             return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
         var list = patch.Operations.Select(x => x.path.ToLower());
-        PropertyInfo[] properties = typeof(ProductToUpdateDto).GetProperties();
+
+        var properties = !product.CanChooseQuantity ? typeof(ProductToUpdateDto).GetProperties() : typeof(ProductWithQuantityToUpdateDto).GetProperties();
 
         var propertiesName = properties.Select(x => x.Name.ToLower()).ToList();
 
@@ -111,6 +160,8 @@ public class AdminProductController : AdminController
             if (product is null)
                 return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
+            if (product.CanChooseQuantity)
+                return BadRequest(new ApiResponse(400,"can't update photo for this product"));
 
             var result = await _photoService.AddPhotoAsync(file);
             if (!result.Success)
@@ -122,47 +173,16 @@ public class AdminProductController : AdminController
             };
             product.Photo ??= new Photo();
             product.Photo = photo;
-
-            return Ok(new ApiResponse(200, "image updated"));
+            
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200, "image updated"));
+            
+            return BadRequest(new ApiResponse(400, "Failed to update image"));
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return  BadRequest(new ApiResponse(400, "Some thing went wrong"));
+            return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
-    }
-
-    private async Task<ActionResult> AddNewProductWithQuantity(NewProductDto dto, Category category)
-    {
-        if (category.HasSubCategories)
-            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
-
-        var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
-
-        var photo = new Photo
-        {
-            Url = result.Url
-        };
-        var product = new Product
-        {
-            EnglishName = dto.EnglishName,
-            ArabicName = dto.ArabicName,
-            CanChooseQuantity = dto.CanChooseQuantity,
-            Price = dto.Price,
-            Category = category,
-            Photo = photo,
-            MinimumQuantityAllowed = dto.MinimumQuantityAllowed,
-        };
-
-        product.AvailableQuantities =
-            dto.AvailableQuantities.Select(x => new Quantity { Value = x, Product = product }).ToList();
-
-        _unitOfWork.ProductRepository.AddProduct(product);
-
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "Product added"));
-        return BadRequest(new ApiException(400, "Failed to add product"));
     }
 }

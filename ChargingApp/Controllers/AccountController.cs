@@ -20,7 +20,7 @@ public class AccountController : BaseApiController
     private readonly IUnitOfWork _unitOfWork;
 
     public AccountController(IEmailHelper emailSender, ITokenService tokenService, UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager , IUnitOfWork unitOfWork)
+        SignInManager<AppUser> signInManager, IUnitOfWork unitOfWork)
     {
         _emailSender = emailSender;
         _tokenService = tokenService;
@@ -34,57 +34,56 @@ public class AccountController : BaseApiController
     {
         try
         {
-registerDto.Email = registerDto.Email.ToLower();
+            registerDto.Email = registerDto.Email.ToLower();
 
-        var user = await _userManager.FindByEmailAsync(registerDto.Email);
-        if (user != null)
-        {
-            if (user.EmailConfirmed)
-                return BadRequest(new ApiResponse(400, "This email is already used"));
-            var response = await GenerateTokenAndSendEmailForUser(user);
+            var user = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (user != null)
+            {
+                if (user.EmailConfirmed)
+                    return BadRequest(new ApiResponse(400, "This email is already used"));
+                var response = await GenerateTokenAndSendEmailForUser(user);
 
-            if (!response)
-                return BadRequest(new ApiResponse(400,"Failed to send email."));
+                if (!response)
+                    return BadRequest(new ApiResponse(400, "Failed to send email."));
 
-            return Ok(new ApiResponse(200, "You have already registered with this Email," +
-                                           "The confirmation link will be resent to your email," +
-                                           " please check your email and confirm your account."));
-        }
+                return Ok(new ApiResponse(200, "You have already registered with this Email," +
+                                               "The confirmation link will be resent to your email," +
+                                               " please check your email and confirm your account."));
+            }
 
-        registerDto.AccountType = registerDto.AccountType.ToLower();
-        if (registerDto.AccountType != "normal" && registerDto.AccountType != "vip")
-            return BadRequest(new ApiResponse(400, "account type should be normal or vip"));
+            registerDto.AccountType = registerDto.AccountType.ToLower();
+            if (registerDto.AccountType != "normal" && registerDto.AccountType != "vip")
+                return BadRequest(new ApiResponse(400, "account type should be normal or vip"));
 
-        user = new AppUser
-        {
-            UserName = registerDto.Email,
-            Email = registerDto.Email,
-            FirstName = registerDto.FirstName.ToLower(),
-            LastName = registerDto.LastName.ToLower(),
-            Country = registerDto.Country,
-            City = registerDto.City,
-            VIPLevel = (registerDto.AccountType == "normal" ? 0 : 1),
-            PhoneNumber = registerDto.PhoneNumer
-        };
-        var res = await _userManager.CreateAsync(user, registerDto.Password);
+            user = new AppUser
+            {
+                UserName = registerDto.Email,
+                Email = registerDto.Email,
+                FirstName = registerDto.FirstName.ToLower(),
+                LastName = registerDto.LastName.ToLower(),
+                Country = registerDto.Country,
+                City = registerDto.City,
+                VIPLevel = (registerDto.AccountType == "normal" ? 0 : 1),
+                PhoneNumber = registerDto.PhoneNumer
+            };
+            var res = await _userManager.CreateAsync(user, registerDto.Password);
 
-        if (res.Succeeded == false) return BadRequest(res.Errors);
+            if (res.Succeeded == false) return BadRequest(res.Errors);
 
-        var respons = await GenerateTokenAndSendEmailForUser(user);
+            var respons = await GenerateTokenAndSendEmailForUser(user);
 
-        IdentityResult roleResult;
-        if (registerDto.AccountType == "normal")
-            roleResult = await _userManager.AddToRoleAsync(user, "Normal");
-        else roleResult = await _userManager.AddToRoleAsync(user, "VIP");
-        
+            IdentityResult roleResult;
+            if (registerDto.AccountType == "normal")
+                roleResult = await _userManager.AddToRoleAsync(user, "Normal");
+            else roleResult = await _userManager.AddToRoleAsync(user, "VIP");
 
-        if (!roleResult.Succeeded) return BadRequest(new ApiResponse(400, "Failed to add roles"));
-        if (!respons)
-            return BadRequest(new ApiResponse(400, "Failed to send email."));
 
-        return Ok(new ApiResponse(200, "The confirmation link was send to your email successfully, " +
-                                       "please check your email and confirm your account."));
-   
+            if (!roleResult.Succeeded) return BadRequest(new ApiResponse(400, "Failed to add roles"));
+            if (!respons)
+                return BadRequest(new ApiResponse(400, "Failed to send email."));
+
+            return Ok(new ApiResponse(200, "The confirmation link was send to your email successfully, " +
+                                           "please check your email and confirm your account."));
         }
         catch (Exception e)
         {
@@ -132,11 +131,11 @@ registerDto.Email = registerDto.Email.ToLower();
                 DollarBalance = user.Balance,
                 SyrianBalance = user.Balance * syrian,
                 TurkishBalance = user.Balance * turkish,
-            
+
                 DollarDebit = user.Debit,
                 SyrianDebit = user.Debit * syrian,
                 TurkishDebit = user.Debit * turkish,
-            
+
                 DollarTotalPurchase = user.TotalPurchasing,
                 SyrianTotalPurchase = user.TotalPurchasing * syrian,
                 TurkishTotalPurchase = user.TotalPurchasing * turkish,
@@ -147,7 +146,7 @@ registerDto.Email = registerDto.Email.ToLower();
                 myWallet.SyrianBalance *= -1;
                 myWallet.DollarBalance *= -1;
             }
-        
+
             var x = new UserDto
             {
                 FirstName = user.FirstName.ToLower(),
@@ -193,7 +192,7 @@ registerDto.Email = registerDto.Email.ToLower();
 
         if (!res.Succeeded) return BadRequest(new ApiResponse(400, "confirmation failed"));
 
-        return Ok( "Your Email is Confirmed try to login in now");
+        return Ok("Your Email is Confirmed try to login in now");
     }
 
     [HttpPost("forget-password")]

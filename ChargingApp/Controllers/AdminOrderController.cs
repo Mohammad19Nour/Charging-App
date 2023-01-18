@@ -28,9 +28,6 @@ public class AdminOrderController : AdminController
 
         order.Notes = "Succeed";
 
-        if (order.User.VIPLevel == 0)
-            order.User.TotalPurchasing += order.TotalPrice;
-        
         if (await _unitOfWork.Complete())
         {
             return Ok(new ApiResponse(200, "approved successfully"));
@@ -58,6 +55,7 @@ public class AdminOrderController : AdminController
         if (order.OrderType.ToLower() != "vip" && type == "rejected")
             return BadRequest(new ApiResponse(400,"can't reject this order"));
        
+        
         order.Status = type == "reject" ? 2 : 3;
         
         order.Notes = notes;
@@ -70,8 +68,9 @@ public class AdminOrderController : AdminController
 
                 user.Balance += order.TotalPrice;
                 user.TotalPurchasing -= order.TotalPrice;
+                user.TotalForVIPLevel -= order.TotalPrice;
                 user.VIPLevel =
-                    await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(user.TotalPurchasing);
+                    await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
             }
         }
 

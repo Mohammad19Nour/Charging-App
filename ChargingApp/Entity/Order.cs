@@ -9,8 +9,13 @@ public class Order :BaseEntity
     public Photo? Photo { get; set; }
     public string? PlayerId { get; set; }
     public string PlayerName { get; set; }
-    public Product? Product { get; set; }
-    public int Quantity { get; set; } = 1;
+    public string ProductEnglishName { get; set; }
+    public string ProductArabicName { get; set; }
+
+    public double Price { get; set; }
+    public bool CanChooseQuantity { get; set; }
+    public double TotalQuantity { get; set; } = 1;
+    public double Quantity { get; set; } = 1;
     public PaymentGateway? PaymentGateway { get; set; }
     public string OrderType { get; set; } = "Normal";
     public string Notes { get; set; }= "Pending";

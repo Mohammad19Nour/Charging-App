@@ -5,7 +5,7 @@ namespace ChargingApp.Controllers;
 
 [Route("errors/{code}")]
 [ApiExplorerSettings(IgnoreApi = true)]
-public class ErrorConrtoller :BaseApiController
+public class ErrorController :BaseApiController
 {
     public IActionResult Error(int code)
     {
