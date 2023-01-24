@@ -1,4 +1,5 @@
 ﻿using ChargingApp.Entity;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -113,10 +114,11 @@ public static class Seed
     {
         if (await context.Categories.AnyAsync()) return;
 
-        context.Categories.Add(new Category { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true });
+        var photo = new Photo{Url = "ffff"};
+        context.Categories.Add(new Category { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true , Photo = photo});
         context.Categories.Add(new Category
         {
-            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false
+            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false,Photo = photo
         });
         await context.SaveChangesAsync();
     }

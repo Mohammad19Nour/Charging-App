@@ -37,6 +37,7 @@ public class UnitOfWork : IUnitOfWork
     public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);
     public IPhotoRepository PhotoRepository => new PhotoRepository(_context);
     public IDebitRepository DebitRepository => new DebitRepository(_context,_mapper);
+    public INotificationRepository NotificationRepository => new NotificationRepository(_context);
 
     public async Task<bool> Complete()
     {

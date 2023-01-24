@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230118122410_t")]
-    partial class t
+    [Migration("20230124121907_r")]
+    partial class r
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -350,6 +350,32 @@ namespace ChargingApp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.OrderAndPaymentNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PaymentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OrderAndPaymentNotifications");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.OurAgent", b =>
@@ -808,6 +834,29 @@ namespace ChargingApp.Migrations
                     b.Navigation("PaymentGateway");
 
                     b.Navigation("Photo");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.OrderAndPaymentNotification", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("ChargingApp.Entity.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId");
+
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Payment");
 
                     b.Navigation("User");
                 });

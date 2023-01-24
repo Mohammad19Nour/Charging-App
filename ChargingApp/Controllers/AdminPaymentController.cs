@@ -1,17 +1,25 @@
 ﻿using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using ChargingApp.SignalR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChargingApp.Controllers;
 
 public class AdminPaymentController : AdminController
 {
   private readonly IUnitOfWork _unitOfWork;
+  private readonly IHubContext<PresenceHub> _presenceHub;
+  private readonly PresenceTracker _tracker;
 
-  public AdminPaymentController(IUnitOfWork unitOfWork)
+  public AdminPaymentController(IUnitOfWork unitOfWork
+    ,IHubContext<PresenceHub> presenceHub , PresenceTracker tracker)
   {
     _unitOfWork = unitOfWork;
+    _presenceHub = presenceHub;
+    _tracker = tracker;
   }
 
   [HttpPost("approve/{paymentId:int}")]
@@ -31,7 +39,24 @@ public class AdminPaymentController : AdminController
     payment.AddedValue -= mn;
     
     payment.User.Balance += payment.AddedValue;
+    
+    var connections = await _tracker.GetConnectionsForUser(payment.User.Email);
 
+    if (connections != null)
+    {
+      await _presenceHub.Clients.Clients(connections)
+        .SendAsync("NewPaymentNotification","new payment");
+    }
+    else
+    {
+      _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification
+      {
+        User = payment.User,
+        Payment = payment
+      });
+    }
+
+    if (connections != null) Console.WriteLine(connections.Count + "\n");
     if (await _unitOfWork.Complete())
     {
       return Ok(new ApiResponse(200 , "approved successfully"));
@@ -53,6 +78,22 @@ public class AdminPaymentController : AdminController
     payment.Status = 2;
     payment.Notes = notes;
 
+    var connections = await _tracker.GetConnectionsForUser(payment.User.Email);
+
+    if (connections != null)
+    {
+      await _presenceHub.Clients.Clients(connections)
+        .SendAsync("NewPaymentNotification",notes);
+    }
+    else
+    {
+      _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification
+      {
+        User = payment.User,
+        Payment = payment
+      });
+    }
+    
     if (await _unitOfWork.Complete())
     {
       return Ok(new ApiResponse(200 , "Rejected successfully"));

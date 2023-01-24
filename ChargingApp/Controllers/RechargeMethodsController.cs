@@ -42,7 +42,7 @@ public class RechargeMethodsController : BaseApiController
 
         return Ok(new ApiOkResponse(result: res));
     }
-    
+    /*
      [HttpPost("add-agent/{rechargeMethodId:int}")]
     public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)
     {
@@ -87,5 +87,5 @@ public class RechargeMethodsController : BaseApiController
             return Ok(new ApiResponse(200, "Deleted successfully"));
 
         return BadRequest(new ApiResponse(400, "Failed to delete new agent"));
-    }
+    }*/
 }

@@ -22,7 +22,7 @@ public interface IUnitOfWork
     ISliderRepository SliderRepository { get; }
     IPhotoRepository PhotoRepository { get; }
     IDebitRepository DebitRepository { get; }
-
+    INotificationRepository NotificationRepository { get; }
     Task<bool> Complete();
     bool HasChanges();
 

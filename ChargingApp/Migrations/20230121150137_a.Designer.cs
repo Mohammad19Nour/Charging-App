@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230118081012_aa")]
-    partial class aa
+    [Migration("20230121150137_a")]
+    partial class a
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -155,20 +155,19 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.BenefitPercentInSpecificVilLevel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<double>("BenefitPercent")
-                        .HasColumnType("REAL");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("VipLevel")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.Property<double>("BenefitPercent")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ProductId", "VipLevel");
 
                     b.ToTable("SpecificBenefit");
                 });

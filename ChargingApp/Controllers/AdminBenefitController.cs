@@ -49,7 +49,7 @@ public class AdminBenefitController : AdminController
         return BadRequest(new ApiResponse(400, "something went wrong"));
 
     }
-    [HttpPost("update-minimumpurchasing/{vipLevel:int}")]
+    [HttpPatch("update-vip-min-benefit/{vipLevel:int}")]
     public async Task<ActionResult> UpdateMinPurchasing(int vipLevel , JsonPatchDocument patch)
     {
         var vip = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(vipLevel);

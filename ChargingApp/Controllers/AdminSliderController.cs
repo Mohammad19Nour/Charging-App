@@ -50,7 +50,7 @@ public class AdminSliderController : AdminController
         }
     }
 
-    [HttpPost("delete-photo")]
+    [HttpDelete("delete-photo")]
     public async Task<ActionResult> DeletePhoto(int photoId)
     {
         try

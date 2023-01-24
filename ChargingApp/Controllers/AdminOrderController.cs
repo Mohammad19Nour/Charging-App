@@ -1,17 +1,25 @@
 ﻿using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using ChargingApp.SignalR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChargingApp.Controllers;
 
 public class AdminOrderController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IHubContext _presenceHub;
+    private readonly PresenceTracker _tracker;
 
-    public AdminOrderController(IUnitOfWork unitOfWork)
+    public AdminOrderController(IUnitOfWork unitOfWork
+        , IHubContext presenceHub, PresenceTracker tracker)
     {
         _unitOfWork = unitOfWork;
+        _presenceHub = presenceHub;
+        _tracker = tracker;
     }
 
     [HttpPost("approve/{orderId:int}")]
@@ -27,6 +35,23 @@ public class AdminOrderController : AdminController
         order.Status = 1; // accepted
 
         order.Notes = "Succeed";
+
+
+        var connections = await _tracker.GetConnectionsForUser(order.User.Email);
+
+        if (connections != null)
+        {
+            await _presenceHub.Clients.Clients(connections)
+                .SendAsync("NewOrderNotification","new order");
+        }
+        else
+        {
+            _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification()
+            {
+                User = order.User,
+                Order = order
+            });
+        }
 
         if (await _unitOfWork.Complete())
         {
@@ -53,11 +78,11 @@ public class AdminOrderController : AdminController
         if (order.Status != 0) return BadRequest(new ApiResponse(400, "this order already checked"));
 
         if (order.OrderType.ToLower() != "vip" && type == "rejected")
-            return BadRequest(new ApiResponse(400,"can't reject this order"));
-       
-        
+            return BadRequest(new ApiResponse(400, "can't reject this order"));
+
+
         order.Status = type == "reject" ? 2 : 3;
-        
+
         order.Notes = notes;
 
         if (order.User != null)
@@ -74,6 +99,22 @@ public class AdminOrderController : AdminController
             }
         }
 
+        var connections = await _tracker.GetConnectionsForUser(order.User.Email);
+
+        if (connections != null)
+        {
+            await _presenceHub.Clients.Clients(connections)
+                .SendAsync("NewOrderNotification" ,"new order");
+        }
+        else
+        {
+            _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification()
+            {
+                User = order.User,
+                Order = order
+            });
+        }
+
         if (await _unitOfWork.Complete())
         {
             return Ok(new ApiResponse(200, "Done successfully"));
@@ -88,7 +129,7 @@ public class AdminOrderController : AdminController
         var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
         return Ok(new ApiOkResponse(res));
     }
-    
+
     [HttpGet("pending-orders/{email}")]
     public async Task<ActionResult<List<PendingOrderDto>>> GetPendingOrders(string email)
     {
@@ -146,7 +187,7 @@ public class AdminOrderController : AdminController
     }
 
     [HttpGet("get-canceled-orders")]
-    public async Task<ActionResult> CanceledOrders(string? userEmail)
+    public async Task<ActionResult<List<OrderAdminDto>>> CanceledOrders(string? userEmail)
     {
         if (userEmail != null)
         {

@@ -26,14 +26,8 @@ public class AdminProductController : AdminController
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
 
-        if ((dto.CanChooseQuantity && category.HasSubCategories) ||
-            (!category.HasSubCategories && !dto.CanChooseQuantity))
+        if (!category.HasSubCategories)
             return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
-
-        if (dto.CanChooseQuantity)
-        {
-            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
-        }
 
         var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
         if (!result.Success)
@@ -48,7 +42,7 @@ public class AdminProductController : AdminController
         {
             EnglishName = dto.EnglishName,
             ArabicName = dto.ArabicName,
-            CanChooseQuantity = dto.CanChooseQuantity,
+            CanChooseQuantity = false,
             Price = dto.Price,
             Category = category,
             Photo = photo,
@@ -70,14 +64,8 @@ public class AdminProductController : AdminController
         if (category is null)
             return NotFound(new ApiResponse(404, "category not found"));
 
-        if ((dto.CanChooseQuantity && category.HasSubCategories) ||
-            (!category.HasSubCategories && !dto.CanChooseQuantity))
+        if (category.HasSubCategories)
             return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
-
-        if (!dto.CanChooseQuantity)
-        {
-            return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
-        }
 
         if (dto.PriceList.Count != dto.QuantityList.Count || dto.PriceList.Count == 0)
             return BadRequest(new ApiResponse(400, "price and quantity lists should be with the same size"));
@@ -93,7 +81,7 @@ public class AdminProductController : AdminController
             {
                 EnglishName = category.EnglishName,
                 ArabicName = category.ArabicName,
-                CanChooseQuantity = dto.CanChooseQuantity,
+                CanChooseQuantity = true,
                 Category = category,
                 Price = price.Current,
 

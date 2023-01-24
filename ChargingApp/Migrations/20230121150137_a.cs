@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ChargingApp.Migrations
 {
-    public partial class aa : Migration
+    public partial class a : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -135,15 +135,14 @@ namespace ChargingApp.Migrations
                 name: "SpecificBenefit",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
                     VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
-                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false)
+                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SpecificBenefit", x => x.Id);
+                    table.PrimaryKey("PK_SpecificBenefit", x => new { x.ProductId, x.VipLevel });
                 });
 
             migrationBuilder.CreateTable(
