@@ -2,7 +2,7 @@
 
 public class Order :BaseEntity
 {
-    public AppUser? User { get; set; }
+    public AppUser User { get; set; }
     public int UserId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public double TotalPrice { get; set; }

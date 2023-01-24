@@ -103,7 +103,7 @@ public class UserController : BaseApiController
     }
 
     [HttpGet("my-wallet")]
-    public async Task<ActionResult> MyWallet()
+    public async Task<ActionResult<WalletDto>> MyWallet()
     {
         var email = User.GetEmail();
 

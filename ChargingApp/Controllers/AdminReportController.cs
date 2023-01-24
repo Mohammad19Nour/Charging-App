@@ -29,7 +29,7 @@ public class AdminReportController : BaseApiController
     }
 
     [HttpGet("debits")]
-    public async Task<ActionResult> GetDebits([FromQuery] DateQueryDto dto)
+    public async Task<ActionResult<List<DebitDto>>> GetDebits([FromQuery] DateQueryDto dto)
     {
         var (ans, msg) = CheckDate(dto);
 

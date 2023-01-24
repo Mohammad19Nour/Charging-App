@@ -10,4 +10,5 @@ public interface IVipLevelRepository
     public Task<int> GetVipLevelForPurchasingAsync(double purchase);
     public Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel);
     public Task<VIPLevel?> GetVipLevelAsync(int vipLevel);
+    public void UpdateVipLevel(VIPLevel vip);
 } 

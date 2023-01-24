@@ -4,6 +4,7 @@ namespace ChargingApp.DTOs;
 
 public class PaymentAdminDto
 {
+    public int Id { get; set; }
     public DateTime CreatedDate { get; set; } 
     public string? Notes{ get; set; }
     public double AddedValue { get; set; }

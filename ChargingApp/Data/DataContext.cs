@@ -38,6 +38,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<SliderPhoto> SliderPhotos { get; set; }
     public DbSet<Photo> Photos { get; set; }
+    public DbSet<OrderAndPaymentNotification> OrderAndPaymentNotifications { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

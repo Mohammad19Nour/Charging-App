@@ -19,7 +19,7 @@ public class VipLevelController : BaseApiController
     }
 
     [HttpGet("vip-levels")]
-    public async Task<ActionResult> GetVipLevels()
+    public async Task<ActionResult<List<VipLevelDto>>> GetVipLevels()
     {
         var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
         levels = levels.Where(x => x.VipLevel != 0).ToList();

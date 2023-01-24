@@ -62,6 +62,7 @@ public class AdminCategoryController : AdminController
     {
         try
         {
+          //  Console.WriteLine("**\n\n");
             var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
             if (category is null)

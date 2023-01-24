@@ -37,8 +37,6 @@ public class VipLevelRepository :IVipLevelRepository
             .OrderByDescending(x =>x.MinimumPurchase)
             .ThenByDescending(x=>x.VipLevel)
             .FirstOrDefaultAsync(x => x.MinimumPurchase <= purchase);
-        Console.WriteLine(purchase);
-        Console.WriteLine("\n\n**\n");
         return v.VipLevel;
     }
 
@@ -53,5 +51,10 @@ public class VipLevelRepository :IVipLevelRepository
     public async Task<VIPLevel?> GetVipLevelAsync(int vipLevel)
     {
         return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel);
+    }
+
+    public void UpdateVipLevel(VIPLevel vip)
+    {
+        _context.Entry(vip).State = EntityState.Modified;
     }
 }
