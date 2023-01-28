@@ -4,6 +4,7 @@ public class Order :BaseEntity
 {
     public AppUser User { get; set; }
     public int UserId { get; set; }
+    public Product? Product { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public double TotalPrice { get; set; }
     public Photo? Photo { get; set; }
@@ -19,6 +20,7 @@ public class Order :BaseEntity
     public PaymentGateway? PaymentGateway { get; set; }
     public string OrderType { get; set; } = "Normal";
     public string Notes { get; set; }= "Pending";
+    
     public int Status { get; set; } = 0;//0-pending 1-succeed 2-rejected 3-wrong
     public int StatusIfCanceled { get; set; } = 0;
     /*0 not canceled

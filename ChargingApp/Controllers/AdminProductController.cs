@@ -1,4 +1,5 @@
-﻿using ChargingApp.DTOs;
+﻿using AutoMapper;
+using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
@@ -11,11 +12,14 @@ public class AdminProductController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
+    private readonly IMapper _mapper;
 
-    public AdminProductController(IUnitOfWork unitOfWork, IPhotoService photoService)
+    public AdminProductController(IUnitOfWork unitOfWork, IPhotoService photoService,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
+        _mapper = mapper;
     }
 
     [HttpPost("add-product-no-quantity/{categoryId:int}")]
@@ -103,6 +107,7 @@ public class AdminProductController : AdminController
         if (product is null)
             return NotFound(new ApiResponse(403, "this product isn't exist"));
 
+        var orders = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
         _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
 
         if (await _unitOfWork.Complete())
@@ -172,5 +177,19 @@ public class AdminProductController : AdminController
             Console.WriteLine(e);
             return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
+    }
+
+    [HttpGet("product/{prodictId:int}")]
+    public async Task<ActionResult<ProductDto>> GetProduct(int productId)
+    {
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
+
+        if (product is null)
+            return BadRequest(new ApiResponse(400, "this product isn't exist"));
+
+        if (product.CanChooseQuantity)
+            return BadRequest(new ApiResponse(400,"can't update photo for this product"));
+
+        return Ok(new ApiOkResponse(_mapper.Map<ProductDto>(product)));
     }
 }

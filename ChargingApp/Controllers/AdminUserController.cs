@@ -16,7 +16,7 @@ public class AdminUserController : AdminController
     }
 
     [HttpPost("update-user-vip-level")]
-    public async Task<IActionResult> UpdateVipLevelForUser([FromBody] string userEmail , int newVipLevel)
+    public async Task<IActionResult> UpdateVipLevelForUser( string userEmail , int newVipLevel)
     {
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(userEmail);
 
@@ -144,5 +144,5 @@ public class AdminUserController : AdminController
             return Ok(new ApiResponse(200, "Updated successfully"));
 
         return BadRequest(new ApiResponse(400, "Failed to Updated price for user"));
-    }
+    }   
 }

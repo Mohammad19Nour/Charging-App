@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,8 @@ builder.Services.AddCors(opt =>
     opt.AddDefaultPolicy(buildr => buildr.AllowAnyOrigin().AllowAnyHeader(
         ).AllowAnyMethod());
 });*/
+builder.Services.Configure<FormOptions>(opt=>
+    opt.ValueCountLimit = int.MaxValue);
 builder.Services.AddSingleton<PresenceTracker>().AddSignalR();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

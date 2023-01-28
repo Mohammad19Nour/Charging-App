@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize]
+//[Authorize]
 public class RechargeCodeController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -44,7 +44,7 @@ public class RechargeCodeController : BaseApiController
     }
 
 
-    [Authorize(Policy = "RequiredAdminRole")]
+    //[Authorize(Policy = "RequiredAdminRole")]
     [HttpGet("generate-codes")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {

@@ -41,6 +41,8 @@ public class OrdersRepository : IOrdersRepository
     {
         return await _context.Orders
             .Include(u => u.User)
+            .Include(x=>x.Product)
+            .Include(x=>x.Photo)
             .FirstOrDefaultAsync(x => x.Id == orderId);
     }
 
@@ -92,23 +94,23 @@ public class OrdersRepository : IOrdersRepository
     }
 
 
-    public async Task<List<PendingOrderDto>> GetPendingOrdersAsync(string email = "")
+    public async Task<List<Order>> GetPendingOrdersAsync(string email = "" )
     {
-        if (email == "")
-            return await _context.Orders
-                .Include(x => x.User)
-                .OrderByDescending(x => x.CreatedAt)
-                .Where(x => x.Status == 0)
-                .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-        return await _context.Orders
+        email = email.ToLower();
+        
+        var res = _context.Orders
+            .Include(x => x.Photo)
             .Include(x => x.User)
-            .Where(x => x.Status == 0)
-            .Where(x => x.User.Email == email)
+            .Include(x => x.Product)
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<PendingOrderDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .Where(x => x.Status == 0 || x.Status == 4);
+        
+        if (!string.IsNullOrEmpty(email))
+            res = res.Where(x => x.User.Email == email);
+
+        var ret = await res.ToListAsync();
+        Console.WriteLine(ret.Count+"\n\n");
+         return ret;
     }
 
     public async Task<bool> CheckPendingOrdersForUserByEmailAsync(string email)
@@ -117,6 +119,7 @@ public class OrdersRepository : IOrdersRepository
 
         var res = await _context.Orders
             .Include(x => x.User)
+            .AsNoTracking()
             .Where(x => x.Status == 0 && x.User.Email.ToLower() == email)
             .FirstOrDefaultAsync();
 

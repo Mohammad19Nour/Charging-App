@@ -15,7 +15,9 @@ public class SpecificPriceForUserRepository : ISpecificPriceForUserRepository
 
     public async Task<double?> GetProductPriceForUserAsync(int productId, AppUser user)
     {
+        //Console.WriteLine(productId + " " + user.Id + " "+ user.VIPLevel + "\n\n-**");
         return (await _context.SpecificPriceForUsers
+            .AsNoTracking()
             .Where(x =>
                 x.ProductId == productId && user.Id == x.User.Id && x.VipLevel == user.VIPLevel)
             .FirstOrDefaultAsync())?.ProductPrice;

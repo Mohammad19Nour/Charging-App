@@ -63,30 +63,6 @@ public class OrdersController : BaseApiController
         if (!CheckIfAvailable(product))
             return BadRequest(new ApiResponse(404, "this product is not available now"));
 
-        var lastOrder = await _unitOfWork.OrdersRepository.GetLastOrderForUserByIdAsync(user.Id);
-
-        if (lastOrder != null)
-        {
-            if (lastOrder.CreatedAt.AddSeconds(15).CompareTo(DateTime.UtcNow) > 0)
-            {
-                return BadRequest(new ApiResponse(400,
-                    "you can make a new order after " +
-                    CalcSeconds(lastOrder.CreatedAt.AddSeconds(15).Second, DateTime.UtcNow.Second) + " seconds"));
-            }
-        }
-
-        var resu = await _unitOfWork.OrdersRepository.CheckPendingOrdersForUserByEmailAsync(user.Email);
-
-        if (resu)
-        {
-            return BadRequest(new ApiResponse(400, "you have pending order"));
-        }
-        /*  if (product.CanChooseQuantity)
-          {
-              if (Math.Abs(product.Quantity - dto.Quantity) > 0.001)
-                  return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
-          }*/
-
         if (dto.PlayerName.Length == 0)
             return BadRequest(new ApiResponse(400, "player name is required"));
 
@@ -96,6 +72,7 @@ public class OrdersController : BaseApiController
 
         var order = new Order
         {
+            Product = product,
             ProductArabicName = product.ArabicName,
             ProductEnglishName = product.EnglishName,
             CanChooseQuantity = product.CanChooseQuantity,
@@ -109,10 +86,14 @@ public class OrdersController : BaseApiController
 
         if (!product.CanChooseQuantity)
         {
+            
+         //   Console.WriteLine(order.User.VIPLevel+"p\n");
             order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity, product,
                 user,
                 _unitOfWork);
             order.TotalQuantity = dto.Quantity;
+            
+          //  Console.WriteLine(order.User.VIPLevel+"q\n");
         }
         else
         {
@@ -130,6 +111,10 @@ public class OrdersController : BaseApiController
             return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
 
         user.Balance -= order.TotalPrice;
+        order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+            .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+
+      //  Console.WriteLine(order.User.VIPLevel+"q\n");
         _unitOfWork.OrdersRepository.AddOrder(order);
 
         if (await _unitOfWork.Complete())
@@ -189,6 +174,7 @@ public class OrdersController : BaseApiController
         };
         var order = new Order
         {
+            Product = product,
             ProductArabicName = product.ArabicName,
             ProductEnglishName = product.EnglishName,
             CanChooseQuantity = product.CanChooseQuantity,
@@ -205,7 +191,8 @@ public class OrdersController : BaseApiController
         if (!product.CanChooseQuantity)
         {
             order.TotalPrice = await
-                SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity, product, user, _unitOfWork);
+                SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity(
+                    dto.Quantity, product, user, _unitOfWork);
             order.TotalQuantity = dto.Quantity;
         }
         else
@@ -241,20 +228,28 @@ public class OrdersController : BaseApiController
         if (order is null)
             return BadRequest(new ApiResponse(400, "this order isn't exist"));
 
-        if (order.CreatedAt.AddSeconds(15).CompareTo(DateTime.UtcNow) < 0)
-            return BadRequest(new ApiResponse(400, "you can't delete this order because it's been 15 seconds"));
+        if (order.CreatedAt.AddSeconds(60).CompareTo(DateTime.UtcNow) > 0)
+            return BadRequest(new ApiResponse(400, "you can't delete this order because it's not been 60 seconds"));
 
-        if (order.Status != 0)
+        if (order.Status != 0 && order.Status != 5)
             return BadRequest(new ApiResponse(400, "you can't delete this order because it has been checked by admin"));
 
-        if (order.StatusIfCanceled != 0)
-            return BadRequest(new ApiResponse(400, "you can't delete this order because it has been canceled"));
 
-        order.StatusIfCanceled = 1;
+        if (order.Status == 5)
+            return BadRequest(new ApiResponse(400, "you can't delete this order because it has been cancelled"));
+
+        order.User.Balance += order.TotalPrice;
+        order.User.TotalPurchasing -= order.TotalPrice;
+        order.User.TotalForVIPLevel -= order.TotalPrice;
+        order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+            .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+
+        order.Status = 5;
+        order.StatusIfCanceled = 2;
         // _unitOfWork.OrdersRepository.DeleteOrder(order);
 
         if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "wait the admin to confirm the cancelation"));
+            return Ok(new ApiResponse(201, "Cancelled successfully "));
 
         return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
     }
