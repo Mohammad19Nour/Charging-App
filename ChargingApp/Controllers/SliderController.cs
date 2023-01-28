@@ -17,7 +17,15 @@ public class SliderController : BaseApiController
     [HttpGet("slider-photos")]
     public async Task<ActionResult<List<SliderPhotoDto?>>> GetSliderPhotos()
     {
-      var res=  await _unitOfWork.SliderRepository.GetSliderPhotosAsync();
-        return Ok(new ApiOkResponse(res));
+        try
+        {
+            var res = await _unitOfWork.SliderRepository.GetSliderPhotosAsync();
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

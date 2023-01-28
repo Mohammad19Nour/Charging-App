@@ -6,6 +6,7 @@ using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
+
 public class AdminCategoryController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -51,9 +52,8 @@ public class AdminCategoryController : AdminController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
-        //Console.WriteLine(photoFile.Length);
     }
 
     [HttpDelete]
@@ -61,33 +61,35 @@ public class AdminCategoryController : AdminController
     {
         try
         {
-            //  Console.WriteLine("**\n\n");
             var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
             if (category is null)
                 return NotFound(new ApiResponse(403, "category not found"));
 
-            var name = category.Photo.Url;
+            var name = category.Photo?.Url;
 
-            foreach (var t in category.Products)
-            {
-                var y = await _unitOfWork.ProductRepository.GetProductByIdAsync(t.Id);
-                _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
-            }
+            if (category.Products != null)
+                foreach (var t in category.Products)
+                {
+                    var y = await _unitOfWork.ProductRepository.GetProductByIdAsync(t.Id);
+                    _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
+                }
 
             _unitOfWork.CategoryRepository.DeleteCategory(category);
-            var tmp = await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id);
+            var tmp = category.Photo != null &&
+                      await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id);
 
             if (!_unitOfWork.HasChanges() || !tmp) return BadRequest(new ApiResponse(400, "Failed to delete category"));
 
             await _unitOfWork.Complete();
-            await _photoService.DeletePhotoAsync(name);
+            if (name != null) await _photoService.DeletePhotoAsync(name);
+
             return Ok(new ApiResponse(201, "Deleted successfully"));
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 
@@ -103,20 +105,20 @@ public class AdminCategoryController : AdminController
 
             if (!string.IsNullOrEmpty(dto.ArabicName))
                 category.ArabicName = dto.ArabicName;
-            
+
             if (!string.IsNullOrEmpty(dto.EnglishName))
                 category.EnglishName = dto.EnglishName;
-            
+
             _unitOfWork.CategoryRepository.UpdateCategory(category);
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200));
-            return BadRequest(new ApiResponse(400, "ddsomething went wrong"));
+            return BadRequest(new ApiResponse(400, "something went wrong"));
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 

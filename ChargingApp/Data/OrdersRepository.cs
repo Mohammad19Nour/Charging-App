@@ -102,7 +102,7 @@ public class OrdersRepository : IOrdersRepository
             .Include(x => x.Photo)
             .Include(x => x.User)
             .Include(x => x.Product)
-            .OrderByDescending(x => x.CreatedAt)
+           // .OrderByDescending(x => x.CreatedAt)
             .Where(x => x.Status == 0 || x.Status == 4);
         
         if (!string.IsNullOrEmpty(email))

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using ChargingApp.Data;
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
@@ -18,7 +17,7 @@ public class OrdersController : BaseApiController
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
 
-    public OrdersController(IUnitOfWork unitOfWork, DataContext context, IMapper mapper
+    public OrdersController(IUnitOfWork unitOfWork, IMapper mapper
         , IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
@@ -30,101 +29,121 @@ public class OrdersController : BaseApiController
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
-       
-        if (user is null) return BadRequest(new ApiResponse(401));
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
+            if (user is null) return BadRequest(new ApiResponse(401));
+
+            return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [Authorize(Policy = "RequiredVIPRole")]
     [HttpGet("vip-my-order")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-        if (user is null) return BadRequest(new ApiResponse(401));
+            if (user is null) return BadRequest(new ApiResponse(401));
 
-        return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
+            return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [Authorize(Policy = "RequiredVIPRole")]
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
-        if (user is null) return BadRequest(new ApiResponse(401));
-        
-        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
-
-        if (product is null)
-            return BadRequest(new ApiResponse(404, "the product is not found"));
-
-        if (!CheckIfAvailable(product))
-            return BadRequest(new ApiResponse(404, "this product is not available now"));
-
-        if (dto.PlayerName.Length == 0)
-            return BadRequest(new ApiResponse(400, "player name is required"));
-
-        if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400,
-                "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
-
-        var order = new Order
+        try
         {
-            Product = product,
-            ProductArabicName = product.ArabicName,
-            ProductEnglishName = product.EnglishName,
-            CanChooseQuantity = product.CanChooseQuantity,
-            Quantity = product.Quantity,
-            Price = product.Price,
-            User = user,
-            PlayerId = dto.PlayerId,
-            OrderType = "VIP",
-            PlayerName = dto.PlayerName
-        };
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+            if (user is null) return BadRequest(new ApiResponse(401));
 
-        if (!product.CanChooseQuantity)
-        {
-            
-         //   Console.WriteLine(order.User.VIPLevel+"p\n");
-            order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity, product,
-                user,
-                _unitOfWork);
-            order.TotalQuantity = dto.Quantity;
-            
-          //  Console.WriteLine(order.User.VIPLevel+"q\n");
+            var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
+
+            if (product is null)
+                return BadRequest(new ApiResponse(404, "the product is not found"));
+
+            if (!CheckIfAvailable(product))
+                return BadRequest(new ApiResponse(404, "this product is not available now"));
+
+            if (dto.PlayerName.Length == 0)
+                return BadRequest(new ApiResponse(400, "player name is required"));
+
+            if (dto.Quantity < product.MinimumQuantityAllowed)
+                return BadRequest(new ApiResponse(400,
+                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+
+            var order = new Order
+            {
+                Product = product,
+                ProductArabicName = product.ArabicName,
+                ProductEnglishName = product.EnglishName,
+                CanChooseQuantity = product.CanChooseQuantity,
+                Quantity = product.Quantity,
+                Price = product.Price,
+                User = user,
+                PlayerId = dto.PlayerId,
+                OrderType = "VIP",
+                PlayerName = dto.PlayerName
+            };
+
+            if (!product.CanChooseQuantity)
+            {
+                order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity,
+                    product,
+                    user,
+                    _unitOfWork);
+                order.TotalQuantity = dto.Quantity;
+            }
+            else
+            {
+                order.TotalQuantity = await
+                    SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
+
+                var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                    .GetProductPriceForUserAsync(product.Id, user);
+
+                order.TotalPrice = specificPrice ?? product.Price;
+                order.Quantity = product.Quantity;
+            }
+
+            if (order.TotalPrice > user.Balance)
+                return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
+
+            user.Balance -= order.TotalPrice;
+            order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+
+            _unitOfWork.OrdersRepository.AddOrder(order);
+
+            if (await _unitOfWork.Complete())
+            {
+                var res = _mapper.Map<OrderDto>(order);
+
+                return Ok(new ApiOkResponse(res));
+            }
+
+            return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
-        else
+        catch (Exception e)
         {
-            order.TotalQuantity = await
-                SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
-
-            var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
-                .GetProductPriceForUserAsync(product.Id, user);
-
-            order.TotalPrice = specificPrice ?? product.Price;
-            order.Quantity = product.Quantity;
+            Console.WriteLine(e);
+            throw;
         }
-
-        if (order.TotalPrice > user.Balance)
-            return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
-
-        user.Balance -= order.TotalPrice;
-        order.User.VIPLevel = await _unitOfWork.VipLevelRepository
-            .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
-
-      //  Console.WriteLine(order.User.VIPLevel+"q\n");
-        _unitOfWork.OrdersRepository.AddOrder(order);
-
-        if (await _unitOfWork.Complete())
-        {
-            var res = _mapper.Map<OrderDto>(order);
-
-            return Ok(new ApiOkResponse(res));
-        }
-
-        return BadRequest(new ApiResponse(400, "Something went wrong"));
     }
 
     // new order 
@@ -132,126 +151,144 @@ public class OrdersController : BaseApiController
     [HttpPost("normal-order")]
     public async Task<IActionResult> PlaceOrder([FromForm] NewNormalOrderDto dto)
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-        if (user is null) return BadRequest(new ApiResponse(401));
+            if (user is null) return BadRequest(new ApiResponse(401));
 
-        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
+            var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
-        if (product is null)
-            return BadRequest(new ApiResponse(404, "the product is not found"));
+            if (product is null)
+                return BadRequest(new ApiResponse(404, "the product is not found"));
 
-        if (!CheckIfAvailable(product))
-            return BadRequest(new ApiResponse(404, "this product is not available now"));
+            if (!CheckIfAvailable(product))
+                return BadRequest(new ApiResponse(404, "this product is not available now"));
 
-        var paymentGateway =
-            await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
+            var paymentGateway =
+                await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(dto.PaymentGateway);
 
-        if (paymentGateway is null)
-            return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
+            if (paymentGateway is null)
+                return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
 
-        if (dto.PlayerName.Length == 0)
-            return BadRequest(new ApiResponse(400, "player name is required"));
+            if (dto.PlayerName.Length == 0)
+                return BadRequest(new ApiResponse(400, "player name is required"));
 
-        /*      if (product.CanChooseQuantity)
+            /*      if (product.CanChooseQuantity)
               {
                   if (Math.Abs(product.Quantity - dto.Quantity) > 0.001)
                       return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
               }
       */
-        if (dto.Quantity < product.MinimumQuantityAllowed)
-            return BadRequest(new ApiResponse(400,
-                "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+            if (dto.Quantity < product.MinimumQuantityAllowed)
+                return BadRequest(new ApiResponse(400,
+                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
 
-        var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
+            var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
 
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, result.Message));
 
-        var photo = new Photo
-        {
-            Url = result.Url
-        };
-        var order = new Order
-        {
-            Product = product,
-            ProductArabicName = product.ArabicName,
-            ProductEnglishName = product.EnglishName,
-            CanChooseQuantity = product.CanChooseQuantity,
-            Quantity = product.Quantity,
-            Price = product.Price,
-            User = user,
-            PlayerId = dto.PlayerId,
-            PaymentGateway = paymentGateway,
-            OrderType = "Normal",
-            Photo = photo,
-            PlayerName = dto.PlayerName.ToLower(),
-        };
+            var photo = new Photo
+            {
+                Url = result.Url
+            };
+            var order = new Order
+            {
+                Product = product,
+                ProductArabicName = product.ArabicName,
+                ProductEnglishName = product.EnglishName,
+                CanChooseQuantity = product.CanChooseQuantity,
+                Quantity = product.Quantity,
+                Price = product.Price,
+                User = user,
+                PlayerId = dto.PlayerId,
+                PaymentGateway = paymentGateway,
+                OrderType = "Normal",
+                Photo = photo,
+                PlayerName = dto.PlayerName.ToLower(),
+            };
 
-        if (!product.CanChooseQuantity)
-        {
-            order.TotalPrice = await
-                SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity(
-                    dto.Quantity, product, user, _unitOfWork);
-            order.TotalQuantity = dto.Quantity;
+            if (!product.CanChooseQuantity)
+            {
+                order.TotalPrice = await
+                    SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity(
+                        dto.Quantity, product, user, _unitOfWork);
+                order.TotalQuantity = dto.Quantity;
+            }
+            else
+            {
+                order.TotalQuantity = await
+                    SomeUsefulFunction.CalcTotalQuantity((int)dto.Quantity, product, user, _unitOfWork);
+
+                var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                    .GetProductPriceForUserAsync(product.Id, user);
+
+                order.TotalPrice = specificPrice ?? product.Price;
+                order.Quantity = product.Quantity;
+            }
+
+            _unitOfWork.OrdersRepository.AddOrder(order);
+
+            if (!await _unitOfWork.Complete())
+                return BadRequest(new ApiResponse(400, "Something went wrong"));
+
+            var res = _mapper.Map<NormalOrderDto>(order);
+            return Ok(new ApiOkResponse(res));
         }
-        else
+        catch (Exception e)
         {
-            order.TotalQuantity = await
-                SomeUsefulFunction.CalcTotalQuantity((int)dto.Quantity, product, user, _unitOfWork);
-
-            var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
-                .GetProductPriceForUserAsync(product.Id, user);
-
-            order.TotalPrice = specificPrice ?? product.Price;
-            order.Quantity = product.Quantity;
+            Console.WriteLine(e);
+            throw;
         }
-
-        _unitOfWork.OrdersRepository.AddOrder(order);
-
-        if (!await _unitOfWork.Complete())
-            return BadRequest(new ApiResponse(400, "Something went wrong"));
-
-        var res = _mapper.Map<NormalOrderDto>(order);
-        return Ok(new ApiOkResponse(res));
     }
 
     [Authorize(Policy = "RequiredVIPRole")]
     [HttpDelete]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
-        if (user is null) return Unauthorized(new ApiResponse(401));
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+            if (user is null) return Unauthorized(new ApiResponse(401));
 
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
+            var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
-        if (order is null)
-            return BadRequest(new ApiResponse(400, "this order isn't exist"));
+            if (order is null)
+                return BadRequest(new ApiResponse(400, "this order isn't exist"));
 
-        if (order.CreatedAt.AddSeconds(60).CompareTo(DateTime.UtcNow) > 0)
-            return BadRequest(new ApiResponse(400, "you can't delete this order because it's not been 60 seconds"));
+            if (order.CreatedAt.AddSeconds(60).CompareTo(DateTime.UtcNow) > 0)
+                return BadRequest(new ApiResponse(400, "you can delete this order after " +
+                                                       CalcSeconds(order.CreatedAt.AddSeconds(60).Second,
+                                                           DateTime.UtcNow.Second) + " seconds"));
 
-        if (order.Status != 0 && order.Status != 5)
-            return BadRequest(new ApiResponse(400, "you can't delete this order because it has been checked by admin"));
+            if (order.Status != 0 && order.Status != 5)
+                return BadRequest(new ApiResponse(400,
+                    "you can't delete this order because it has been checked by admin"));
 
 
-        if (order.Status == 5)
-            return BadRequest(new ApiResponse(400, "you can't delete this order because it has been cancelled"));
+            if (order.Status == 5)
+                return BadRequest(new ApiResponse(400, "you can't delete this order because it has been cancelled"));
 
-        order.User.Balance += order.TotalPrice;
-        order.User.TotalPurchasing -= order.TotalPrice;
-        order.User.TotalForVIPLevel -= order.TotalPrice;
-        order.User.VIPLevel = await _unitOfWork.VipLevelRepository
-            .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+            order.User.Balance += order.TotalPrice;
+            order.User.TotalPurchasing -= order.TotalPrice;
+            order.User.TotalForVIPLevel -= order.TotalPrice;
+            order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
 
-        order.Status = 5;
-        order.StatusIfCanceled = 2;
-        // _unitOfWork.OrdersRepository.DeleteOrder(order);
+            order.Status = 5;
+            order.StatusIfCanceled = 2;
 
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(201, "Cancelled successfully "));
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(201, "Cancelled successfully "));
 
-        return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
+            return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     private bool CheckIfAvailable(Product product)

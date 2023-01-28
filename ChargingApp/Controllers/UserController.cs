@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using ChargingApp.Entity;
 using ChargingApp.Extentions;
-using ChargingApp.Data;
 using ChargingApp.DTOs;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Controllers;
 
@@ -30,76 +28,100 @@ public class UserController : BaseApiController
     [HttpPut("update-user-info")]
     public async Task<ActionResult> UpdateUser(UpdateUserInfoDto updateUserInfoDto)
     {
-        var email = User.GetEmail();
+        try
+        {
+            var email = User.GetEmail();
 
-        if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
 
-        if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
+            if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
 
-        _mapper.Map(updateUserInfoDto, user);
-        _unitOfWork.UserRepository.UpdateUserInfo(user);
+            _mapper.Map(updateUserInfoDto, user);
+            _unitOfWork.UserRepository.UpdateUserInfo(user);
 
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200, "Updated"));
-        return BadRequest(new ApiResponse(400, "Failed to update"));
+            if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200, "Updated"));
+            return BadRequest(new ApiResponse(400, "Failed to update"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpGet("user-info")]
     public async Task<ActionResult<UserInfoDto>> GetUserInfo()
     {
-        var email = User.GetEmail();
-
-        if (email is null) return Unauthorized(new ApiResponse(401));
-
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-
-        if (user is null) return Unauthorized(new ApiResponse(401));
-
-        var res = _mapper.Map<UserInfoDto>(user);
-
-        var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-        var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
-
-        res.MyWallet = new WalletDto
+        try
         {
-            DollarBalance = user.Balance,
-            SyrianBalance = user.Balance * syrian,
-            TurkishBalance = user.Balance * turkish,
+            var email = User.GetEmail();
 
-            DollarDebit = user.Debit,
-            SyrianDebit = user.Debit * syrian,
-            TurkishDebit = user.Debit * turkish,
+            if (email is null) return Unauthorized(new ApiResponse(401));
+
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+
+            if (user is null) return Unauthorized(new ApiResponse(401));
+
+            var res = _mapper.Map<UserInfoDto>(user);
+
+            var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+            var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+
+            res.MyWallet = new WalletDto
+            {
+                DollarBalance = user.Balance,
+                SyrianBalance = user.Balance * syrian,
+                TurkishBalance = user.Balance * turkish,
+
+                DollarDebit = user.Debit,
+                SyrianDebit = user.Debit * syrian,
+                TurkishDebit = user.Debit * turkish,
 
 
-            DollarTotalPurchase = user.TotalPurchasing,
-            SyrianTotalPurchase = user.TotalPurchasing * syrian,
-            TurkishTotalPurchase = user.TotalPurchasing * turkish,
-        };
-        if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
+                DollarTotalPurchase = user.TotalPurchasing,
+                SyrianTotalPurchase = user.TotalPurchasing * syrian,
+                TurkishTotalPurchase = user.TotalPurchasing * turkish,
+            };
+            if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
 
-        res.MyWallet.TurkishBalance *= -1;
-        res.MyWallet.SyrianBalance *= -1;
-        res.MyWallet.DollarBalance *= -1;
+            res.MyWallet.TurkishBalance *= -1;
+            res.MyWallet.SyrianBalance *= -1;
+            res.MyWallet.DollarBalance *= -1;
 
-        return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPut("change-password")]
     public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
     {
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-        if (user is null)
-            return Unauthorized(new ApiResponse(403));
+            if (user is null)
+                return Unauthorized(new ApiResponse(403));
 
-        var res =
-            await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+            var res =
+                await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
 
-        if (!res.Succeeded)
-            return BadRequest(new ApiResponse(400, "Failed to update password"));
+            if (!res.Succeeded)
+                return BadRequest(new ApiResponse(400, "Failed to update password"));
 
-        return Ok(new ApiResponse(200, "updated successfully"));
+            return Ok(new ApiResponse(200, "updated successfully"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpGet("my-wallet")]
@@ -129,7 +151,7 @@ public class UserController : BaseApiController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "some exception happened"));
+            throw;
         }
     }
 
@@ -160,7 +182,7 @@ public class UserController : BaseApiController
                 MyWallet = await GetMyWallet(user),
                 VipLevels = levels.Select(x => _mapper.Map<VipLevelDto>(x)).ToList()
             };
-            
+
             return Ok(new ApiOkResponse(res));
         }
         catch (Exception e)

@@ -19,7 +19,15 @@ public class CurrencyController : BaseApiController
     [HttpGet("currencies")]
     public async Task<ActionResult<List<CurrencyDto>>> GetCurrencies()
     {
-        var res = await _unitOfWork.CurrencyRepository.GetCurrencies();
-        return Ok(new ApiOkResponse(res));
+        try
+        {
+            var res = await _unitOfWork.CurrencyRepository.GetCurrencies();
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

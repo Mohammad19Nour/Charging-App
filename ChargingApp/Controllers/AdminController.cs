@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ChargingApp.Controllers;
 //[Authorize (Policy = "RequiredAdminRole")]
 
-public class AdminController :BaseApiController
+public class AdminController : BaseApiController
 {
     public AdminController()
     {

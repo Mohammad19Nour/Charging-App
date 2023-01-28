@@ -12,7 +12,7 @@ public class OurAgentsController : BaseApiController
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public OurAgentsController(IUnitOfWork unitOfWork,IMapper mapper)
+    public OurAgentsController(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -21,6 +21,14 @@ public class OurAgentsController : BaseApiController
     [HttpGet("our-agents")]
     public async Task<ActionResult<List<OurAgentsDto>>> GetOurAgents()
     {
-        return Ok(new ApiOkResponse(await _unitOfWork.OurAgentsRepository.GetOurAgentsAsync()));
+        try
+        {
+            return Ok(new ApiOkResponse(await _unitOfWork.OurAgentsRepository.GetOurAgentsAsync()));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

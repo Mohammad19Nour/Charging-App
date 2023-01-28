@@ -19,7 +19,7 @@ public class HomeController : BaseApiController
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public HomeController(IUnitOfWork unitOfWork,IMapper mapper
+    public HomeController(IUnitOfWork unitOfWork, IMapper mapper
     )
     {
         _unitOfWork = unitOfWork;
@@ -29,11 +29,18 @@ public class HomeController : BaseApiController
     [HttpGet]
     public async Task<ActionResult<HomeDto>> GetHomePage()
     {
-        var res = new HomeDto
+        try
         {
-            Categories = await _unitOfWork.CategoryRepository.GetAllCategoriesAsync()
-        };
-        return res;
+            var res = new HomeDto
+            {
+                Categories = await _unitOfWork.CategoryRepository.GetAllCategoriesAsync()
+            };
+            return res;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
-
 }

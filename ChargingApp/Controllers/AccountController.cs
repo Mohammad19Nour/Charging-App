@@ -88,7 +88,7 @@ public class AccountController : BaseApiController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 
@@ -102,7 +102,6 @@ public class AccountController : BaseApiController
         var text = "<html><body>To confirm your email please<a href=" + confirmationLink +
                    "> click here</a></body></html>";
         return await _emailSender.SendEmailAsync(user.Email, "Confirmation Email", text);
-        Console.WriteLine(text + "\n\n\n");
     }
 
     [HttpPost("login")]
@@ -168,7 +167,7 @@ public class AccountController : BaseApiController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 
@@ -229,7 +228,7 @@ public class AccountController : BaseApiController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 
@@ -263,7 +262,7 @@ public class AccountController : BaseApiController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "something went wrong"));
+            throw;
         }
     }
 }

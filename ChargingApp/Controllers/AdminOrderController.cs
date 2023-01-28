@@ -4,151 +4,136 @@ using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
-using ChargingApp.SignalR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace ChargingApp.Controllers;
 
 public class AdminOrderController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHubContext _presenceHub;
-    private readonly PresenceTracker _tracker;
+    private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
 
-    public AdminOrderController(IUnitOfWork unitOfWork
+    public AdminOrderController(IUnitOfWork unitOfWork, INotificationService notificationService
         , IMapper mapper)
     {
-        //   , IHubContext presenceHub, PresenceTracker tracker
         _unitOfWork = unitOfWork;
-        //    _presenceHub = presenceHub;
-        //  _tracker = tracker;
+        _notificationService = notificationService;
         _mapper = mapper;
     }
 
     [HttpPost("receive-order")]
     public async Task<ActionResult> Receive(int orderId)
     {
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
-
-        if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
-
-        if (order.Status == 4)
-            return BadRequest(new ApiResponse(400, "this order already received"));
-
-        if (order.Status != 0)
-            return BadRequest(new ApiResponse(400, "this order already checked"));
-
-        order.Status = 4;
-        /*
-        var connections = await _tracker.GetConnectionsForUser(order.User.Email);
-
-        if (connections != null)
+        try
         {
-            await _presenceHub.Clients.Clients(connections)
-                .SendAsync("NewOrderNotification","new order");
-        }
-        else
-        {
-            _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification()
+            var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
+
+            if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
+
+            if (order.Status == 4)
+                return BadRequest(new ApiResponse(400, "this order already received"));
+
+            if (order.Status != 0)
+                return BadRequest(new ApiResponse(400, "this order already checked"));
+
+            order.Status = 4;
+
+
+            if (await _unitOfWork.Complete())
             {
-                User = order.User,
-                Order = order
-            });
-        }*/
+                return Ok(new ApiResponse(200, "Received successfully"));
+            }
 
-        if (await _unitOfWork.Complete())
-        {
-            return Ok(new ApiResponse(200, "Received successfully"));
+            return BadRequest(new ApiResponse(400, "Failed to Received order"));
         }
-
-        return BadRequest(new ApiResponse(400, "Failed to Received order"));
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("approve/{orderId:int}")]
     public async Task<ActionResult> Approve(int orderId)
     {
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
-
-        if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
-
-        if (order.Status == 0)
-            return BadRequest(new ApiResponse(400, "Please receive this order before approve it"));
-        
-        if (order.Status != 4)
-            return BadRequest(new ApiResponse(400, "this order already checked"));
-
-        // var roles = order.User.
-        if (order.OrderType.ToLower() == "vip")
+        try
         {
-            order.User.TotalPurchasing -= order.TotalPrice;
-            order.User.TotalForVIPLevel -= order.TotalPrice;
-            order.User.Balance += order.TotalPrice;
-            order.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
-             
-             Console.WriteLine("balance : " + order.User.Balance+"\n");
-             Console.WriteLine("TotalPurchasing : " + order.User.TotalPurchasing+"\n");
-             Console.WriteLine("TotalForVIPLevel : " + order.User.TotalForVIPLevel+"\n");
-             
-            if (!order.CanChooseQuantity)
-            {
-                //  Console.WriteLine("price before : " + order.TotalPrice+"\n");
-                order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
-                    (order.TotalQuantity, order.Product, order.User, _unitOfWork);
+            var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
-                  Console.WriteLine("price after : " + order.TotalPrice+"\n");
-            }
-            else
-            {
-                order.TotalQuantity = await
-                    SomeUsefulFunction.CalcTotalQuantity(order.Product.Quantity, order.Product
-                        , order.User, _unitOfWork);
-            }
+            if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
 
-            if (order.TotalPrice <= order.User.Balance)
-            {
-                order.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                    .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
-                order.User.Balance -= order.TotalPrice;
-                order.Status = 1; // accepted
+            if (order.Status == 0)
+                return BadRequest(new ApiResponse(400, "Please receive this order before approve it"));
 
-                order.Notes = "Succeed";
-            }
-            else
+            if (order.Status != 4)
+                return BadRequest(new ApiResponse(400, "this order already checked"));
+
+            if (order.OrderType.ToLower() == "vip")
             {
                 order.User.TotalPurchasing -= order.TotalPrice;
                 order.User.TotalForVIPLevel -= order.TotalPrice;
+                order.User.Balance += order.TotalPrice;
                 order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
-                order.Status = 3; // wrong
-                order.Notes = "No enough money";
-            }
-        }
-/*
-        var connections = await _tracker.GetConnectionsForUser(order.User.Email);
 
-        if (connections != null)
-        {
-            await _presenceHub.Clients.Clients(connections)
-                .SendAsync("NewOrderNotification", "wrong");
-        }
-        else
-        {
-            _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification()
+                if (!order.CanChooseQuantity)
+                {
+                    if (order.Product != null)
+                        order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                            (order.TotalQuantity, order.Product, order.User, _unitOfWork);
+
+                    Console.WriteLine("price after : " + order.TotalPrice + "\n");
+                }
+                else
+                {
+                    if (order.Product != null)
+                        order.TotalQuantity = await
+                            SomeUsefulFunction.CalcTotalQuantity(order.Product.Quantity, order.Product
+                                , order.User, _unitOfWork);
+                }
+
+                if (order.TotalPrice <= order.User.Balance)
+                {
+                    order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                        .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+                    order.User.Balance -= order.TotalPrice;
+                    order.Status = 1; // accepted
+
+                    order.Notes = "Succeed";
+                }
+                else
+                {
+                    order.User.TotalPurchasing -= order.TotalPrice;
+                    order.User.TotalForVIPLevel -= order.TotalPrice;
+                    order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                        .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+                    order.Status = 3; // wrong
+                    order.Notes = "No enough money";
+                }
+            }
+
+            var not = new OrderAndPaymentNotification
             {
                 User = order.User,
                 Order = order
-            });
-        }*/
+            };
+            await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                "Order status notification", "order done");
 
-        if (await _unitOfWork.Complete())
-        {
-            return Ok(new ApiResponse(200,order.Status != 3 ? "approved successfully":"the user have no enough money"));
+            if (await _unitOfWork.Complete())
+            {
+                return Ok(new ApiResponse(200,
+                    order.Status != 3 ? "approved successfully" : "the user have no enough money"));
+            }
+
+            return BadRequest(new ApiResponse(400, "Failed to approve order"));
         }
-
-        return BadRequest(new ApiResponse(400, "Failed to approve order"));
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("reject-wrong/{orderId:int}")]
@@ -156,165 +141,175 @@ public class AdminOrderController : AdminController
     {
         //type either wrong or reject
 
-        type = type.ToLower();
-
-        if (type != "wrong" && type != "reject")
-            return BadRequest(new ApiResponse(400, "type should be wrong or reject"));
-
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
-
-        if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
-
-        if (order.Status != 4) 
-            return BadRequest(new ApiResponse(400, "this order already checked"));
-
-        if (order.OrderType.ToLower() != "vip" && type == "rejected")
-            return BadRequest(new ApiResponse(400, "can't reject this order"));
-
-
-        order.Status = type == "reject" ? 2 : 3;
-
-        order.Notes = notes;
-
-        if (order.User != null)
+        try
         {
-            if (order.OrderType.ToLower() == "vip")
-            {
-                var user = order.User;
+            type = type.ToLower();
 
-                user.Balance += order.TotalPrice;
-                user.TotalPurchasing -= order.TotalPrice;
-                user.TotalForVIPLevel -= order.TotalPrice;
-                user.VIPLevel =
-                    await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
-            }
-        }
+            if (type != "wrong" && type != "reject")
+                return BadRequest(new ApiResponse(400, "type should be wrong or reject"));
 
-       /* var connections = await _tracker.GetConnectionsForUser(order.User.Email);
+            var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
-        if (connections != null)
-        {
-            await _presenceHub.Clients.Clients(connections)
-                .SendAsync("NewOrderNotification", "new order");
-        }
-        else
-        {
-            _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification()
+            if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
+
+            if (order.Status != 4)
+                return BadRequest(new ApiResponse(400, "this order already checked"));
+
+            if (order.OrderType.ToLower() != "vip" && type == "rejected")
+                return BadRequest(new ApiResponse(400, "can't reject this order"));
+
+
+            order.Status = type == "reject" ? 2 : 3;
+
+            order.Notes = notes;
+
+            var not = new OrderAndPaymentNotification
             {
                 User = order.User,
                 Order = order
-            });
-        }*/
+            };
+            await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                "Order status notification", "order rejected");
+            if (await _unitOfWork.Complete())
+            {
+                return Ok(new ApiResponse(200, "Done successfully"));
+            }
 
-        if (await _unitOfWork.Complete())
-        {
-            return Ok(new ApiResponse(200, "Done successfully"));
+            return BadRequest(new ApiResponse(400, "Failed to reject order"));
         }
-
-        return BadRequest(new ApiResponse(400, "Failed"));
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpGet("pending-orders")]
     public async Task<ActionResult<List<PendingOrderDto>>> GetPendingOrders()
     {
-        var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
-        var tmp = new List<PendingOrderDto>();
-        // Console.WriteLine(res.Count+"\n*\n");
-
-        foreach (var t in res)
+        try
         {
-            if (t.OrderType.ToLower() == "normal")
-            {
-                tmp.Add(_mapper.Map<PendingOrderDto>(t));
-            }
-            else
-            {
-                t.User.TotalPurchasing -= t.TotalPrice;
-                t.User.TotalForVIPLevel -= t.TotalPrice;
-                t.User.Balance += t.TotalPrice;
-                t.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                    .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+            var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
+            var tmp = new List<PendingOrderDto>();
 
-                if (!t.CanChooseQuantity)
+            foreach (var t in res)
+            {
+                if (t.OrderType.ToLower() == "normal")
                 {
-                    var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
-                        (t.TotalQuantity, t.Product, t.User, _unitOfWork);
-                    t.TotalPrice = pr;
+                    tmp.Add(_mapper.Map<PendingOrderDto>(t));
                 }
                 else
                 {
-                    t.TotalQuantity = await
-                        SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
-                            , t.User, _unitOfWork);
-                }
-
-                if (t.User.Balance >= t.TotalPrice)
-                {
-                    t.User.TotalPurchasing += t.TotalPrice;
-                    t.User.TotalForVIPLevel += t.TotalPrice;
-                    t.User.Balance -= t.TotalPrice;
+                    t.User.TotalPurchasing -= t.TotalPrice;
+                    t.User.TotalForVIPLevel -= t.TotalPrice;
+                    t.User.Balance += t.TotalPrice;
                     t.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
-                }
-                var x = new PendingOrderDto();
-                _mapper.Map(t, x);
-                tmp.Add(x);
-            }
-        }
 
-        return Ok(new ApiOkResponse(tmp));
+                    if (t.Product is null) continue;
+
+                    if (!t.CanChooseQuantity)
+                    {
+                        var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                            (t.TotalQuantity, t.Product, t.User, _unitOfWork);
+                        t.TotalPrice = pr;
+                    }
+                    else
+                    {
+                        t.TotalQuantity = await
+                            SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
+                                , t.User, _unitOfWork);
+                    }
+
+                    if (t.User.Balance >= t.TotalPrice)
+                    {
+                        t.User.TotalPurchasing += t.TotalPrice;
+                        t.User.TotalForVIPLevel += t.TotalPrice;
+                        t.User.Balance -= t.TotalPrice;
+                        t.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                            .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+                    }
+
+                    var x = new PendingOrderDto();
+                    _mapper.Map(t, x);
+                    tmp.Add(x);
+                }
+            }
+
+            string? j = null;
+            j.ToString();
+            tmp = tmp.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(new ApiOkResponse(tmp));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+            // BadRequest(new ApiException(500,e.Message,e.StackTrace));
+        }
     }
 
     [HttpGet("pending-orders/{email}")]
     public async Task<ActionResult<List<PendingOrderDto>>> GetPendingOrders(string email)
     {
-        var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync(email);
-
-        var tmp = new List<PendingOrderDto>();
-        // Console.WriteLine(res.Count+"\n*\n");
-
-        foreach (var t in res)
+        try
         {
-            if (t.OrderType.ToLower() == "normal")
-            {
-                tmp.Add(_mapper.Map<PendingOrderDto>(t));
-            }
-            else
-            {
-                t.User.TotalPurchasing -= t.TotalPrice;
-                t.User.TotalForVIPLevel -= t.TotalPrice;
-                t.User.Balance += t.TotalPrice;
-                t.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                    .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+            var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync(email);
 
-                if (!t.CanChooseQuantity)
+            var tmp = new List<PendingOrderDto>();
+
+            foreach (var t in res)
+            {
+                if (t.OrderType.ToLower() == "normal")
                 {
-                    var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
-                        (t.TotalQuantity, t.Product, t.User, _unitOfWork);
-                    t.TotalPrice = pr;
+                    tmp.Add(_mapper.Map<PendingOrderDto>(t));
                 }
                 else
                 {
-                    t.TotalQuantity = await
-                        SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
-                            , t.User, _unitOfWork);
-                }
+                    if (t.Product is null) continue;
 
-                if (t.User.Balance >= t.TotalPrice)
-                {
-                    t.User.TotalPurchasing += t.TotalPrice;
-                    t.User.TotalForVIPLevel += t.TotalPrice;
-                    t.User.Balance -= t.TotalPrice;
+                    t.User.TotalPurchasing -= t.TotalPrice;
+                    t.User.TotalForVIPLevel -= t.TotalPrice;
+                    t.User.Balance += t.TotalPrice;
                     t.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
-                }
-                var x = new PendingOrderDto();
-                _mapper.Map(t, x);
-                tmp.Add(x);
-            }
-        }
 
-        return Ok(new ApiOkResponse(tmp));
+                    if (!t.CanChooseQuantity)
+                    {
+                        var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                            (t.TotalQuantity, t.Product, t.User, _unitOfWork);
+                        t.TotalPrice = pr;
+                    }
+                    else
+                    {
+                        t.TotalQuantity = await
+                            SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
+                                , t.User, _unitOfWork);
+                    }
+
+                    if (t.User.Balance >= t.TotalPrice)
+                    {
+                        t.User.TotalPurchasing += t.TotalPrice;
+                        t.User.TotalForVIPLevel += t.TotalPrice;
+                        t.User.Balance -= t.TotalPrice;
+                        t.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                            .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+                    }
+
+                    var x = new PendingOrderDto();
+                    _mapper.Map(t, x);
+                    tmp.Add(x);
+                }
+            }
+
+            tmp = tmp.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(new ApiOkResponse(tmp));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
 /*

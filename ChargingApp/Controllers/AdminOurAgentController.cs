@@ -21,46 +21,70 @@ public class AdminOurAgentController : AdminController
     [HttpPost("add-agent")]
     public async Task<ActionResult<OurAgentsDto>> AddAgent([FromBody] NewOurAgentDto dto)
     {
-        var agent = _mapper.Map<OurAgent>(dto);
-        _unitOfWork.OurAgentsRepository.AddAgent(agent);
+        try
+        {
+            var agent = _mapper.Map<OurAgent>(dto);
+            _unitOfWork.OurAgentsRepository.AddAgent(agent);
 
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(201, "agent added"));
+            if (await _unitOfWork.Complete()) return Ok(new ApiResponse(201, "agent added"));
 
-        return BadRequest(new ApiResponse(400, "Failed to add agent"));
+            return BadRequest(new ApiResponse(400, "Failed to add agent"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPut("update-agent")]
     public async Task<ActionResult> UpdateAgent([FromBody] UpdateOurAgentDto dto)
     {
-        var agent = await _unitOfWork.OurAgentsRepository.GetAgentById(dto.Id);
+        try
+        {
+            var agent = await _unitOfWork.OurAgentsRepository.GetAgentById(dto.Id);
 
-        if (agent == null)
-            return BadRequest(new ApiResponse(404, "agent not found"));
-        Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
+            if (agent == null)
+                return BadRequest(new ApiResponse(404, "agent not found"));
+            Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
 
-        _mapper.Map(dto, agent);
+            _mapper.Map(dto, agent);
 
-        Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
-        _unitOfWork.OurAgentsRepository.UpdateAgent(agent);
+            Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
+            _unitOfWork.OurAgentsRepository.UpdateAgent(agent);
 
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(200, "Updated successfully"));
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200, "Updated successfully"));
 
-        return BadRequest(new ApiResponse(400, "Failed to update agent"));
+            return BadRequest(new ApiResponse(400, "Failed to update agent"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpDelete("{agentId:int}")]
     public async Task<IActionResult> DeleteOurAgent(int agentId)
     {
-        var agent = await _unitOfWork.OurAgentsRepository.GetAgentById(agentId);
+        try
+        {
+            var agent = await _unitOfWork.OurAgentsRepository.GetAgentById(agentId);
 
-        if (agent == null) return BadRequest(new ApiResponse(404, "agent not found"));
+            if (agent == null) return BadRequest(new ApiResponse(404, "agent not found"));
 
-        _unitOfWork.OurAgentsRepository.DeleteAgent(agent);
+            _unitOfWork.OurAgentsRepository.DeleteAgent(agent);
 
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(200, "Deleted successfully"));
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200, "Deleted successfully"));
 
-        return BadRequest(new ApiResponse(400, "Failed to delete agent"));
+            return BadRequest(new ApiResponse(400, "Failed to delete agent"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

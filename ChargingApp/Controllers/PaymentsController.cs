@@ -27,157 +27,180 @@ public class PaymentsController : BaseApiController
     [HttpPost("add-payment/company/{agentId:int}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentComp(int agentId, [FromForm] NewCompanyPaymentDto dto)
     {
-        var email = User.GetEmail();
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user == null) return Unauthorized(new ApiResponse(401));
-
-        var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
-
-        if (agent is null)
-            return BadRequest(new ApiResponse(400, "this agent isn't exist"));
-
-        var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
-
-        var photo = new Photo
+        try
         {
-            Url = result.Url
-        };
+            var email = User.GetEmail();
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user == null) return Unauthorized(new ApiResponse(401));
 
-        var payment = new Payment
+            var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
+
+            if (agent is null)
+                return BadRequest(new ApiResponse(400, "this agent isn't exist"));
+
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, result.Message));
+
+            var photo = new Photo
+            {
+                Url = result.Url
+            };
+
+            var payment = new Payment
+            {
+                User = user,
+                AddedValue = dto.AddedValue,
+                CreatedDate = dto.CreatedDate,
+                Notes = dto.Notes,
+                Username = dto.Username,
+                PaymentAgentEnglishName = agent.EnglishName,
+                PaymentAgentArabicName = agent.ArabicName,
+                Photo = photo,
+                PaymentType = "Companies",
+            };
+
+            _unitOfWork.PaymentRepository.AddPayment(payment);
+
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
+
+            return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
+        }
+        catch (Exception e)
         {
-            User = user,
-            AddedValue = dto.AddedValue,
-            CreatedDate = dto.CreatedDate,
-            Notes = dto.Notes,
-            Username = dto.Username,
-            PaymentAgentEnglishName = agent.EnglishName,
-            PaymentAgentArabicName = agent.ArabicName,
-            Photo = photo,
-            PaymentType = "Companies",
-            //Succeed = true,
-            //Checked = true
-        };
-
-        // user.Balance += payment.AddedValue;
-        _unitOfWork.PaymentRepository.AddPayment(payment);
-
-        if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
-
-        return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("add-payment/office/{agentId:int}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentOff(int agentId, [FromForm] NewOfficePaymentDto dto)
     {
-        var email = User.GetEmail();
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user == null) return Unauthorized(new ApiResponse(401));
-
-        var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
-
-        if (agent is null)
-            return BadRequest(new ApiResponse(400, "this agent isn't exist"));
-
-        var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
-
-        var photo = new Photo
+        try
         {
-            Url = result.Url
-        };
+            var email = User.GetEmail();
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user == null) return Unauthorized(new ApiResponse(401));
 
-        var payment = new Payment
-        {
-            User = user,
-            AddedValue = dto.AddedValue,
-            CreatedDate = dto.CreatedDate,
-            Notes = dto.Notes,
-            Username = dto.Username,
-            PaymentAgentEnglishName = agent.EnglishName,
-            PaymentAgentArabicName = agent.ArabicName,
-            Photo = photo,
-            PaymentType = "Offices",
-            //  Succeed = true,
-            //  Checked = true
-        };
+            var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
 
-        //user.Balance += payment.AddedValue;
+            if (agent is null)
+                return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
-        _unitOfWork.PaymentRepository.AddPayment(payment);
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, result.Message));
 
-        if (await _unitOfWork.Complete())
-        {
-            return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
+            var photo = new Photo
+            {
+                Url = result.Url
+            };
+
+            var payment = new Payment
+            {
+                User = user,
+                AddedValue = dto.AddedValue,
+                CreatedDate = dto.CreatedDate,
+                Notes = dto.Notes,
+                Username = dto.Username,
+                PaymentAgentEnglishName = agent.EnglishName,
+                PaymentAgentArabicName = agent.ArabicName,
+                Photo = photo,
+                PaymentType = "Offices",
+            };
+
+
+            _unitOfWork.PaymentRepository.AddPayment(payment);
+
+            if (await _unitOfWork.Complete())
+            {
+                return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
+            }
+
+            return BadRequest(new ApiResponse(400, "Failed to add payment"));
         }
-
-        return BadRequest(new ApiResponse(400, "Failed to add payment"));
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("add-payment/other/{name}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentUsdt([FromForm] NewPaymentDto dto, string name)
     {
-        var email = User.GetEmail();
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user == null) return Unauthorized(new ApiResponse(401));
-
-        name = name.ToLower();
-
-        var way = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(name);
-        if (way != null)
+        try
         {
-            way.EnglishName = way.EnglishName.ToLower();
+            var email = User.GetEmail();
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user == null) return Unauthorized(new ApiResponse(401));
 
-            if (way.EnglishName is "companies" or "offices")
-                return BadRequest(new ApiResponse(400, "you can't use this method"));
+            name = name.ToLower();
+
+            var way = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(name);
+            if (way != null)
+            {
+                way.EnglishName = way.EnglishName.ToLower();
+
+                if (way.EnglishName is "companies" or "offices")
+                    return BadRequest(new ApiResponse(400, "you can't use this method"));
+            }
+            else
+                return BadRequest(new ApiResponse(400, "can't find the target method"));
+
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, result.Message));
+
+            var photo = new Photo
+            {
+                Url = result.Url
+            };
+            var payment = new Payment
+            {
+                User = user,
+                AddedValue = dto.AddedValue,
+                CreatedDate = dto.CreatedDate,
+                Notes = dto.Notes,
+                Photo = photo,
+                PaymentType = name,
+            };
+
+            _unitOfWork.PaymentRepository.AddPayment(payment);
+
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
+
+            return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
         }
-        else
-            return BadRequest(new ApiResponse(400, "can't find the target method"));
-
-        var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
-
-        var photo = new Photo
+        catch (Exception e)
         {
-            Url = result.Url
-        };
-        var payment = new Payment
-        {
-            User = user,
-            AddedValue = dto.AddedValue,
-            CreatedDate = dto.CreatedDate,
-            Notes = dto.Notes,
-            Photo = photo,
-            PaymentType = name,
-            //Succeed = true,
-            //Checked = true
-        };
-
-        _unitOfWork.PaymentRepository.AddPayment(payment);
-        //  user.Balance += payment.AddedValue;
-
-        if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
-
-        return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpGet("my-payments")]
     public async Task<ActionResult<List<CompanyPaymentDto>>> GetMyPayment()
     {
-        var email = User.GetEmail();
-        if (email is null) return Unauthorized(new ApiResponse(401));
+        try
+        {
+            var email = User.GetEmail();
+            if (email is null) return Unauthorized(new ApiResponse(401));
 
-        email = email?.ToLower();
+            email = email?.ToLower();
 
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
-        if (user == null) return Unauthorized(new ApiResponse(401));
+            if (user == null) return Unauthorized(new ApiResponse(401));
 
-        var res = await _unitOfWork.PaymentRepository.GetPaymentsForUserAsync(email);
+            var res = await _unitOfWork.PaymentRepository.GetPaymentsForUserAsync(email);
 
-        return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

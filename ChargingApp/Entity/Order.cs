@@ -10,8 +10,8 @@ public class Order :BaseEntity
     public Photo? Photo { get; set; }
     public string? PlayerId { get; set; }
     public string PlayerName { get; set; }
-    public string ProductEnglishName { get; set; }
-    public string ProductArabicName { get; set; }
+    public string? ProductEnglishName { get; set; }
+    public string? ProductArabicName { get; set; }
 
     public double Price { get; set; }
     public bool CanChooseQuantity { get; set; }

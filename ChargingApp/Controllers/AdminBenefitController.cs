@@ -18,35 +18,43 @@ public class AdminBenefitController : AdminController
     }
 
     [HttpPost("add-specific-benefit-for-product")]
-    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId , int vipLevel , double benefitPercent)
+    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId, int vipLevel, double benefitPercent)
     {
-        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
-
-        if (product is null)
-            return NotFound(new ApiResponse(404, "product not found"));
-        var vip = await _unitOfWork.VipLevelRepository.CheckIfExist(vipLevel);
-        
-        if (!vip)
-            return NotFound(new ApiResponse(404, "vip level not found"));
-        var spec = await _unitOfWork.BenefitPercentInSpecificVipLevelRepository.GetBenefitAsync(productId, vipLevel);
-
-        if (spec is null)
+        try
         {
-            _unitOfWork.BenefitPercentInSpecificVipLevelRepository.AddBenefitPercentForProduct(
-                new BenefitPercentInSpecificVilLevel
-                {
-                    ProductId = productId,
-                    VipLevel = vipLevel,
-                    BenefitPercent = benefitPercent
-                });
+            var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
+
+            if (product is null)
+                return NotFound(new ApiResponse(404, "product not found"));
+            var vip = await _unitOfWork.VipLevelRepository.CheckIfExist(vipLevel);
+
+            if (!vip)
+                return NotFound(new ApiResponse(404, "vip level not found"));
+            var spec = await _unitOfWork.BenefitPercentInSpecificVipLevelRepository
+                .GetBenefitAsync(productId, vipLevel);
+
+            if (spec is null)
+            {
+                _unitOfWork.BenefitPercentInSpecificVipLevelRepository.AddBenefitPercentForProduct(
+                    new BenefitPercentInSpecificVilLevel
+                    {
+                        ProductId = productId,
+                        VipLevel = vipLevel,
+                        BenefitPercent = benefitPercent
+                    });
+            }
+            else
+                spec.BenefitPercent = benefitPercent;
+
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200));
+
+            return BadRequest(new ApiResponse(400, "something went wrong"));
         }
-        else
-            spec.BenefitPercent = benefitPercent;
-
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiResponse(200));
-        
-        return BadRequest(new ApiResponse(400, "something went wrong"));
-
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            throw;
+        }
     }
 }
