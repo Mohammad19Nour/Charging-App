@@ -44,6 +44,7 @@ builder.Services.AddCors(opt =>
 });*/
 builder.Services.Configure<FormOptions>(opt=>
     opt.ValueCountLimit = int.MaxValue);
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSingleton<PresenceTracker>().AddSignalR();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

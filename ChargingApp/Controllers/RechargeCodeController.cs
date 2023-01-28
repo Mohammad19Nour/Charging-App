@@ -1,6 +1,4 @@
-﻿using ChargingApp.Data;
-using ChargingApp.DTOs;
-using ChargingApp.Errors;
+﻿using ChargingApp.Errors;
 using ChargingApp.Extentions;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -22,25 +20,33 @@ public class RechargeCodeController : BaseApiController
     [HttpPost]
     public async Task<ActionResult<double>> Recharge([FromBody] MyClass obj)
     {
-        var email = User.GetEmail();
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+        try
+        {
+            var email = User.GetEmail();
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
-        if (user is null)
-            return Unauthorized(new ApiResponse(404));
+            if (user is null)
+                return Unauthorized(new ApiResponse(404));
 
-        var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
-        if (tmpCode is null || tmpCode.Istaked)
-            return BadRequest(new ApiResponse(401, "Invalid Code"));
+            var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
+            if (tmpCode is null || tmpCode.Istaked)
+                return BadRequest(new ApiResponse(401, "Invalid Code"));
 
-        tmpCode.Istaked = true;
-        tmpCode.User = user;
-        user.Balance += tmpCode.Value;
-        tmpCode.TakedTime = DateTime.Now;
+            tmpCode.Istaked = true;
+            tmpCode.User = user;
+            user.Balance += tmpCode.Value;
+            tmpCode.TakedTime = DateTime.Now;
 
-        if (await _unitOfWork.Complete())
-            return Ok(new ApiOkResponse("Recharge successfully. your balance is " + user.Balance));
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiOkResponse("Recharge successfully. your balance is " + user.Balance));
 
-        return BadRequest(new ApiResponse(400, "something went wrong"));
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
 
@@ -48,16 +54,24 @@ public class RechargeCodeController : BaseApiController
     [HttpGet("generate-codes")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {
-        var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);
+        try
+        {
+            var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);
 
-        if (codes is null)
-            return BadRequest(new ApiResponse(400, "something happened"));
+            if (codes is null)
+                return BadRequest(new ApiResponse(400, "something happened"));
 
-        return Ok(new ApiOkResponse(codes));
+            return Ok(new ApiOkResponse(codes));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public class MyClass
     {
-        public string Code { get; set; }
+        public string Code { get; }
     }
 }

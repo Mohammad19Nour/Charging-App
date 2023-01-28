@@ -22,7 +22,7 @@ public class AdminSliderController : AdminController
         try
         {
             var result = await _photoService.AddPhotoAsync(file);
-            
+
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
 
@@ -30,7 +30,7 @@ public class AdminSliderController : AdminController
             {
                 Url = result.Url
             };
-            
+
             _unitOfWork.SliderRepository.AddPhoto(new SliderPhoto
             {
                 Photo = photo,
@@ -45,8 +45,7 @@ public class AdminSliderController : AdminController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "Something went wrong"));
-
+            throw;
         }
     }
 
@@ -67,12 +66,11 @@ public class AdminSliderController : AdminController
                 return Ok(new ApiResponse(200, "Deleted successfully"));
 
             return BadRequest(new ApiResponse(400, "some thing went wrong"));
-
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new ApiResponse(400, "Failed to delete photo"));
+            throw;
         }
     }
 }

@@ -21,45 +21,61 @@ public class FavoriteController : BaseApiController
     [HttpGet("favorite")]
     public async Task<ActionResult<List<CategoryDto>>> GetFavoriteProducts()
     {
-        var email = User.GetEmail();
-        if (email is null) return Unauthorized(new ApiResponse(401));
+        try
+        {
+            var email = User.GetEmail();
+            if (email is null) return Unauthorized(new ApiResponse(401));
 
 
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user is null) return Unauthorized(new ApiResponse(401));
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user is null) return Unauthorized(new ApiResponse(401));
 
-        var res = await _unitOfWork.FavoriteRepository.GetFavoriteCategoriesForUserAsync(user.Id);
+            var res = await _unitOfWork.FavoriteRepository.GetFavoriteCategoriesForUserAsync(user.Id);
 
-        return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("{categoryId:int}")]
     public async Task<ActionResult> ToggleFavorite(int categoryId)
     {
-        var email = User.GetEmail();
-        if (email is null) return Unauthorized(new ApiResponse(403));
-
-        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-        if (user is null) return Unauthorized(new ApiResponse(403));
-
-        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
-
-        if (category is null) return NotFound(new ApiResponse(404, "category not found"));
-
-        var fav = new Favorite
+        try
         {
-            User = user,
-            UserId = user.Id,
-            Category = category,
-            CategoryId = category.Id
-        };
-        var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id, category.Id);
+            var email = User.GetEmail();
+            if (email is null) return Unauthorized(new ApiResponse(403));
 
-        if (!res)
-            _unitOfWork.FavoriteRepository.AddFavoriteCategory(fav);
-        else _unitOfWork.FavoriteRepository.DeleteFavoriteCategory(fav);
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user is null) return Unauthorized(new ApiResponse(403));
 
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200));
-        return BadRequest(new ApiResponse(400, "something went wrong"));
+            var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
+
+            if (category is null) return NotFound(new ApiResponse(404, "category not found"));
+
+            var fav = new Favorite
+            {
+                User = user,
+                UserId = user.Id,
+                Category = category,
+                CategoryId = category.Id
+            };
+            var res = await _unitOfWork.FavoriteRepository.CheckIfExist(user.Id, category.Id);
+
+            if (!res)
+                _unitOfWork.FavoriteRepository.AddFavoriteCategory(fav);
+            else _unitOfWork.FavoriteRepository.DeleteFavoriteCategory(fav);
+
+            if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200));
+            return BadRequest(new ApiResponse(400, "something went wrong"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
