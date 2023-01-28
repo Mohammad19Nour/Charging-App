@@ -19,7 +19,7 @@ public class RechargeMethodsController : BaseApiController
         _mapper = mapper;
     }
 
-    [Authorize(Policy = "RequiredVIPRole")]
+  //  [Authorize(Policy = "RequiredVIPRole")]
     [HttpGet("recharge-methods-available")]
     public async Task<ActionResult<PaymentAndRechargeMethodDto>> GetAllRechargeMethods()
     {
@@ -33,7 +33,7 @@ public class RechargeMethodsController : BaseApiController
         return Ok(new ApiOkResponse(result: res));
     }
     
-    [Authorize(Policy = "RequiredNormalRole")]
+    //[Authorize(Policy = "RequiredNormalRole")]
     
     [HttpGet("normal-recharge-methods")]
     public async Task<ActionResult<List<PaymentGateway>>> GetNormalRechargeMethods()

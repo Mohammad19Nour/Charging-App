@@ -12,7 +12,7 @@ public static class ClaimsPrincipleExtentions
         return user.FindFirst(ClaimTypes.Email)?.Value.ToLower();
     }
 
-    public static async Task<IEnumerable<string>> GetRoles(this ClaimsPrincipal user , UserManager<AppUser> userManager)
+  /*  public static async Task<IEnumerable<string>> GetRoles(this ClaimsPrincipal user , UserManager<AppUser> userManager)
     {
         var userEmail = user.GetEmail().ToLower();
         
@@ -22,5 +22,17 @@ public static class ClaimsPrincipleExtentions
             .ThenInclude(x => x.Role)
             .Select(u => u.UserRoles.Select(x => x.Role.Name))
             .FirstAsync();
+    }*/
+    
+
+    public static IEnumerable<string> GetRoles(this ClaimsPrincipal principal)
+    {
+        return principal.Identities.SelectMany(i =>
+        {
+            return i.Claims
+                .Where(c => c.Type == i.RoleClaimType)
+                .Select(c => c.Value)
+                .ToList();
+        });
     }
 }

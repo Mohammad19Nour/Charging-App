@@ -53,9 +53,10 @@ public class CategoryRepository : ICategoryRepository
         return await _context.Categories.Include(p => p.Photo)
             .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
-    }
+    } 
     public void UpdateCategory(Category updatedCat)
     {
+       // _context.Categories.Update(updatedCat);
         _context.Entry(updatedCat).State = EntityState.Modified;
     }
 

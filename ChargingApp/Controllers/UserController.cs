@@ -115,9 +115,9 @@ public class UserController : BaseApiController
 
         try
         {
-            var roles = await User.GetRoles(_userManager);
-
             var myWallet = await GetMyWallet(user);
+            var roles = User.GetRoles();
+
             var role = roles.FirstOrDefault(x => x.ToLower() == "vip");
 
             if (role != null)
@@ -146,7 +146,7 @@ public class UserController : BaseApiController
 
             if (user is null) return Unauthorized(new ApiResponse(401));
 
-            var roles = await User.GetRoles(_userManager);
+            var roles = User.GetRoles();
             var role = roles.FirstOrDefault(x => x.ToLower() == "vip");
 
             if (role is null) return Ok(new ApiOkResponse("Normal"));

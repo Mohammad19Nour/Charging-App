@@ -7,7 +7,7 @@ namespace ChargingApp.Helpers;
 public static class SomeUsefulFunction
 {
     public static async Task<double> CalcTotalPriceCannotChooseQuantity
-    (int dtoQuantity, Product product,
+    (double dtoQuantity, Product product,
         AppUser user, IUnitOfWork unitOfWork)
     {
         var specificPrice = await unitOfWork.SpecificPriceForUserRepository
@@ -21,16 +21,18 @@ public static class SomeUsefulFunction
 
             if (user.VIPLevel == 0) return priceX;
 
+            Console.WriteLine(user.TotalForVIPLevel + " " + user.VIPLevel +"\n\n*-*\n");
+
             user.TotalPurchasing += priceX;
 
             user.TotalForVIPLevel += priceX;
             user.VIPLevel = await unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
+        Console.WriteLine(user.TotalForVIPLevel + " " + user.VIPLevel +"\n\n*+*\n");
 
             return priceX;
         }
-
-
+        
         var vipLevels = await unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
 
         var total = dtoQuantity * priceX;
@@ -41,8 +43,8 @@ public static class SomeUsefulFunction
             return total;
         }
 
-        var benefitPercent = new List<int>();
-        var minimumP = new List<int>();
+        var benefitPercent = new List<double>();
+        var minimumP = new List<double>();
 
         vipLevels = vipLevels.Where(x => x.VipLevel != 0).ToList();
 

@@ -38,12 +38,12 @@ public class UserRepository : IUserRepository
         return true;
     }
 
-    public async Task<int> GetBenefitPercentAsync(string? email)
+    public async Task<double> GetBenefitPercentAsync(string? email)
     {
         var user = await GetUserByEmailAsync(email);
         var vipLevel = user.VIPLevel;
         var x = await _context.VipLevels.Where(x => x.VipLevel == vipLevel).FirstAsync();
-        int discount = x.BenefitPercent;
+        double discount = x.BenefitPercent;
         return discount;
     }
 }

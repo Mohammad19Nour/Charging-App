@@ -10,9 +10,9 @@ public class AutoMapperProfiles : Profile
 {
     public AutoMapperProfiles()
     {
-        var status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong" };
+        var status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong","Received","Cancelled" };
         var statusForCancel = new List<string>
-            { "Not canceled", "Waiting", "Cancelation Accepted", "Cancelation Rejected" };
+            { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
         CreateMap<VIPLevel, VipLevelDto>();
         CreateMap<SliderPhoto, SliderPhotoDto>();
@@ -93,8 +93,13 @@ public class AutoMapperProfiles : Profile
         CreateMap<Currency, CurrencyDto>();
         CreateMap<Order, PendingOrderDto>()
             .ForMember(dest => dest.UserName, opt =>
-                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
-        
+                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
+            .ForMember(dest => dest.Status, opt =>
+               opt.MapFrom(src => status[src.Status]))
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(src =>src.Photo == null ? "No Photo" : "https://localhost:7217" + src.Photo.Url));
+
+
         CreateMap<Payment, PaymentAdminDto>()
             .ForMember(dest => dest.Email, opt =>
                 opt.MapFrom(src => src.User.Email));
