@@ -80,12 +80,11 @@ public class PhotoService :IPhotoService
         //var result = await _cloudinary.DestroyAsync(deleteParams);
 
        // name = name[8..];
-        if (File.Exists("wwwroot" + name))//check file exsit or not  
+        if (File.Exists("wwwroot" + name))//check file exist or not  
         {  
             File.Delete( "wwwroot" +name);
             return true;
-        }  
-        Console.WriteLine(name);
+        }
         return false;
     }
 }

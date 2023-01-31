@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ChargingApp.Migrations
 {
-    public partial class a : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -152,8 +152,8 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
-                    BenefitPercent = table.Column<int>(type: "INTEGER", nullable: false),
-                    MinimumPurchase = table.Column<int>(type: "INTEGER", nullable: false)
+                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false),
+                    MinimumPurchase = table.Column<double>(type: "REAL", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -354,51 +354,6 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TotalPrice = table.Column<double>(type: "REAL", nullable: false),
-                    PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
-                    PlayerId = table.Column<string>(type: "TEXT", nullable: true),
-                    PlayerName = table.Column<string>(type: "TEXT", nullable: false),
-                    ProductEnglishName = table.Column<string>(type: "TEXT", nullable: false),
-                    ProductArabicName = table.Column<string>(type: "TEXT", nullable: false),
-                    Price = table.Column<double>(type: "REAL", nullable: false),
-                    CanChooseQuantity = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TotalQuantity = table.Column<double>(type: "REAL", nullable: false),
-                    Quantity = table.Column<double>(type: "REAL", nullable: false),
-                    PaymentGatewayId = table.Column<int>(type: "INTEGER", nullable: true),
-                    OrderType = table.Column<string>(type: "TEXT", nullable: false),
-                    Notes = table.Column<string>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    StatusIfCanceled = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Orders_PaymentGateways_PaymentGatewayId",
-                        column: x => x.PaymentGatewayId,
-                        principalTable: "PaymentGateways",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Orders_Photos_PhotoId",
-                        column: x => x.PhotoId,
-                        principalTable: "Photos",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -527,6 +482,57 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    TotalPrice = table.Column<double>(type: "REAL", nullable: false),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
+                    PlayerId = table.Column<string>(type: "TEXT", nullable: true),
+                    PlayerName = table.Column<string>(type: "TEXT", nullable: false),
+                    ProductEnglishName = table.Column<string>(type: "TEXT", nullable: true),
+                    ProductArabicName = table.Column<string>(type: "TEXT", nullable: true),
+                    Price = table.Column<double>(type: "REAL", nullable: false),
+                    CanChooseQuantity = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TotalQuantity = table.Column<double>(type: "REAL", nullable: false),
+                    Quantity = table.Column<double>(type: "REAL", nullable: false),
+                    PaymentGatewayId = table.Column<int>(type: "INTEGER", nullable: true),
+                    OrderType = table.Column<string>(type: "TEXT", nullable: false),
+                    Notes = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatusIfCanceled = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_PaymentGateways_PaymentGatewayId",
+                        column: x => x.PaymentGatewayId,
+                        principalTable: "PaymentGateways",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Orders_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Orders_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Quantities",
                 columns: table => new
                 {
@@ -545,6 +551,37 @@ namespace ChargingApp.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderAndPaymentNotifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: true),
+                    PaymentId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderAndPaymentNotifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderAndPaymentNotifications_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderAndPaymentNotifications_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderAndPaymentNotifications_Payments_PaymentId",
+                        column: x => x.PaymentId,
+                        principalTable: "Payments",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -605,6 +642,21 @@ namespace ChargingApp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderAndPaymentNotifications_OrderId",
+                table: "OrderAndPaymentNotifications",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderAndPaymentNotifications_PaymentId",
+                table: "OrderAndPaymentNotifications",
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderAndPaymentNotifications_UserId",
+                table: "OrderAndPaymentNotifications",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_PaymentGatewayId",
                 table: "Orders",
                 column: "PaymentGatewayId");
@@ -613,6 +665,11 @@ namespace ChargingApp.Migrations
                 name: "IX_Orders_PhotoId",
                 table: "Orders",
                 column: "PhotoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ProductId",
+                table: "Orders",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
@@ -690,13 +747,10 @@ namespace ChargingApp.Migrations
                 name: "Favorites");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "OrderAndPaymentNotifications");
 
             migrationBuilder.DropTable(
                 name: "OurAgents");
-
-            migrationBuilder.DropTable(
-                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Quantities");
@@ -721,6 +775,12 @@ namespace ChargingApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "RechargeMethods");
+
+            migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "PaymentGateways");

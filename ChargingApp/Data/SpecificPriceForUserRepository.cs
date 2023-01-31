@@ -35,12 +35,17 @@ public class SpecificPriceForUserRepository : ISpecificPriceForUserRepository
 
     public async Task<SpecificPriceForUser?> GetPriceForUserAsync(string email , int vipLevel, int productId)
     {
-        email = email.ToLower();
+     //   Console.WriteLine(productId + " " + vipLevel + " " + email + "\n\n-**");
 
-        return await _context.SpecificPriceForUsers
+         var h = await _context.SpecificPriceForUsers
             .Include(x => x.User)
             .Where(x =>
-                x.ProductId == productId && x.User.Email == email && x.VipLevel == vipLevel)
+                x.ProductId == productId && x.User.Email.ToLower() == email 
+                                         && vipLevel == x.VipLevel)
+          //  .AsNoTracking()
             .FirstOrDefaultAsync();
+
+        // Console.WriteLine(h.User.Email);
+         return h;
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize]
+//[Authorize]
 public class CurrencyController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;

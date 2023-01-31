@@ -2,10 +2,12 @@
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
+[Authorize(Policy = "Required_Administrator_Role")]
 
 public class AdminVipLevelController : AdminController
 {
@@ -45,8 +47,8 @@ public class AdminVipLevelController : AdminController
         }
     }
 
-    [HttpPatch("update-vip-level/{vipLevel:int}")]
-    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel, JsonPatchDocument patch)
+    [HttpPut("update-vip-level/{vipLevel:int}")]
+    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel,VipLevelInfo dto )
     {
         try
         {
@@ -54,32 +56,15 @@ public class AdminVipLevelController : AdminController
 
             if (vip is null) return NotFound(new ApiResponse(404, "vip level not found"));
 
-            var list = patch.Operations.Select(x => x.path.ToLower());
-            var properties = typeof(VipLevelInfo).GetProperties();
-            var op = patch.Operations.Select(x => x.op.ToLower());
-
-            var tmp = op.FirstOrDefault(x => x != "replace");
-
-            if (tmp != null) return BadRequest(new ApiResponse(400, "operation can be replace only"));
-
-            var propertiesName = properties.Select(x => x.Name.ToLower()).ToList();
-
-            if (vipLevel == 0)
-            {
-                propertiesName = propertiesName.FindAll(x => x == "benefitpercent");
-            }
-
-            foreach (var path in list)
-            {
-                if (propertiesName.FirstOrDefault(x => x == path) is null)
-                    return BadRequest(new ApiResponse(400, path + " property isn't exist"));
-            }
-
-            patch.ApplyTo(vip);
+            if (dto.BenefitPercent != null)
+                vip.BenefitPercent = (double)dto.BenefitPercent;
+            
+            if (dto.MinimumPurchase != null && vipLevel != 0)
+                vip.MinimumPurchase = (double)dto.MinimumPurchase;
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "updated successfully"));
-            return BadRequest(new ApiResponse(400, "Failed to update product"));
+            return BadRequest(new ApiResponse(400, "Failed to update vip level"));
         }
         catch (Exception e)
         {

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ChargingApp.Entity;
+﻿using ChargingApp.Entity;
 using ChargingApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

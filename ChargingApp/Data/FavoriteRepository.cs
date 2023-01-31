@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Interfaces;

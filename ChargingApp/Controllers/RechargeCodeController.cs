@@ -48,9 +48,8 @@ public class RechargeCodeController : BaseApiController
             throw;
         }
     }
-
-
-    //[Authorize(Policy = "RequiredAdminRole")]
+    
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpGet("generate-codes")]
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {

@@ -36,11 +36,11 @@ public class SliderRepository : ISliderRepository
             .ToListAsync();
     }
 
-    public async Task<SliderPhoto?> GetPhotoNoTrackingByIdAsync(int photoId)
+    public async Task<SliderPhoto?> GetPhotoNoTrackingByIdAsync(int id)
     {
         return await _context.SliderPhotos
             .Include(x=>x.Photo)
-            .Where(x => x.PhotoId == photoId)
+            .Where(x => x.Id == id)
             .AsNoTracking()
             .FirstOrDefaultAsync();
     }

@@ -314,11 +314,9 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("ProductArabicName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProductEnglishName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("ProductId")

@@ -1,10 +1,12 @@
 ﻿using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "Required_Admin1-Adv_Role")]
 public class AdminSliderController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -60,12 +62,13 @@ public class AdminSliderController : AdminController
 
             _unitOfWork.SliderRepository.DeletePhoto(photo);
 
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "some thing went wrong"));
-            var res = await _photoService.DeletePhotoAsync(photo.Photo.Url);
-            if (res)
-                return Ok(new ApiResponse(200, "Deleted successfully"));
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));
+           await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(photo.PhotoId);
+         await  _unitOfWork.Complete(); 
+           if (photo.Photo.Url != null) await _photoService.DeletePhotoAsync(photo.Photo.Url);
+            return Ok(new ApiResponse(200, "Deleted successfully"));
 
-            return BadRequest(new ApiResponse(400, "some thing went wrong"));
+            return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
         catch (Exception e)
         {

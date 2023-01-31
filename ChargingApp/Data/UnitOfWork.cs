@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ChargingApp.Entity;
 using ChargingApp.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;
@@ -18,7 +17,7 @@ public class UnitOfWork : IUnitOfWork
         _mapper = mapper;
     }
     public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
-    public IUserRepository UserRepository => new UserRepository(_context, mapper: _mapper);
+    public IUserRepository UserRepository => new UserRepository(_context);
 
     public IOrdersRepository OrdersRepository => new OrdersRepository(_context, _mapper);
     public IPaymentRepository PaymentRepository => new PaymentRepository(_context, _mapper);

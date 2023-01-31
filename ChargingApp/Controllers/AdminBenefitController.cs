@@ -3,11 +3,13 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize (Policy = "Required_Administrator_Role")]
 public class AdminBenefitController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;

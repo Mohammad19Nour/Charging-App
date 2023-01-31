@@ -2,12 +2,15 @@
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Extentions;
 using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "RequiredAdminRole")]
 public class AdminOrderController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -42,6 +45,14 @@ public class AdminOrderController : AdminController
 
             if (await _unitOfWork.Complete())
             {
+                var not = new OrderAndPaymentNotification
+                {
+                    User = order.User,
+                    Order = order
+                };
+                await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                    "Order status notification", "order received by admin");
+
                 return Ok(new ApiResponse(200, "Received successfully"));
             }
 
@@ -112,17 +123,17 @@ public class AdminOrderController : AdminController
                     order.Notes = "No enough money";
                 }
             }
-
-            var not = new OrderAndPaymentNotification
-            {
-                User = order.User,
-                Order = order
-            };
-            await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                "Order status notification", "order done");
-
+            
             if (await _unitOfWork.Complete())
             {
+                var not = new OrderAndPaymentNotification
+                {
+                    User = order.User,
+                    Order = order
+                };
+                await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                    "Order status notification", "order done");
+
                 return Ok(new ApiResponse(200,
                     order.Status != 3 ? "approved successfully" : "the user have no enough money"));
             }
@@ -152,17 +163,21 @@ public class AdminOrderController : AdminController
 
             if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
 
+            if (order.Status == 0)
+                return BadRequest(new ApiResponse(400, "Please receive this order before approve it"));
+
             if (order.Status != 4)
                 return BadRequest(new ApiResponse(400, "this order already checked"));
 
             if (order.OrderType.ToLower() != "vip" && type == "rejected")
                 return BadRequest(new ApiResponse(400, "can't reject this order"));
-
-
+            
             order.Status = type == "reject" ? 2 : 3;
 
             order.Notes = notes;
 
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to reject order"));
+          
             var not = new OrderAndPaymentNotification
             {
                 User = order.User,
@@ -170,12 +185,9 @@ public class AdminOrderController : AdminController
             };
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
                 "Order status notification", "order rejected");
-            if (await _unitOfWork.Complete())
-            {
-                return Ok(new ApiResponse(200, "Done successfully"));
-            }
 
-            return BadRequest(new ApiResponse(400, "Failed to reject order"));
+            return Ok(new ApiResponse(200, "Done successfully"));
+
         }
         catch (Exception e)
         {
@@ -183,7 +195,6 @@ public class AdminOrderController : AdminController
             throw;
         }
     }
-
     [HttpGet("pending-orders")]
     public async Task<ActionResult<List<PendingOrderDto>>> GetPendingOrders()
     {
@@ -235,9 +246,6 @@ public class AdminOrderController : AdminController
                     tmp.Add(x);
                 }
             }
-
-            string? j = null;
-            j.ToString();
             tmp = tmp.OrderByDescending(x => x.CreatedAt).ToList();
             return Ok(new ApiOkResponse(tmp));
         }

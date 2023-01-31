@@ -43,11 +43,6 @@ public class CategoryRepository : ICategoryRepository
         // .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public Task<Category?> GetCategoryById(int categoryId)
-    {
-        return null;
-    }
-
     public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
         return await _context.Categories.Include(p => p.Photo)
@@ -63,17 +58,5 @@ public class CategoryRepository : ICategoryRepository
     public void DeleteCategory(Category category)
     {
         _context.Categories.Remove(category);
-    }
-    
-    public async Task<Category?> GetCategoryByEnglishNameAsync(string categoryName)
-    {
-        return await _context.Categories
-            .Include(x => x.Photo)
-            .FirstOrDefaultAsync(x => x.EnglishName == categoryName);
-    }
-
-    public async Task<Category?> GetCategoryByArabicNameAsync(string categoryName)
-    {
-        return await _context.Categories.FirstOrDefaultAsync(x => x.ArabicName == categoryName);
     }
 }

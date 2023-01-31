@@ -3,6 +3,7 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
@@ -18,15 +19,13 @@ public class AdminRechargeMethodeController : AdminController
         _mapper = mapper;
     }
 
+    
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-agent/{rechargeMethodId:int}")]
     public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)
     {
         try
         {
-            if (rechargeMethodId == 1)
-                return BadRequest(
-                    new ApiResponse(403, "you can't add to this method "));
-
             var rechargeMethod = await _unitOfWork.RechargeMethodeRepository
                 .GetRechargeMethodByIdAsync(rechargeMethodId);
 
@@ -47,7 +46,39 @@ public class AdminRechargeMethodeController : AdminController
             throw;
         }
     }
+    
+    [Authorize (Policy = "Required_Administrator_Role")]
+    [HttpPut("update-agent/{agentId:int}")]
+    public async Task<ActionResult> UpdateAgent(int agentId, int rechargeMethodId , [FromQuery] string? arabicName
+        , [FromQuery] string? englishName)
+    {
+        try
+        {
+            var method = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodByIdAsync(rechargeMethodId);
 
+            if (method is null)
+                return BadRequest(new ApiResponse(403, "Recharge method not found"));
+
+            var agent = method.ChangerAndCompanies.FirstOrDefault(x => x.Id == agentId);
+
+            if (agent is null)
+                return BadRequest(new ApiResponse(403, "Agent not found"));
+
+            if (!string.IsNullOrEmpty(arabicName)) agent.ArabicName = arabicName;
+            if (!string.IsNullOrEmpty(englishName)) agent.EnglishName = englishName;
+
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiOkResponse(agent));
+
+            return BadRequest(new ApiResponse(400, "Failed to Update agent"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+    [Authorize (Policy = "Required_Administrator_Role")]
     [HttpDelete]
     public async Task<ActionResult> DeleteAgent(int agentId, int rechargeMethodId)
     {
@@ -68,7 +99,7 @@ public class AdminRechargeMethodeController : AdminController
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "Deleted successfully"));
 
-            return BadRequest(new ApiResponse(400, "Failed to delete new agent"));
+            return BadRequest(new ApiResponse(400, "Failed to delete agent"));
         }
         catch (Exception e)
         {

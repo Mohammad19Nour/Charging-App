@@ -2,10 +2,12 @@
 using ChargingApp.DTOs;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "Required_Admin2_Role")]
 public class AdminReportController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
