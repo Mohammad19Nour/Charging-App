@@ -2,17 +2,22 @@
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "Required_Administrator_Role")]
 public class AdminUserController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly UserManager<AppUser> _userManager;
 
-    public AdminUserController(IUnitOfWork unitOfWork)
+    public AdminUserController(IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
     {
         _unitOfWork = unitOfWork;
+        _userManager = userManager;
     }
 
     [HttpPost("update-user-vip-level")]
@@ -23,6 +28,12 @@ public class AdminUserController : AdminController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(userEmail);
 
             if (user is null) return NotFound(new ApiResponse(401, "user not fount"));
+            
+            var roles = await _userManager.GetRolesAsync(user);
+            var tmp =  roles.Any(x => x.ToLower() == "normal");
+          
+            if (tmp)
+                return BadRequest(new ApiResponse(400, "can't update normal account"));
 
             var vipLevel = await _unitOfWork.VipLevelRepository.CheckIfExist(newVipLevel);
 
@@ -67,6 +78,14 @@ public class AdminUserController : AdminController
             if (debitValue <= 0)
                 return BadRequest(new ApiResponse(400, "value should be greater than 0"));
 
+            var roles = await _userManager.GetRolesAsync(user);
+          var tmp =  roles.Any(x => x.ToLower() == "normal");
+          
+          if (tmp)
+              return BadRequest(new ApiResponse(400, "can't add to normal account"));
+
+              
+            
             user.Balance += debitValue;
             user.Debit += debitValue;
 
@@ -78,7 +97,7 @@ public class AdminUserController : AdminController
             });
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiResponse(200, "update successfully"));
+                return Ok(new ApiResponse(200, "added successfully"));
 
             return BadRequest(new ApiResponse(400, "Failed tp add debit"));
         }
@@ -112,7 +131,7 @@ public class AdminUserController : AdminController
                 return NotFound(new ApiResponse(404, "vip level not found"));
 
             var tmp = await _unitOfWork.SpecificPriceForUserRepository
-                .GetPriceForUserAsync(dto.Email, dto.VipLevel, dto.ProductId);
+                .GetPriceForUserAsync(dto.Email.ToLower(), dto.VipLevel, dto.ProductId);
 
             if (tmp != null) return await UpdateSpecificPriceForUser(dto);
 
@@ -161,7 +180,7 @@ public class AdminUserController : AdminController
                 .GetPriceForUserAsync(dto.Email, dto.VipLevel, dto.ProductId);
 
             if (spec is null)
-                return NotFound(new ApiResponse(404));
+                return NotFound(new ApiResponse(404,"the specific price is not exist"));
 
             spec.ProductPrice = dto.ProductPrice;
             _unitOfWork.SpecificPriceForUserRepository.UpdateProductPriceForUser(spec);

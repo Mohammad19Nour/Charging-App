@@ -1,6 +1,7 @@
 ﻿using ChargingApp.DTOs;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
@@ -14,6 +15,7 @@ public class AdminCurrenciesController : AdminController
         _unitOfWork = unitOfWork;
     }
 
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("update-currency")]
     public async Task<ActionResult> UpdateCurrency([FromBody] CurrencyDto dto)
     {

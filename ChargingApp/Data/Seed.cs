@@ -16,7 +16,10 @@ public static class Seed
             new() { Name = "Admin" },
             new() { Name = "Normal" },
             new() { Name = "VIP" },
-            new() { Name = "Moderator" },
+            new() { Name = "Admin_1" },
+            new() { Name = "Admin_2" },
+            new() { Name = "AdvancedEmployee" },
+            new() { Name = "NormalEmployee" },
         };
 
         foreach (var role in roles)

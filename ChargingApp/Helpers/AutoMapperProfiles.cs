@@ -14,6 +14,11 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
+        CreateMap<ProductToUpdateDto , Product>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<ProductWithQuantityToUpdateDto , Product>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
         CreateMap<VIPLevel, VipLevelDto>();
         CreateMap<SliderPhoto, SliderPhotoDto>();
         CreateMap<AppUser, UserDto>();

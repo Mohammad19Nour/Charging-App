@@ -15,7 +15,7 @@ public class VipLevelRepository :IVipLevelRepository
 
     public async Task<List<VIPLevel>> GetAllVipLevelsAsync()
     {
-        return _context.VipLevels.ToList();
+        return await _context.VipLevels.ToListAsync();
     }
 
     public async Task<double> GetBenefitPercentForVipLevel(int vipLevel)

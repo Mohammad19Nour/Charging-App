@@ -14,12 +14,15 @@ public class PaymentsController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notificationService;
     private readonly IPhotoService _photoService;
 
-    public PaymentsController(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
+    public PaymentsController(IUnitOfWork unitOfWork, IMapper mapper,
+        INotificationService notificationService, IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _notificationService = notificationService;
         _photoService = photoService;
     }
 
@@ -169,7 +172,15 @@ public class PaymentsController : BaseApiController
             _unitOfWork.PaymentRepository.AddPayment(payment);
 
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
-
+/*
+            var not = new OrderAndPaymentNotification
+            {
+                User = user,
+               Payment = payment
+            };
+            await _notificationService.NotifyUserByEmail(user.Email, _unitOfWork, not,
+                "Admin Payment status notification", "new payment");
+*/
             return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
         }
         catch (Exception e)
@@ -187,7 +198,7 @@ public class PaymentsController : BaseApiController
             var email = User.GetEmail();
             if (email is null) return Unauthorized(new ApiResponse(401));
 
-            email = email?.ToLower();
+            email = email.ToLower();
 
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 

@@ -3,7 +3,7 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
@@ -21,7 +21,8 @@ public class AdminProductController : AdminController
         _photoService = photoService;
         _mapper = mapper;
     }
-
+    
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-product-no-quantity/{categoryId:int}")]
     public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto)
     {
@@ -67,7 +68,8 @@ public class AdminProductController : AdminController
             throw;
         }
     }
-
+    
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-product-with-quantity/{categoryId:int}")]
     public async Task<ActionResult> AddProductWithQuantity(int categoryId, [FromForm] NewProductWithQuantityDto dto)
     {
@@ -98,7 +100,6 @@ public class AdminProductController : AdminController
                     CanChooseQuantity = true,
                     Category = category,
                     Price = price.Current,
-
                     Quantity = quantity.Current,
                 };
 
@@ -116,6 +117,7 @@ public class AdminProductController : AdminController
         }
     }
 
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpDelete("{productId:int}")]
     public async Task<ActionResult> DeleteProduct(int productId)
     {
@@ -141,36 +143,70 @@ public class AdminProductController : AdminController
         }
     }
 
-    [HttpPatch("update-info/{productId:int}")]
-    public async Task<ActionResult> UpdateProduct(int productId, JsonPatchDocument patch)
+    [Authorize(Policy = "Required_Admins_Role")]
+    [HttpPut("update-info/{productId:int}")]
+    public async Task<ActionResult> UpdateProduct(int productId, ProductToUpdateDto dto)
     {
         var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
         if (product is null)
             return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
-        var list = patch.Operations.Select(x => x.path.ToLower());
+        if (product.CanChooseQuantity)
+            return BadRequest(new ApiResponse(400, "can't update product with qty"));
+        
+        if (dto.Price != null)
+            product.Price = (double)dto.Price;
+        
+        if (dto.Available != null)
+            product.Available = (bool)dto.Available;
+        
+        if (dto.MinimumQuantityAllowed != null)
+            product.MinimumQuantityAllowed = (int)dto.MinimumQuantityAllowed;
+        
+        if (!string.IsNullOrEmpty(dto.ArabicName))
+            product.ArabicName = dto.ArabicName;
+        
+        if (!string.IsNullOrEmpty(dto.EnglishName))
+            product.EnglishName = dto.EnglishName;
+        
+        _unitOfWork.ProductRepository.UpdateProduct(product);
+        
+        if (await _unitOfWork.Complete())
+            return Ok(new ApiResponse(200, "updated successfully"));
+        return BadRequest(new ApiResponse(400, "Failed to update product"));
+    }
+    
+    [Authorize(Policy = "Required_Admins_Role")]
+    [HttpPut("update-info-qty/{productId:int}")]
+    public async Task<ActionResult> UpdateProductWithQuantity(int productId, ProductWithQuantityToUpdateDto dto)
+    {
+        var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(productId);
 
-        var properties = !product.CanChooseQuantity
-            ? typeof(ProductToUpdateDto).GetProperties()
-            : typeof(ProductWithQuantityToUpdateDto).GetProperties();
+        if (product is null)
+            return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
-        var propertiesName = properties.Select(x => x.Name.ToLower()).ToList();
+        if (!product.CanChooseQuantity)
+            return BadRequest(new ApiResponse(400, "can't update product without qty"));
 
-        foreach (var path in list)
-        {
-            if (propertiesName.FirstOrDefault(x => x == path) is null)
-                return BadRequest(new ApiResponse(400, path + " property isn't exist"));
-        }
-
-        patch.ApplyTo(product);
-
+        if (dto.Price != null)
+            product.Price = (double)dto.Price;
+        
+        if (dto.Quantity != null)
+            product.Quantity = (double)dto.Quantity;
+        
+        if (dto.Available != null)
+            product.Available = (bool)dto.Available;
+       
+        _unitOfWork.ProductRepository.UpdateProduct(product);
+        
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "updated successfully"));
         return BadRequest(new ApiResponse(400, "Failed to update product"));
     }
 
-    [HttpPut("update-photo/{productId:int}")]
+    [Authorize(Policy = "Required_Admin1-Adv_Role")]
+    [HttpPost("update-photo/{productId:int}")]
     public async Task<ActionResult> UpdateProductPhoto(int productId, IFormFile file)
     {
         try
@@ -206,7 +242,7 @@ public class AdminProductController : AdminController
         }
     }
 
-    [HttpGet("product/{prodictId:int}")]
+    [HttpGet("product/{productId:int}")]
     public async Task<ActionResult<ProductDto>> GetProduct(int productId)
     {
         try

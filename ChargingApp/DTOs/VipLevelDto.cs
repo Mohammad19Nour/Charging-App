@@ -2,8 +2,8 @@
 
 public class VipLevelInfo
 {
-    public double BenefitPercent { get; set; }
-    public double MinimumPurchase { get; set; } = 0;
+    public double? BenefitPercent { get; set; }
+    public double? MinimumPurchase { get; set; } = 0;
 }
 
 public class VipLevelDto

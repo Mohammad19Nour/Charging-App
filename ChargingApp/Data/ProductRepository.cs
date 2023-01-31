@@ -17,8 +17,8 @@ public class ProductRepository : IProductRepository
     public async Task<List<Product>> GetAllProductInCategory(int categoryId)
     {
         return await _context.Products
-            .Include(c=>c.Category)
-            .Include(x=>x.Photo)
+            .Include(c => c.Category)
+            .Include(x => x.Photo)
             .Where(x => x.CategoryId == categoryId)
             .ToListAsync();
     }
@@ -30,16 +30,22 @@ public class ProductRepository : IProductRepository
 
     public void DeleteProductFromCategory(Product product)
     {
-        _context.Photos.Remove(product.Photo);
+        if (product.Photo is not null)
+            _context.Photos.Remove(product.Photo);
         _context.Products.Remove(product);
     }
 
     public async Task<Product?> GetProductByIdAsync(int productId)
     {
         return await _context.Products
-            .Include(c=>c.Category)
-            .Include(p=>p.Photo)
-            .FirstOrDefaultAsync(x =>  productId == x.Id);
+            .Include(c => c.Category)
+            .Include(p => p.Photo)
+            .FirstOrDefaultAsync(x => productId == x.Id);
+    }
+
+    public void UpdateProduct(Product product)
+    {
+        _context.Products.Update(product);
     }
 
 
@@ -47,5 +53,4 @@ public class ProductRepository : IProductRepository
     {
         return _context.Products.AsQueryable();
     }
-
 }

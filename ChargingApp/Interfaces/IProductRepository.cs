@@ -10,4 +10,5 @@ public interface IProductRepository
     public void DeleteProductFromCategory(Product product);
     public Task<Product?> GetProductByIdAsync(int productId);
     public IQueryable<Product> GetQuery();
+    public void UpdateProduct(Product product);
 }

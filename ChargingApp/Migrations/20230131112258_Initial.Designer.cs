@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230121150137_a")]
-    partial class a
+    [Migration("20230131112258_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -316,12 +316,13 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("ProductArabicName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProductEnglishName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<double>("Quantity")
                         .HasColumnType("REAL");
@@ -347,9 +348,37 @@ namespace ChargingApp.Migrations
 
                     b.HasIndex("PhotoId");
 
+                    b.HasIndex("ProductId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.OrderAndPaymentNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PaymentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OrderAndPaymentNotifications");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.OurAgent", b =>
@@ -622,11 +651,11 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BenefitPercent")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("BenefitPercent")
+                        .HasColumnType("REAL");
 
-                    b.Property<int>("MinimumPurchase")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("MinimumPurchase")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("VipLevel")
                         .HasColumnType("INTEGER");
@@ -799,6 +828,10 @@ namespace ChargingApp.Migrations
                         .WithMany()
                         .HasForeignKey("PhotoId");
 
+                    b.HasOne("ChargingApp.Entity.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
                     b.HasOne("ChargingApp.Entity.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -808,6 +841,31 @@ namespace ChargingApp.Migrations
                     b.Navigation("PaymentGateway");
 
                     b.Navigation("Photo");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.OrderAndPaymentNotification", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("ChargingApp.Entity.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId");
+
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Payment");
 
                     b.Navigation("User");
                 });

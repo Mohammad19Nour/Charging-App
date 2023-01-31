@@ -3,11 +3,13 @@ using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using ChargingApp.SignalR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "Required_AnyAdmin_Role")]
 public class AdminPaymentController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -117,7 +119,6 @@ public class AdminPaymentController : AdminController
             throw;
         }
     }
-
     [HttpGet("pending-payment")]
     public async Task<ActionResult<List<PaymentAdminDto>>> GetPendingPayments(string? user = null)
     {

@@ -1,12 +1,17 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
+using AutoMapper;
 using ChargingApp.Data;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Extentions;
 using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using ChargingApp.Middleware;
 using ChargingApp.Services;
 using ChargingApp.SignalR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
@@ -17,84 +22,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+    
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 
-builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
 {
     builder
-        .WithOrigins("http://localhost:4200")
+        .AllowAnyOrigin()
+        // .WithOrigins("http://localhost:4200")
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials()
-        .SetIsOriginAllowed((host) => true);
+     //   .AllowCredentials()
+        .SetIsOriginAllowed((_) => true);
 }));
-/*
-builder.Services.AddCors(opt =>
-{
-    opt.AddDefaultPolicy(buildr => buildr.AllowAnyOrigin().AllowAnyHeader(
-        ).AllowAnyMethod());
-});*/
-builder.Services.Configure<FormOptions>(opt=>
-    opt.ValueCountLimit = int.MaxValue);
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddSingleton<PresenceTracker>().AddSignalR();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
-builder.Services.AddTransient<IEmailHelper, EmailSenderService>();
-builder.Services.AddScoped<IPhotoService, PhotoService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-/*builder.Services.AddDataProtection()              
-    .PersistKeysToFileSystem(new DirectoryInfo(@"h:\root\home\mohammad09nour-001\www\site1\directory\"))
-    .UseCryptographicAlgorithms(
-        new AuthenticatedEncryptorConfiguration()
-        {
-            EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-            ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-        });;*/
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-builder.Services.AddDbContext<DataContext>(options =>
-{
-    var connectionString =
-        "Data source=chargingapp.db";
-    var servConnectionString =
-        "Data Source=SQL8004.site4now.net;Initial Catalog=db_a91f76_appdbb;User Id=db_a91f76_appdbb_admin;Password=Mohamed09914";
 
-    options.UseSqlite(connectionString);
-});
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"])),
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            ValidateLifetime = true
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
+builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -126,21 +75,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddIdentityCore<AppUser>(
-        opt =>
-        {
-            opt.User.RequireUniqueEmail = true;
-            opt.Password.RequireDigit = false;
-            opt.Password.RequireNonAlphanumeric = false;
-            opt.Password.RequireUppercase = false;
-        })
-    .AddRoles<AppRole>()
-    .AddRoleManager<RoleManager<AppRole>>()
-    .AddSignInManager<SignInManager<AppUser>>()
-    .AddRoleValidator<RoleValidator<AppRole>>()
-    .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders();
-
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -157,18 +91,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         return new BadRequestObjectResult(errorResponse);
     };
 });
-builder.Services.AddAuthorization(opt =>
-{
-    opt.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
-    opt.AddPolicy("RequiredNormalRole", policy => policy.RequireRole("Normal"));
-    opt.AddPolicy("RequiredVIPRole", policy => policy.RequireRole("VIP"));
-    opt.AddPolicy("RequiredModerateRole", policy => policy.RequireRole("Admin", "Moderator"));
-});
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
-
 try
 {
     var context = services.GetRequiredService<DataContext>();
@@ -207,11 +133,12 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 app.UseRouting();
 app.UseCors(x => x
-    .WithOrigins("http://localhost:4200")
+    .AllowAnyOrigin()
+    //.WithOrigins("http://localhost:4200")
     .AllowAnyHeader()
     .AllowAnyMethod()
-    .AllowCredentials()
-    .SetIsOriginAllowed((host) => true));
+    //.AllowCredentials()
+    .SetIsOriginAllowed((_) => true));
 
 /*
 app.UseCors(x => 
