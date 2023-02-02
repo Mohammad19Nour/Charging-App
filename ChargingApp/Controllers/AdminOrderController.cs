@@ -12,6 +12,10 @@ namespace ChargingApp.Controllers;
 [Authorize(Policy = "Required_AnyAdmin_Role")]
 public class AdminOrderController : AdminController
 {
+    List<string> status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
+
+    private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private static SemaphoreSlim _semaphore1 = new SemaphoreSlim(1, 1);
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
@@ -31,20 +35,62 @@ public class AdminOrderController : AdminController
     {
         try
         {
+            await _semaphore.WaitAsync();
             var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
-            if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            if (order is null)
+            {
+                _semaphore.Release();
+                return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            }
 
             if (order.Status == 4)
+            {
+                _semaphore.Release();
                 return BadRequest(new ApiResponse(400, "this order already received"));
+            }
 
             if (order.Status != 0)
+            {
+                _semaphore.Release();
                 return BadRequest(new ApiResponse(400, "this order already checked"));
+            }
+
+            var tmp = await _unitOfWork.OtherApiRepository
+                .CheckIfProductExistAsync(order.Product.Id, true);
+
+
+            if (tmp)
+            {
+                var res = await _unitOfWork.OtherApiRepository
+                    .CheckIfOrderExistAsync(order.Id, true);
+                if (res)
+                {
+                    _semaphore.Release();
+                    return BadRequest(new ApiResponse(400, "Order already sent to another site"));
+                }
+
+                var apiId = await _unitOfWork.OtherApiRepository
+                    .GetProductIdInApiAsync(order.Product.Id);
+
+                var response = await _apiService
+                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId);
+
+                if (!response.Success)
+                {
+                    _semaphore.Release();
+                    return BadRequest(new ApiResponse(400, response.Message));
+                }
+
+                var api = new ApiOrder
+                {
+                    Order = order,
+                    ApiOrderId = response.OrderId
+                };
+                _unitOfWork.OtherApiRepository.AddOrder(api);
+            }
 
             order.Status = 4;
-
-
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to Received order"));
 
             var not = new OrderAndPaymentNotification
             {
@@ -52,12 +98,15 @@ public class AdminOrderController : AdminController
                 Order = order
             };
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                "Order status notification", "order received by admin");
+                "Order status notification", getDetails(order));
 
+            _semaphore.Release();
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to Received order"));
             return Ok(new ApiResponse(200, "Received successfully"));
         }
         catch (Exception e)
         {
+            _semaphore.Release();
             Console.WriteLine(e);
             throw;
         }
@@ -68,54 +117,34 @@ public class AdminOrderController : AdminController
     {
         try
         {
+            await _semaphore1.WaitAsync();
             var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 
-            if (order is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            if (order is null)
+            {
+                _semaphore1.Release();
+                return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            }
 
             if (order.Status == 0)
+            {
+                _semaphore1.Release();
                 return BadRequest(new ApiResponse(400, "Please receive this order before approve it"));
+            }
 
             if (order.Status != 4)
+            {
+                _semaphore1.Release();
                 return BadRequest(new ApiResponse(400, "this order already checked"));
+            }
 
             var tmp = await _unitOfWork.OtherApiRepository
                 .CheckIfProductExistAsync(order.Product.Id, true);
 
             if (tmp)
             {
-                var res = await _unitOfWork.OtherApiRepository
-                    .CheckIfOrderExistAsync(order.Id, true);
-                if (res)
-                    return BadRequest(new ApiResponse(400, "Order already sent"));
-
-                var apiId = await _unitOfWork.OtherApiRepository
-                    .GetProductIdInApiAsync(order.Product.Id);
-
-                var response = await _apiService
-                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId);
-
-                if (!response.Success)
-                    return BadRequest(new ApiResponse(400, response.Message));
-
-                var api = new ApiOrder
-                {
-                    Order = order,
-                    ApiOrderId = response.OrderId
-                };
-                _unitOfWork.OtherApiRepository.AddOrder(api);
-               
-                    if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to receive order"));
-                
-                var not = new OrderAndPaymentNotification
-                {
-                    User = order.User,
-                    Order = order
-                };
-                await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                    "Order status notification", "order received");
-
-                return Ok(new ApiResponse(200,"Waiting"));
-
+                _semaphore1.Release();
+                return BadRequest(new ApiResponse(400, "this order from another site"));
             }
 
             if (order.OrderType.ToLower() == "vip")
@@ -170,16 +199,19 @@ public class AdminOrderController : AdminController
                     Order = order
                 };
                 await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                    "Order status notification", "order done");
+                    "Order status notification", getDetails(order));
 
+                _semaphore1.Release();
                 return Ok(new ApiResponse(200,
                     order.Status != 3 ? "approved successfully" : "the user have no enough money"));
             }
 
+            _semaphore1.Release();
             return BadRequest(new ApiResponse(400, "Failed to approve order"));
         }
         catch (Exception e)
         {
+            _semaphore1.Release();
             Console.WriteLine(e);
             throw;
         }
@@ -222,7 +254,7 @@ public class AdminOrderController : AdminController
                 Order = order
             };
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                "Order status notification", "order rejected");
+                "Order status notification", getDetails(order));
 
             return Ok(new ApiResponse(200, "Done successfully"));
         }
@@ -358,69 +390,12 @@ public class AdminOrderController : AdminController
             throw;
         }
     }
-
-/*
- 0 not canceled
- 1 canceled but not confirmed by admin
- 2 canceled and accepted by admin
- 3 canceled but rejected by admin
- 
-    [HttpPost("approve-cancelation")]
-    public async Task<ActionResult> ApproveCancel(int orderId)
+    private Dictionary<string, dynamic> getDetails(Order order)
     {
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
-
-        if (order is null) return NotFound(new ApiResponse(404, "order not found"));
-
-        if (order.StatusIfCanceled != 1 || order.Status != 0)
-            return BadRequest(new ApiResponse(400, "can't cancel this order"));
-
-        var price = order.TotalPrice;
-
-        order.User.Balance += price;
-        order.User.TotalPurchasing -= price;
-        order.User.TotalForVIPLevel -= price;
-        order.StatusIfCanceled = 2;
-
-        order.User.VIPLevel =
-            await _unitOfWork.VipLevelRepository.GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
-
-        order.Notes = "accept";
-        order.StatusIfCanceled = 2;
-
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200, "approved"));
-        return BadRequest(new ApiResponse(400, "Failed to cancel order"));
-    }
-
-    [HttpPost("reject-cancelation")]
-    public async Task<ActionResult> RejectCancelation(int orderId)
-    {
-        var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
-        if (order is null) return NotFound(new ApiResponse(404, "order not found"));
-
-        if (order.StatusIfCanceled != 1 || order.Status != 0)
-            return BadRequest(new ApiResponse(400, "can't cancel this order"));
-
-        order.StatusIfCanceled = 3;
-        order.Notes = "the cancelation order is rejected by admin";
-
-        if (await _unitOfWork.Complete()) return Ok(new ApiResponse(200, "Rejected"));
-        return BadRequest(new ApiResponse(400, "Failed to reject cancel order"));
-    }
-
-    [HttpGet("get-canceled-orders")]
-    public async Task<ActionResult<List<OrderAdminDto>>> CanceledOrders(string? userEmail)
-    {
-        if (userEmail != null)
+        return new Dictionary<string, dynamic>
         {
-            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(userEmail);
-
-            if (user == null)
-                return NotFound(new ApiResponse(404, "user not found"));
-        }
-
-        var orders = await _unitOfWork.OrdersRepository.GetCanceledOrdersRequestAsync(userEmail);
-
-        return Ok(new ApiOkResponse(orders));
-    }*/
+            { "orderId", order.Id },
+            { "status", "order "+status[order.Status] },
+        };
+    }
 }
