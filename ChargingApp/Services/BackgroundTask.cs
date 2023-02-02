@@ -16,7 +16,7 @@ public class BackgroundTask : IHostedService, IDisposable
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _timer = new Timer(DoWork, null, TimeSpan.Zero,
-            TimeSpan.FromSeconds(10));
+            TimeSpan.FromSeconds(100000));
 
         return Task.CompletedTask;
     }

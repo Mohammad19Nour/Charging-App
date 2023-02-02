@@ -12,6 +12,7 @@ namespace ChargingApp.Controllers;
 [Authorize(Policy = "Required_AnyAdmin_Role")]
 public class AdminPaymentController : AdminController
 {
+    List<string> status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHubContext<PresenceHub> _presenceHub;
     private readonly PresenceTracker _tracker;
@@ -49,7 +50,7 @@ public class AdminPaymentController : AdminController
             if (connections != null)
             {
                 await _presenceHub.Clients.Clients(connections)
-                    .SendAsync("NewPaymentNotification", "new payment");
+                    .SendAsync("Payment status notification", getDetails(payment));
             }
             else
             {
@@ -60,7 +61,6 @@ public class AdminPaymentController : AdminController
                 });
             }
 
-            if (connections != null) Console.WriteLine(connections.Count + "\n");
             if (await _unitOfWork.Complete())
             {
                 return Ok(new ApiResponse(200, "approved successfully"));
@@ -74,7 +74,6 @@ public class AdminPaymentController : AdminController
             throw;
         }
     }
-
 
     [HttpPost("reject/{paymentId:int}")]
     public async Task<ActionResult> RejectPayment(int paymentId, string notes = "")
@@ -95,7 +94,7 @@ public class AdminPaymentController : AdminController
             if (connections != null)
             {
                 await _presenceHub.Clients.Clients(connections)
-                    .SendAsync("NewPaymentNotification", notes);
+                    .SendAsync("Payment status notification", getDetails(payment));
             }
             else
             {
@@ -132,5 +131,13 @@ public class AdminPaymentController : AdminController
             Console.WriteLine(e);
             throw;
         }
+    }
+    private Dictionary<string, dynamic> getDetails(Payment order)
+    {
+        return new Dictionary<string, dynamic>
+        {
+            { "paymentId", order.Id },
+            { "status", "payment "+status[order.Status] }
+        };
     }
 }

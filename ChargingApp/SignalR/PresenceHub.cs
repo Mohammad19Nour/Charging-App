@@ -32,13 +32,14 @@ public class PresenceHub : Hub
             throw new HubException("unauthorized..");
         
         await _tracker.UserConnected(email,Context.ConnectionId);
+        Console.WriteLine(Context.ConnectionId+"\n");
         await Clients.Caller.SendAsync("User", "connected");
 
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        Console.WriteLine("**\n");
+       // Console.WriteLine("**\n");
         string? email = null;
         
         if (Context.User != null)

@@ -1,26 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using AutoMapper;
 using ChargingApp.Data;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Extentions;
-using ChargingApp.Helpers;
-using ChargingApp.Interfaces;
 using ChargingApp.Middleware;
-using ChargingApp.Services;
 using ChargingApp.SignalR;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
     
 var builder = WebApplication.CreateBuilder(args);
@@ -35,10 +21,10 @@ builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
 {
     builder
         .AllowAnyOrigin()
-        // .WithOrigins("http://localhost:4200")
+         .WithOrigins("http://localhost:4200")
         .AllowAnyHeader()
         .AllowAnyMethod()
-     //   .AllowCredentials()
+        .AllowCredentials()
         .SetIsOriginAllowed((_) => true);
 }));
 
@@ -134,10 +120,10 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 app.UseRouting();
 app.UseCors(x => x
     .AllowAnyOrigin()
-    //.WithOrigins("http://localhost:4200")
+    .WithOrigins("http://localhost:4200")
     .AllowAnyHeader()
     .AllowAnyMethod()
-    //.AllowCredentials()
+    .AllowCredentials()
     .SetIsOriginAllowed((_) => true));
 
 /*
