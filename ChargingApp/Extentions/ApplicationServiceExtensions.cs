@@ -13,14 +13,17 @@ namespace ChargingApp.Extentions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services
+    public static void AddApplicationServices(this IServiceCollection services
         , IConfiguration config)
     {
+        services.AddHostedService<BackgroundTask>();
         services.Configure<FormOptions>(opt =>
             opt.ValueCountLimit = int.MaxValue);
+        
         services.AddScoped<INotificationService, NotificationService>();
         services.AddSingleton<PresenceTracker>().AddSignalR();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IApiService , ApiService>();
         services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
         services.AddTransient<IEmailHelper, EmailSenderService>();
         services.AddScoped<IPhotoService, PhotoService>();
@@ -45,6 +48,5 @@ public static class ApplicationServiceExtensions
                     EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                     ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
                 });*/
-        return services;
     }
 }

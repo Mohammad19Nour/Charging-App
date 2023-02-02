@@ -3,6 +3,7 @@ using System;
 using ChargingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230201122558_s")]
+    partial class s
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.7");
@@ -28,8 +30,6 @@ namespace ChargingApp.Migrations
 
                     b.HasKey("ApiOrderId");
 
-                    b.HasIndex("OrderId");
-
                     b.ToTable("ApiOrders");
                 });
 
@@ -43,8 +43,6 @@ namespace ChargingApp.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ApiProductId");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("ApiProducts");
                 });
@@ -777,28 +775,6 @@ namespace ChargingApp.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.ApiOrder", b =>
-                {
-                    b.HasOne("ChargingApp.Entity.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.ApiProduct", b =>
-                {
-                    b.HasOne("ChargingApp.Entity.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.AppUserRole", b =>
