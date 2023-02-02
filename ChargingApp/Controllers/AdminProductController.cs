@@ -13,18 +13,21 @@ public class AdminProductController : AdminController
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPhotoService _photoService;
     private readonly IMapper _mapper;
+    private readonly IApiService _apiService;
 
     public AdminProductController(IUnitOfWork unitOfWork, IPhotoService photoService,
-        IMapper mapper)
+        IMapper mapper, IApiService apiService)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
         _mapper = mapper;
+        _apiService = apiService;
     }
-    
+
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-product-no-quantity/{categoryId:int}")]
-    public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto)
+    public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto
+        , [FromQuery] int? productId)
     {
         try
         {
@@ -37,6 +40,7 @@ public class AdminProductController : AdminController
                 return BadRequest(new ApiResponse(400, "you can't add this product to this category"));
 
             var result = await _photoService.AddPhotoAsync(dto.PhotoFile);
+
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
 
@@ -57,6 +61,23 @@ public class AdminProductController : AdminController
             };
 
             _unitOfWork.ProductRepository.AddProduct(product);
+            if (productId != null)
+            {
+                var res = await _apiService.CheckProductByIdIfExistAsync((int)productId);
+
+                if (!res)
+                    return NotFound(new ApiResponse(404, "Product not found"));
+
+                if (await _unitOfWork.OtherApiRepository
+                        .CheckIfProductExistAsync(productId.Value, false))
+                    return BadRequest(new ApiResponse(400, "Product already exist"));
+
+                _unitOfWork.OtherApiRepository.AddProduct(new ApiProduct
+                {
+                    Product = product,
+                    ApiProductId = productId.Value
+                });
+            }
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "product added successfully"));
@@ -68,7 +89,7 @@ public class AdminProductController : AdminController
             throw;
         }
     }
-    
+
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-product-with-quantity/{categoryId:int}")]
     public async Task<ActionResult> AddProductWithQuantity(int categoryId, [FromForm] NewProductWithQuantityDto dto)
@@ -129,8 +150,15 @@ public class AdminProductController : AdminController
                 return NotFound(new ApiResponse(403, "this product isn't exist"));
 
             var orders = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
-            _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
 
+            var fromOtherApi = await _unitOfWork.OtherApiRepository
+                .CheckIfProductExistAsync(productId , false);
+            
+            if (fromOtherApi)
+                _unitOfWork.OtherApiRepository.DeleteProduct(productId);
+            
+            _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
+            
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(201, "product deleted"));
 
@@ -154,29 +182,29 @@ public class AdminProductController : AdminController
 
         if (product.CanChooseQuantity)
             return BadRequest(new ApiResponse(400, "can't update product with qty"));
-        
+
         if (dto.Price != null)
             product.Price = (double)dto.Price;
-        
+
         if (dto.Available != null)
             product.Available = (bool)dto.Available;
-        
+
         if (dto.MinimumQuantityAllowed != null)
             product.MinimumQuantityAllowed = (int)dto.MinimumQuantityAllowed;
-        
+
         if (!string.IsNullOrEmpty(dto.ArabicName))
             product.ArabicName = dto.ArabicName;
-        
+
         if (!string.IsNullOrEmpty(dto.EnglishName))
             product.EnglishName = dto.EnglishName;
-        
+
         _unitOfWork.ProductRepository.UpdateProduct(product);
-        
+
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "updated successfully"));
         return BadRequest(new ApiResponse(400, "Failed to update product"));
     }
-    
+
     [Authorize(Policy = "Required_Admins_Role")]
     [HttpPut("update-info-qty/{productId:int}")]
     public async Task<ActionResult> UpdateProductWithQuantity(int productId, ProductWithQuantityToUpdateDto dto)
@@ -191,15 +219,15 @@ public class AdminProductController : AdminController
 
         if (dto.Price != null)
             product.Price = (double)dto.Price;
-        
+
         if (dto.Quantity != null)
             product.Quantity = (double)dto.Quantity;
-        
+
         if (dto.Available != null)
             product.Available = (bool)dto.Available;
-       
+
         _unitOfWork.ProductRepository.UpdateProduct(product);
-        
+
         if (await _unitOfWork.Complete())
             return Ok(new ApiResponse(200, "updated successfully"));
         return BadRequest(new ApiResponse(400, "Failed to update product"));
@@ -256,6 +284,20 @@ public class AdminProductController : AdminController
                 return BadRequest(new ApiResponse(400, "can't update photo for this product"));
 
             return Ok(new ApiOkResponse(_mapper.Map<ProductDto>(product)));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    [HttpGet("products-from-api")]
+    public async Task<ActionResult> GetProductsFromApi()
+    {
+        try
+        {
+            return Ok(new ApiOkResponse(await _apiService.GetAllProductsAsync() ));
         }
         catch (Exception e)
         {

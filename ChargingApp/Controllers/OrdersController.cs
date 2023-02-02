@@ -25,7 +25,7 @@ public class OrdersController : BaseApiController
         _photoService = photoService;
     }
 
-    [Authorize(Policy = "RequiredNormalRole")]
+    [Authorize(Policy = "Required_Normal_Role")]
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
@@ -44,7 +44,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "RequiredVIPRole")]
+    [Authorize(Policy = "Required_VIP_Role")]
     [HttpGet("vip-my-order")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
@@ -63,7 +63,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "RequiredVIPRole")]
+    [Authorize(Policy = "Required_VIP_Role")]
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
@@ -130,14 +130,11 @@ public class OrdersController : BaseApiController
 
             _unitOfWork.OrdersRepository.AddOrder(order);
 
-            if (await _unitOfWork.Complete())
-            {
-                var res = _mapper.Map<OrderDto>(order);
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));
+            var res = _mapper.Map<OrderDto>(order);
 
-                return Ok(new ApiOkResponse(res));
-            }
+            return Ok(new ApiOkResponse(res));
 
-            return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
         catch (Exception e)
         {

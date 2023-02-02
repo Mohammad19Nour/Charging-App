@@ -23,6 +23,7 @@ public interface IUnitOfWork
     IPhotoRepository PhotoRepository { get; }
     IDebitRepository DebitRepository { get; }
     INotificationRepository NotificationRepository { get; }
+    IOtherApiRepository OtherApiRepository { get; }
     Task<bool> Complete();
     bool HasChanges();
 
