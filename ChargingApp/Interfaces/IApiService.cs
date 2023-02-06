@@ -8,4 +8,5 @@ public interface IApiService
     public Task<(bool Success , string Message , int OrderId)> SendOrderAsync(int productId , double qty , string playerId);
     public Task<(bool Succeed , string Status )> CheckOrderStatusAsync(int orderId);
     public Task<List<ApiService.ProductResponse>?> GetAllProductsAsync();
+    public Task<(bool Success, string Message)> CancelOrderByIdAsync(int apiOrderId);
 }

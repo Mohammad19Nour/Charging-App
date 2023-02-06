@@ -19,7 +19,7 @@ public class AdminRechargeMethodeController : AdminController
         _mapper = mapper;
     }
 
-    
+
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-agent/{rechargeMethodId:int}")]
     public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)
@@ -46,10 +46,10 @@ public class AdminRechargeMethodeController : AdminController
             throw;
         }
     }
-    
-    [Authorize (Policy = "Required_Administrator_Role")]
+
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPut("update-agent/{agentId:int}")]
-    public async Task<ActionResult> UpdateAgent(int agentId, int rechargeMethodId , [FromQuery] string? arabicName
+    public async Task<ActionResult> UpdateAgent(int agentId, int rechargeMethodId, [FromQuery] string? arabicName
         , [FromQuery] string? englishName)
     {
         try
@@ -78,7 +78,8 @@ public class AdminRechargeMethodeController : AdminController
             throw;
         }
     }
-    [Authorize (Policy = "Required_Administrator_Role")]
+
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpDelete]
     public async Task<ActionResult> DeleteAgent(int agentId, int rechargeMethodId)
     {

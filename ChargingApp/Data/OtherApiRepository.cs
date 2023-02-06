@@ -51,22 +51,34 @@ public class OtherApiRepository : IOtherApiRepository
 
     public void DeleteProduct(int productId)
     {
-        var product = _context.ApiProducts.First(x => x.ApiProductId == productId);
+        var product = _context.ApiProducts
+            .Include(x=>x.Product)
+            .First(x => x.Product.Id == productId);
         _context.ApiProducts.Remove(product);
     }
 
     public void DeleteOrder(int orderId)
     {
-        var order = _context.ApiOrders.First(x => x.ApiOrderId == orderId);
+        var order = _context.ApiOrders
+            .Include(x=>x.Order)
+            .First(x => x.Order.Id == orderId);
         _context.ApiOrders.Remove(order);
     }
 
-    public async Task<int> GetProductIdInApiAsync(int productId)
+    public async Task<int> GetApiProductIdAsync(int ourProductId)
     {
         return (await _context.ApiProducts
             .Include(p => p.Product)
             .AsNoTracking()
-            .Where(x => x.Product.Id == productId).FirstAsync()).ApiProductId;
+            .Where(x => x.Product.Id == ourProductId).FirstAsync()).ApiProductId;
+    }
+
+    public async Task<int> GetApiOrderIdAsync(int ourOrderId)
+    {
+        return (await _context.ApiOrders
+            .Include(p => p.Order)
+            .AsNoTracking()
+            .Where(x => x.Order.Id == ourOrderId).FirstAsync()).ApiOrderId;
     }
 
     public async Task<List<ApiOrder>> GetAllOrdersAsync()

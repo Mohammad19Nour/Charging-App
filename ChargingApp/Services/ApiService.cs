@@ -31,7 +31,8 @@ public class ApiService : IApiService
 
         if (response.IsSuccessStatusCode)
         {
-            var id = jsonElement.GetProperty("order_id").ToString();
+            var data = jsonElement.GetProperty("data");
+            var id = data.GetProperty("order_id").ToString();
             var orderId = int.Parse(id);
             return (true, "Waiting", orderId);
         }
@@ -52,16 +53,18 @@ public class ApiService : IApiService
             var response = await httpClient.GetAsync(baseUrl + "/check?orders=[" + orderId + "]");
 
             var content = await response.Content.ReadAsByteArrayAsync();
-            
+
             var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
             var dataList = jsonElement.GetProperty("data")
                 .EnumerateArray().ToList();
             if (response.IsSuccessStatusCode)
             {
-                return dataList.Count == 0 ? (false, "order not found") 
-                    : (true,dataList[0].GetProperty("status").ToString());
+                return dataList.Count == 0
+                    ? (false, "order not found")
+                    : (true, dataList[0].GetProperty("status").ToString());
             }
-            return  (false, "order not found");
+
+            return (false, "order not found");
         }
         catch (Exception e)
         {
@@ -81,6 +84,28 @@ public class ApiService : IApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<List<ProductResponse>>(content);
+    }
+
+    public async Task<(bool Success, string Message)> CancelOrderByIdAsync(int apiOrderId)
+    {
+        try
+        {
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("api-token",
+                token);
+            var response = await httpClient.GetAsync(baseUrl +
+                                                     "/order/cancel?id=" + apiOrderId);
+
+           // Console.WriteLine(response.StatusCode+"\n\n\n\n000\n\n"+apiOrderId);
+            return response.StatusCode != HttpStatusCode.OK
+                ? (false, "Can't cancel this order now")
+                : (true, "Done");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public class ProductResponse

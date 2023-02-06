@@ -72,8 +72,8 @@ public class AdminReportController : BaseApiController
 
             var sellsDto = listOfSells as SellsDto[] ?? listOfSells.ToArray();
             var totalPurchasing = sellsDto.Sum(x => x.TotalPrice);
-        
-            return Ok(new ApiOkResponse(new { listOfSells = sellsDto , totalPurchasing}));
+
+            return Ok(new ApiOkResponse(new { listOfSells = sellsDto, totalPurchasing }));
         }
         catch (Exception e)
         {

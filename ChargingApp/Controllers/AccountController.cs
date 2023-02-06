@@ -5,7 +5,6 @@ using ChargingApp.Interfaces;
 using ChargingApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -97,7 +96,7 @@ public class AccountController : BaseApiController
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
         var confirmationLink = Url.Action("ConfirmEmail", "Account",
-            new { userId = user.Id, token = token }, Request.Scheme);
+            new { userId = user.Id, token }, Request.Scheme);
 
         var text = "<html><body>To confirm your email please<a href=" + confirmationLink +
                    "> click here</a></body></html>";

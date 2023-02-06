@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ChargingApp.DTOs;
+﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
@@ -10,12 +9,10 @@ namespace ChargingApp.Controllers;
 public class OurAgentsController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
 
-    public OurAgentsController(IUnitOfWork unitOfWork, IMapper mapper)
+    public OurAgentsController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
     }
 
     [HttpGet("our-agents")]

@@ -482,6 +482,26 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ApiProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ApiProductId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApiProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApiProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -554,6 +574,26 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ApiOrders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ApiOrderId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApiOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApiOrders_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderAndPaymentNotifications",
                 columns: table => new
                 {
@@ -583,6 +623,16 @@ namespace ChargingApp.Migrations
                         principalTable: "Payments",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiOrders_OrderId",
+                table: "ApiOrders",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiProducts_ProductId",
+                table: "ApiProducts",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -719,6 +769,12 @@ namespace ChargingApp.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ApiOrders");
+
+            migrationBuilder.DropTable(
+                name: "ApiProducts");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

@@ -1,40 +1,47 @@
 ﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
-using ChargingApp.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace ChargingApp.Controllers;
 
 [Authorize(Policy = "Required_AnyAdmin_Role")]
 public class AdminPaymentController : AdminController
 {
-    List<string> status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
+    private static readonly SemaphoreSlim Semaphore1 = new(1, 1);
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHubContext<PresenceHub> _presenceHub;
-    private readonly PresenceTracker _tracker;
+    private readonly INotificationService _notificationService;
 
-    public AdminPaymentController(IUnitOfWork unitOfWork
-        , IHubContext<PresenceHub> presenceHub, PresenceTracker tracker)
+    public AdminPaymentController(IUnitOfWork unitOfWork, INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
-        _presenceHub = presenceHub;
-        _tracker = tracker;
+        _notificationService = notificationService;
     }
 
-    [HttpPost("approve/{paymentId:int}")]
+    [HttpGet("approve/{paymentId:int}")]
     public async Task<ActionResult> ApprovePayment(int paymentId)
     {
         try
         {
+            await Semaphore.WaitAsync();
+
             var payment = await _unitOfWork.PaymentRepository.GetPaymentByIdAsync(paymentId);
 
-            if (payment is null) return NotFound(new ApiResponse(401, "this payment doesn't exist"));
+            if (payment is null)
+            {
+                Semaphore.Release();
+                return NotFound(new ApiResponse(401, "this payment doesn't exist"));
+            }
 
-            if (payment.Status != 0) return BadRequest(new ApiResponse(400, "this payment already checked"));
+            if (payment.Status != 0)
+            {
+                Semaphore.Release();
+                return BadRequest(new ApiResponse(400, "this payment already checked"));
+            }
 
             payment.Status = 1;
 
@@ -45,24 +52,16 @@ public class AdminPaymentController : AdminController
 
             payment.User.Balance += payment.AddedValue;
 
-            var connections = await _tracker.GetConnectionsForUser(payment.User.Email);
-
-            if (connections != null)
-            {
-                await _presenceHub.Clients.Clients(connections)
-                    .SendAsync("Payment status notification", getDetails(payment));
-            }
-            else
-            {
-                _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification
-                {
-                    User = payment.User,
-                    Payment = payment
-                });
-            }
-
             if (await _unitOfWork.Complete())
             {
+                var not = new OrderAndPaymentNotification
+                {
+                    Payment = payment,
+                    User = payment.User
+                };
+                await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                    "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
+                Semaphore.Release();
                 return Ok(new ApiResponse(200, "approved successfully"));
             }
 
@@ -70,54 +69,61 @@ public class AdminPaymentController : AdminController
         }
         catch (Exception e)
         {
+            Semaphore.Release();
             Console.WriteLine(e);
             throw;
         }
     }
 
-    [HttpPost("reject/{paymentId:int}")]
+    [HttpGet("reject/{paymentId:int}")]
     public async Task<ActionResult> RejectPayment(int paymentId, string notes = "")
     {
         try
         {
+            await Semaphore1.WaitAsync();
             var payment = await _unitOfWork.PaymentRepository.GetPaymentByIdAsync(paymentId);
 
-            if (payment is null) return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            if (payment is null)
+            {
+                Semaphore1.Release();
+                return NotFound(new ApiResponse(401, "this order doesn't exist"));
+            }
 
-            if (payment.Status != 0) return BadRequest(new ApiResponse(400, "this order already checked"));
+            if (payment.Status != 0)
+            {
+                Semaphore1.Release();
+                return BadRequest(new ApiResponse(400, "this order already checked"));
+            }
 
             payment.Status = 2;
             payment.Notes = notes;
 
-            var connections = await _tracker.GetConnectionsForUser(payment.User.Email);
-
-            if (connections != null)
-            {
-                await _presenceHub.Clients.Clients(connections)
-                    .SendAsync("Payment status notification", getDetails(payment));
-            }
-            else
-            {
-                _unitOfWork.NotificationRepository.AddNotification(new OrderAndPaymentNotification
-                {
-                    User = payment.User,
-                    Payment = payment
-                });
-            }
-
             if (await _unitOfWork.Complete())
             {
+                var not = new OrderAndPaymentNotification
+                {
+                    Payment = payment,
+                    User = payment.User
+                };
+
+                await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                    "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
+
+                Semaphore1.Release();
                 return Ok(new ApiResponse(200, "Rejected successfully"));
             }
 
+            Semaphore1.Release();
             return BadRequest(new ApiResponse(400, "Failed to reject order"));
         }
         catch (Exception e)
         {
+            Semaphore1.Release();
             Console.WriteLine(e);
             throw;
         }
     }
+
     [HttpGet("pending-payment")]
     public async Task<ActionResult<List<PaymentAdminDto>>> GetPendingPayments(string? user = null)
     {
@@ -132,12 +138,5 @@ public class AdminPaymentController : AdminController
             throw;
         }
     }
-    private Dictionary<string, dynamic> getDetails(Payment order)
-    {
-        return new Dictionary<string, dynamic>
-        {
-            { "paymentId", order.Id },
-            { "status", "payment "+status[order.Status] }
-        };
-    }
+
 }

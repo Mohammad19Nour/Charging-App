@@ -14,7 +14,7 @@ public class AdminUserController : AdminController
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
 
-    public AdminUserController(IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
+    public AdminUserController(IUnitOfWork unitOfWork, UserManager<AppUser> userManager)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
@@ -28,10 +28,10 @@ public class AdminUserController : AdminController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(userEmail);
 
             if (user is null) return NotFound(new ApiResponse(401, "user not fount"));
-            
+
             var roles = await _userManager.GetRolesAsync(user);
-            var tmp =  roles.Any(x => x.ToLower() == "normal");
-          
+            var tmp = roles.Any(x => x.ToLower() == "normal");
+
             if (tmp)
                 return BadRequest(new ApiResponse(400, "can't update normal account"));
 
@@ -79,13 +79,12 @@ public class AdminUserController : AdminController
                 return BadRequest(new ApiResponse(400, "value should be greater than 0"));
 
             var roles = await _userManager.GetRolesAsync(user);
-          var tmp =  roles.Any(x => x.ToLower() == "normal");
-          
-          if (tmp)
-              return BadRequest(new ApiResponse(400, "can't add to normal account"));
+            var tmp = roles.Any(x => x.ToLower() == "normal");
 
-              
-            
+            if (tmp)
+                return BadRequest(new ApiResponse(400, "can't add to normal account"));
+
+
             user.Balance += debitValue;
             user.Debit += debitValue;
 
@@ -180,7 +179,7 @@ public class AdminUserController : AdminController
                 .GetPriceForUserAsync(dto.Email, dto.VipLevel, dto.ProductId);
 
             if (spec is null)
-                return NotFound(new ApiResponse(404,"the specific price is not exist"));
+                return NotFound(new ApiResponse(404, "the specific price is not exist"));
 
             spec.ProductPrice = dto.ProductPrice;
             _unitOfWork.SpecificPriceForUserRepository.UpdateProductPriceForUser(spec);

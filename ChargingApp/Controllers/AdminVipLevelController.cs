@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
-[Authorize(Policy = "Required_Administrator_Role")]
 
+[Authorize(Policy = "Required_Administrator_Role")]
 public class AdminVipLevelController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -48,7 +48,7 @@ public class AdminVipLevelController : AdminController
     }
 
     [HttpPut("update-vip-level/{vipLevel:int}")]
-    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel,VipLevelInfo dto )
+    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel, VipLevelInfo dto)
     {
         try
         {
@@ -58,7 +58,7 @@ public class AdminVipLevelController : AdminController
 
             if (dto.BenefitPercent != null)
                 vip.BenefitPercent = (double)dto.BenefitPercent;
-            
+
             if (dto.MinimumPurchase != null && vipLevel != 0)
                 vip.MinimumPurchase = (double)dto.MinimumPurchase;
 

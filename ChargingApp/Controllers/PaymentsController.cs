@@ -9,9 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize(Policy = "RequiredVIPRole")]
+[Authorize(Policy = "Required_VIP_Role")]
 public class PaymentsController : BaseApiController
 {
+    private readonly List<string> _status = new() { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
@@ -65,7 +66,17 @@ public class PaymentsController : BaseApiController
 
             _unitOfWork.PaymentRepository.AddPayment(payment);
 
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
+            if (!await _unitOfWork.Complete())
+            {
+               return BadRequest(new ApiResponse(400, "Failed to add payment"));
+            }
+            var not = new OrderAndPaymentNotification
+            {
+                Payment = payment,
+                User = user
+            };
+            await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                "Payment status notification", getDetails(payment));
 
             return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
         }
@@ -117,6 +128,14 @@ public class PaymentsController : BaseApiController
 
             if (await _unitOfWork.Complete())
             {
+                var not = new OrderAndPaymentNotification
+                {
+                    Payment = payment,
+                    User = user
+                };
+                await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                    "Payment status notification", getDetails(payment));
+
                 return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
             }
 
@@ -172,15 +191,15 @@ public class PaymentsController : BaseApiController
             _unitOfWork.PaymentRepository.AddPayment(payment);
 
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to add payment"));
-/*
+
             var not = new OrderAndPaymentNotification
             {
-                User = user,
-               Payment = payment
+                Payment = payment,
+                User = user
             };
-            await _notificationService.NotifyUserByEmail(user.Email, _unitOfWork, not,
-                "Admin Payment status notification", "new payment");
-*/
+            await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                "Payment status notification", getDetails(payment));
+            
             return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
         }
         catch (Exception e)
@@ -213,5 +232,13 @@ public class PaymentsController : BaseApiController
             Console.WriteLine(e);
             throw;
         }
+    }
+    private Dictionary<string, dynamic> getDetails(Payment order)
+    {
+        return new Dictionary<string, dynamic>
+        {
+            { "paymentId", order.Id },
+            { "status", "payment "+_status[order.Status] }
+        };
     }
 }

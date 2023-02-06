@@ -19,14 +19,17 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.ApiOrder", b =>
                 {
-                    b.Property<int>("ApiOrderId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ApiOrderId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("ApiOrderId");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
@@ -35,14 +38,17 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.ApiProduct", b =>
                 {
-                    b.Property<int>("ApiProductId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ApiProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("ApiProductId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 

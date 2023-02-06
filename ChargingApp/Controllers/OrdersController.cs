@@ -15,14 +15,18 @@ public class OrdersController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IApiService _apiService;
     private readonly IPhotoService _photoService;
+    private readonly INotificationService _notificationService;
 
-    public OrdersController(IUnitOfWork unitOfWork, IMapper mapper
-        , IPhotoService photoService)
+    public OrdersController(IUnitOfWork unitOfWork, IMapper mapper, IApiService apiService
+        , IPhotoService photoService, INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _apiService = apiService;
         _photoService = photoService;
+        _notificationService = notificationService;
     }
 
     [Authorize(Policy = "Required_Normal_Role")]
@@ -116,13 +120,31 @@ public class OrdersController : BaseApiController
 
                 var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
                     .GetProductPriceForUserAsync(product.Id, user);
-
                 order.TotalPrice = specificPrice ?? product.Price;
                 order.Quantity = product.Quantity;
             }
 
             if (order.TotalPrice > user.Balance)
                 return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
+
+            var fromApi = await _unitOfWork.OtherApiRepository
+                .CheckIfProductExistAsync(product.Id, true);
+            if (fromApi)
+            {
+                var apiId = await _unitOfWork.OtherApiRepository
+                    .GetApiProductIdAsync(product.Id);
+                var respo = await _apiService.SendOrderAsync(apiId, dto.Quantity, dto.PlayerId);
+                if (!respo.Success)
+                {
+                    return Ok(new ApiResponse(200, respo.Message));
+                }
+
+                _unitOfWork.OtherApiRepository.AddOrder(new ApiOrder
+                {
+                    Order = order,
+                    ApiOrderId = respo.OrderId
+                });
+            }
 
             user.Balance -= order.TotalPrice;
             order.User.VIPLevel = await _unitOfWork.VipLevelRepository
@@ -134,7 +156,6 @@ public class OrdersController : BaseApiController
             var res = _mapper.Map<OrderDto>(order);
 
             return Ok(new ApiOkResponse(res));
-
         }
         catch (Exception e)
         {
@@ -144,7 +165,7 @@ public class OrdersController : BaseApiController
     }
 
     // new order 
-    [Authorize(Policy = "RequiredNormalRole")]
+    [Authorize(Policy = "Required_Normal_Role")]
     [HttpPost("normal-order")]
     public async Task<IActionResult> PlaceOrder([FromForm] NewNormalOrderDto dto)
     {
@@ -171,12 +192,6 @@ public class OrdersController : BaseApiController
             if (dto.PlayerName.Length == 0)
                 return BadRequest(new ApiResponse(400, "player name is required"));
 
-            /*      if (product.CanChooseQuantity)
-              {
-                  if (Math.Abs(product.Quantity - dto.Quantity) > 0.001)
-                      return BadRequest(new ApiResponse(400, "you can't choose this quantity"));
-              }
-      */
             if (dto.Quantity < product.MinimumQuantityAllowed)
                 return BadRequest(new ApiResponse(400,
                     "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
@@ -240,7 +255,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "RequiredVIPRole")]
+    [Authorize(Policy = "Required_VIP_Role")]
     [HttpDelete]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
@@ -254,24 +269,52 @@ public class OrdersController : BaseApiController
             if (order is null)
                 return BadRequest(new ApiResponse(400, "this order isn't exist"));
 
+            if (order.User.Id != user.Id)
+                return BadRequest(new ApiResponse(403));
+
             if (order.CreatedAt.AddSeconds(60).CompareTo(DateTime.UtcNow) > 0)
-                return BadRequest(new ApiResponse(400, "you can delete this order after " +
+                return BadRequest(new ApiResponse(400, "you can cancel this order after " +
                                                        CalcSeconds(order.CreatedAt.AddSeconds(60).Second,
                                                            DateTime.UtcNow.Second) + " seconds"));
 
             if (order.Status != 0 && order.Status != 5)
                 return BadRequest(new ApiResponse(400,
-                    "you can't delete this order because it has been checked by admin"));
+                    "you can't cancel this order because it has been checked by admin"));
 
 
             if (order.Status == 5)
-                return BadRequest(new ApiResponse(400, "you can't delete this order because it has been cancelled"));
+                return Ok(new ApiResponse(200, "you can't cancel this order because it has been cancelled"));
 
-            order.User.Balance += order.TotalPrice;
-            order.User.TotalPurchasing -= order.TotalPrice;
-            order.User.TotalForVIPLevel -= order.TotalPrice;
-            order.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+            var roles = User.GetRoles();
+            var normal = roles.Any(x => x.ToLower() == "normal");
+
+            var fromApi = await _unitOfWork.OtherApiRepository
+                .CheckIfOrderExistAsync(order.Id, true);
+
+            if (fromApi)
+            {
+                if (normal)
+                    return Ok(new ApiResponse(200, "can't do this action"));
+
+                var apiId = await _unitOfWork.OtherApiRepository
+                    .GetApiOrderIdAsync(order.Id);
+
+                var response = await _apiService.CancelOrderByIdAsync(apiId);
+
+                if (!response.Success)
+                    return BadRequest(new ApiResponse(400, response.Message));
+
+                _unitOfWork.OtherApiRepository.DeleteOrder(order.Id);
+            }
+
+            if (!normal)
+            {
+                order.User.Balance += order.TotalPrice;
+                order.User.TotalPurchasing -= order.TotalPrice;
+                order.User.TotalForVIPLevel -= order.TotalPrice;
+                order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                    .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+            }
 
             order.Status = 5;
             order.StatusIfCanceled = 2;

@@ -22,7 +22,7 @@ public class AdminCategoryController : AdminController
         _mapper = mapper;
     }
 
-    [Authorize (Policy = "Required_Admins_Role")]
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpPost("add-category")]
     public async Task<ActionResult> AddCategory([FromForm] NewCategoryDto dto)
     {
@@ -58,7 +58,7 @@ public class AdminCategoryController : AdminController
         }
     }
 
-    [Authorize (Policy = "Required_Admins_Role")]
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpDelete]
     public async Task<ActionResult> DeleteCategory(int categoryId)
     {
@@ -96,7 +96,7 @@ public class AdminCategoryController : AdminController
         }
     }
 
-    [Authorize (Policy = "Required_Admins_Role")]
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpPut("update-cat-name/{categoryId:int}")]
     public async Task<ActionResult> UpdateCategory(int categoryId, [FromBody] CategoryUpdateDto dto)
     {
@@ -126,7 +126,7 @@ public class AdminCategoryController : AdminController
         }
     }
 
-    [Authorize (Policy = "Required_AllAdminExceptNormal_Role")]
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPut("update-cat-photo/{categoryId:int}")]
     public async Task<ActionResult> UpdatePhoto(int categoryId, IFormFile? imageFile)
     {
