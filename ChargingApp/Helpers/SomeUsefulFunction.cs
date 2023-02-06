@@ -6,6 +6,7 @@ namespace ChargingApp.Helpers;
 
 public static class SomeUsefulFunction
 {
+    private static readonly List<string> Status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
     public static async Task<double> CalcTotalPriceCannotChooseQuantity
     (double dtoQuantity, Product product,
         AppUser user, IUnitOfWork unitOfWork)
@@ -162,4 +163,23 @@ public static class SomeUsefulFunction
 
         return products;
     }
+
+   public static Dictionary<string, dynamic> GetPaymentNotificationDetails(Payment order)
+    {
+        return new Dictionary<string, dynamic>
+        {
+            { "paymentId", order.Id },
+            { "status", "payment " + Status[order.Status] }
+        };
+    }
+   
+   
+   public static Dictionary<string, dynamic> GetOrderNotificationDetails(Order order)
+   {
+       return new Dictionary<string, dynamic>
+       {
+           { "orderId", order.Id },
+           { "status", "order " + Status[order.Status] },
+       };
+   }
 }

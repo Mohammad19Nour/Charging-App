@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize (Policy = "Required_Administrator_Role")]
+[Authorize(Policy = "Required_Administrator_Role")]
 public class AdminBenefitController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;

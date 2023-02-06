@@ -152,13 +152,13 @@ public class AdminProductController : AdminController
             var orders = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
 
             var fromOtherApi = await _unitOfWork.OtherApiRepository
-                .CheckIfProductExistAsync(productId , false);
-            
+                .CheckIfProductExistAsync(productId, false);
+
             if (fromOtherApi)
                 _unitOfWork.OtherApiRepository.DeleteProduct(productId);
-            
+
             _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
-            
+
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(201, "product deleted"));
 
@@ -280,9 +280,6 @@ public class AdminProductController : AdminController
             if (product is null)
                 return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
-            if (product.CanChooseQuantity)
-                return BadRequest(new ApiResponse(400, "can't update photo for this product"));
-
             return Ok(new ApiOkResponse(_mapper.Map<ProductDto>(product)));
         }
         catch (Exception e)
@@ -292,12 +289,13 @@ public class AdminProductController : AdminController
         }
     }
 
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpGet("products-from-api")]
     public async Task<ActionResult> GetProductsFromApi()
     {
         try
         {
-            return Ok(new ApiOkResponse(await _apiService.GetAllProductsAsync() ));
+            return Ok(new ApiOkResponse(await _apiService.GetAllProductsAsync()));
         }
         catch (Exception e)
         {

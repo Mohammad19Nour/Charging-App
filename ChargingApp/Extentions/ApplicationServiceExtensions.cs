@@ -35,12 +35,12 @@ public static class ApplicationServiceExtensions
             var connectionString =
                 "Data source=chargingapp.db";
             var servConnectionString =
-                "Data Source=SQL8004.site4now.net;Initial Catalog=db_a91f76_appdbb;User Id=db_a91f76_appdbb_admin;Password=Mohamed09914";
+                "Data Source=SQL8001.site4now.net;Initial Catalog=db_a91f76_pop;User Id=db_a91f76_pop_admin;Password=Mohamed09914";
 
             options.UseSqlite(connectionString);
         });
         
-        /*services.AddDataProtection()              
+       /* services.AddDataProtection()              
             .PersistKeysToFileSystem(new DirectoryInfo(@"h:\root\home\mohammad09nour-001\www\site1\directory\"))
             .UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration

@@ -39,7 +39,6 @@ public class PresenceHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-       // Console.WriteLine("**\n");
         string? email = null;
         
         if (Context.User != null)
@@ -123,4 +122,5 @@ public class PresenceHub : Hub
     {
         return "gg";
     }
+    
 }

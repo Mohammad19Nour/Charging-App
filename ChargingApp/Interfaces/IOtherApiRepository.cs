@@ -10,7 +10,8 @@ public interface IOtherApiRepository
     public void AddOrder(ApiOrder order);
     public void DeleteProduct(int productId);
     public void DeleteOrder(int orderId);
-    public Task<int> GetProductIdInApiAsync(int productId);
+    public Task<int> GetApiProductIdAsync(int ourProductId);
+    public Task<int> GetApiOrderIdAsync(int ourOrderId);
     public Task<List<ApiOrder>> GetAllOrdersAsync();
     public Task<List<ApiProduct>> GetAllProductsAsync();
 }

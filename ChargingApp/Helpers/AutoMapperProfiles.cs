@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace ChargingApp.Helpers;
 
@@ -38,11 +36,10 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(src => src.Photo == null ? "No Photo" : "https://localhost:7217" + src.Photo.Url));
-        CreateMap<Photo, string>().ConvertUsing(p => (p.Url == null) ? "No Photo" : "https://localhost:7217" + p.Url);
+                opt.MapFrom(x=>x.Photo == null?"No photo" : x.Photo.Url));
+        CreateMap<Photo, string>().ConvertUsing(p => (p.Url == null) ? "No Photo" : "http://mohammad09nour-001-site1.etempurl.com" + p.Url);
+        
         CreateMap<Quantity, int>().ConvertUsing(q => q.Value);
-        // CreateMap<JsonPatchDocument<ProductToUpdateDto>, JsonPatchDocument<Product>>();
-        // CreateMap<Operation<ProductToUpdateDto>, Operation<Product>>();
 
         CreateMap<Payment, PaymentDto>()
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
@@ -102,7 +99,7 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.Status, opt =>
                opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(src =>src.Photo == null ? "No Photo" : "https://localhost:7217" + src.Photo.Url));
+                opt.MapFrom(src =>src.Photo == null ? "No Photo" : "http://mohammad09nour-001-site1.etempurl.com" + src.Photo.Url));
 
 
         CreateMap<Payment, PaymentAdminDto>()

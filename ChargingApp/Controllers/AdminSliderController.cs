@@ -63,9 +63,9 @@ public class AdminSliderController : AdminController
             _unitOfWork.SliderRepository.DeletePhoto(photo);
 
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));
-           await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(photo.PhotoId);
-         await  _unitOfWork.Complete(); 
-           if (photo.Photo.Url != null) await _photoService.DeletePhotoAsync(photo.Photo.Url);
+            await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(photo.PhotoId);
+            await _unitOfWork.Complete();
+            if (photo.Photo.Url != null) await _photoService.DeletePhotoAsync(photo.Photo.Url);
             return Ok(new ApiResponse(200, "Deleted successfully"));
 
             return BadRequest(new ApiResponse(400, "Something went wrong"));

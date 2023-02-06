@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize(Policy = "RequiredVIPRole")]
+[Authorize(Policy = "Required_VIP_Role")]
 public class VipLevelController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
