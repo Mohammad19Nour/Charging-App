@@ -16,7 +16,7 @@ public class AdminOrderController : AdminController
     private readonly List<string> _status = new()
         { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
 
-    private static readonly SemaphoreSlim Semaphore = new(1, 1);
+    private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
     private static readonly SemaphoreSlim Semaphore1 = new(1, 1);
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
@@ -82,8 +82,10 @@ public class AdminOrderController : AdminController
                 var roles = await _userManager.GetRolesAsync(order.User);
 
                 if (roles.Any(x => x.ToLower() == "vip"))
-                    return
-                        BadRequest(new ApiResponse(400, "the order was sent to fast store"));
+                {
+                    Semaphore.Release();
+                    return BadRequest(new ApiResponse(400, "the order was sent to fast store"));
+                }
             }
 
             order.Status = 4;
@@ -96,8 +98,20 @@ public class AdminOrderController : AdminController
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
                 "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
 
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = " تم استلام الطلب رقم " + orderId,
+                    EnglishDetails = "Order with id " + orderId + " has been received by admin"
+                });
+            if (!await _unitOfWork.Complete())
+            {
+                Semaphore.Release();
+                return BadRequest(new ApiResponse(400, "Failed to Received order"));
+            }
+
             Semaphore.Release();
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to Received order"));
             return Ok(new ApiResponse(200, "Received successfully"));
         }
         catch (Exception e)
@@ -164,16 +178,23 @@ public class AdminOrderController : AdminController
                     ApiOrderId = response.OrderId
                 };
                 _unitOfWork.OtherApiRepository.AddOrder(api);
-                if (await _unitOfWork.Complete())
+                var not = new OrderAndPaymentNotification
                 {
-                    var not = new OrderAndPaymentNotification
+                    User = order.User,
+                    Order = order
+                };
+                await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                    "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+                _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                    new NotificationHistory
                     {
                         User = order.User,
-                        Order = order
-                    };
-                    await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                        "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+                        ArabicDetails = " تم قبول الطلب رقم " + orderId,
+                        EnglishDetails = "Order with id " + orderId + " has been approved by admin"
+                    });
 
+                if (await _unitOfWork.Complete())
+                {
                     Semaphore1.Release();
                     return Ok(new ApiResponse(200,
                         order.Status != 3 ? "approved successfully" : "the user have no enough money"));
@@ -191,12 +212,13 @@ public class AdminOrderController : AdminController
                 order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
 
+                var lastVip = order.User.VIPLevel;
+
                 if (!order.CanChooseQuantity)
                 {
                     if (order.Product != null)
                         order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
                             (order.TotalQuantity, order.Product, order.User, _unitOfWork);
-
                 }
                 else
                 {
@@ -224,18 +246,47 @@ public class AdminOrderController : AdminController
                     order.Status = 3; // wrong
                     order.Notes = "No enough money";
                 }
+
+                if (lastVip < order.User.VIPLevel)
+                {
+                    var curr = new NotificationHistory
+                    {
+                        User = order.User,
+                        ArabicDetails = " تم ترقي مستواك الى vip  " + order.User.VIPLevel,
+                        EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
+                    };
+                   _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+
+                    await _notificationService.VipLevelNotification(order.User.Email,
+                        "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+                }
             }
+
+            var cur = new NotificationHistory
+            {
+                User = order.User,
+                ArabicDetails = " تم قبول الطلب رقم " + orderId,
+                EnglishDetails = "Order with id " + orderId + " has been approved by admin"
+            };
+
+            if (order.Status != 1)
+            {
+                cur.ArabicDetails = " تم رفض الطلب رقم " + orderId;
+                cur.EnglishDetails = "Order with id " + orderId + " has been rejected by admin";
+            }
+
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);
+
+            var notr = new OrderAndPaymentNotification
+            {
+                User = order.User,
+                Order = order
+            };
+            await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, notr,
+                "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
 
             if (await _unitOfWork.Complete())
             {
-                var not = new OrderAndPaymentNotification
-                {
-                    User = order.User,
-                    Order = order
-                };
-                await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
-                    "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
-
                 Semaphore1.Release();
                 return Ok(new ApiResponse(200,
                     order.Status != 3 ? "approved successfully" : "the user have no enough money"));
@@ -274,14 +325,55 @@ public class AdminOrderController : AdminController
             if (order.Status != 4)
                 return BadRequest(new ApiResponse(400, "this order already checked"));
 
-            if (order.OrderType.ToLower() != "vip" && type == "rejected")
+            if (order.OrderType.ToLower() == "vip" && type == "rejected")
                 return BadRequest(new ApiResponse(400, "can't reject this order"));
 
             order.Status = type == "reject" ? 2 : 3;
 
             order.Notes = notes;
 
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to reject order"));
+            var user = order.User;
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var vip = roles.Any(x => x.ToLower() == "vip");
+            if (vip)
+            {
+                var lastVip = order.User.VIPLevel;
+                user.Balance += order.TotalPrice;
+                user.TotalPurchasing -= order.TotalPrice;
+                user.TotalForVIPLevel -= order.TotalPrice;
+                user.VIPLevel = await _unitOfWork.VipLevelRepository
+                    .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
+                
+                if (lastVip > order.User.VIPLevel)
+                {
+                    var curr = new NotificationHistory
+                    {
+                        User = order.User,
+                        ArabicDetails = " تم اعادة مستواك الى  " + order.User.VIPLevel,
+                        EnglishDetails = "Your level is returned back to vip " + order.User.VIPLevel
+                    };
+                    _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+
+                    await _notificationService.VipLevelNotification(order.User.Email,
+                        "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+                }
+            }
+
+            var cur = new NotificationHistory
+            {
+                User = order.User,
+                ArabicDetails = "تم رفض الطلب رقم " + orderId + " لانه خاطئ ",
+                EnglishDetails = "Order with id " + orderId + " has been rejected by admin"
+            };
+
+            if (order.Status != 2)
+            {
+                cur.ArabicDetails = "تم رفض الطلب رقم " + orderId + " لانه خاطئ ";
+                cur.EnglishDetails = "Order with id " + orderId + " has been rejected by admin because it's wrong";
+            }
+
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);
 
             var not = new OrderAndPaymentNotification
             {
@@ -290,6 +382,8 @@ public class AdminOrderController : AdminController
             };
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
                 "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to reject order"));
 
             return Ok(new ApiResponse(200, "Done successfully"));
         }

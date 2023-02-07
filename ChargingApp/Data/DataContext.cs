@@ -26,7 +26,6 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<Product> Products { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<Order> Orders { get; set; }
-    public DbSet<Quantity>Quantities { get; set; }
     public DbSet<RechargeMethod> RechargeMethods { get; set; }
     public DbSet<ChangerAndCompany> ChangerAndCompanies { get; set; }
     public DbSet<PaymentGateway> PaymentGateways { get; set; }
@@ -41,6 +40,8 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<OrderAndPaymentNotification> OrderAndPaymentNotifications { get; set; }
     public DbSet<ApiProduct> ApiProducts { get; set; }
     public DbSet<ApiOrder> ApiOrders { get; set; }
+    public DbSet<NotificationHistory> NotificationsHistory { get; set; }
+    public DbSet<SupportNumber> SupportNumbers { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

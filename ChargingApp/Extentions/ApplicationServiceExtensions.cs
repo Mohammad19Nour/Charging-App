@@ -29,7 +29,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+      //  services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddDbContext<DataContext>(options =>
         {
             var connectionString =

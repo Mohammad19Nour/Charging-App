@@ -17,7 +17,7 @@ public class NotificationService : INotificationService
     }
 
     public async Task<bool> NotifyUserByEmail(string userEmail, IUnitOfWork unitOfWork,
-        OrderAndPaymentNotification notification , string methodName , object returnedArgs )
+        OrderAndPaymentNotification notification, string methodName, object returnedArgs)
     {
         var connections = await _tracker.GetConnectionsForUser(userEmail);
 
@@ -30,5 +30,16 @@ public class NotificationService : INotificationService
 
         unitOfWork.NotificationRepository.AddNotification(notification);
         return false;
+    }
+
+    public async Task<bool> VipLevelNotification(string userEmail, string methodName, object returnedArgs)
+    {
+        var connections = await _tracker.GetConnectionsForUser(userEmail);
+
+        if (connections == null) return true;
+        await _presenceHub.Clients.Clients(connections)
+            .SendAsync(methodName, returnedArgs);
+        return true;
+
     }
 }

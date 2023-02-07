@@ -164,6 +164,11 @@ public static class SomeUsefulFunction
         return products;
     }
 
+    public static async Task SendVipLevelNotification()
+    {
+        
+    }
+
    public static Dictionary<string, dynamic> GetPaymentNotificationDetails(Payment order)
     {
         return new Dictionary<string, dynamic>

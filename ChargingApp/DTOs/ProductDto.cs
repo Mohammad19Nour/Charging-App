@@ -13,7 +13,7 @@ public class ProductInfo
 public class ProductDto : ProductInfo
 {
     public int Id { get; set; }
-    public string? Photo { get; set; }
+    public string Photo { get; set; }
     public double TurkishPrice { get; set; }
     public double SyrianPrice { get; set; }
     public double Price { get; set; }
