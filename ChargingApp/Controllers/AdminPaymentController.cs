@@ -51,17 +51,24 @@ public class AdminPaymentController : AdminController
             payment.AddedValue -= mn;
 
             payment.User.Balance += payment.AddedValue;
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                new NotificationHistory
+                {
+                    User = payment.User,
+                    ArabicDetails = " تم قبول  الدفعة رقم " + paymentId+" من قبل الادمن ",
+                    EnglishDetails = "Payment with id " + paymentId + " has been approved by admin"
+                });
+            var not = new OrderAndPaymentNotification
+            {
+                Payment = payment,
+                User = payment.User
+            };
+            await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
 
             if (await _unitOfWork.Complete())
             {
-                var not = new OrderAndPaymentNotification
-                {
-                    Payment = payment,
-                    User = payment.User
-                };
-                await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
-                    "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
-                Semaphore.Release();
+                 Semaphore.Release();
                 return Ok(new ApiResponse(200, "approved successfully"));
             }
 
@@ -98,17 +105,25 @@ public class AdminPaymentController : AdminController
             payment.Status = 2;
             payment.Notes = notes;
 
+            
+            var not = new OrderAndPaymentNotification
+            {
+                Payment = payment,
+                User = payment.User
+            };
+
+            await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
+                "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
+
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                new NotificationHistory
+                {
+                    User = payment.User,
+                    ArabicDetails = " تم رفض  الدفعة رقم " + paymentId+" من قبل الادمن ",
+                    EnglishDetails = "Payment with id " + paymentId + " has been rejected by admin"
+                });
             if (await _unitOfWork.Complete())
             {
-                var not = new OrderAndPaymentNotification
-                {
-                    Payment = payment,
-                    User = payment.User
-                };
-
-                await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
-                    "Payment status notification", SomeUsefulFunction.GetPaymentNotificationDetails(payment));
-
                 Semaphore1.Release();
                 return Ok(new ApiResponse(200, "Rejected successfully"));
             }

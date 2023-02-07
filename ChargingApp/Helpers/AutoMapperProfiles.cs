@@ -6,19 +6,24 @@ namespace ChargingApp.Helpers;
 
 public class AutoMapperProfiles : Profile
 {
+    private const string BaseUrl = "http://mohammad09nour-001-site1.etempurl.com";
+
     public AutoMapperProfiles()
     {
-        var status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong","Received","Cancelled" };
+        var status = new List<string> { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
-        CreateMap<ProductToUpdateDto , Product>()
+        CreateMap<ProductToUpdateDto, Product>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-        CreateMap<ProductWithQuantityToUpdateDto , Product>()
+        CreateMap<ProductWithQuantityToUpdateDto, Product>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<VIPLevel, VipLevelDto>();
-        CreateMap<SliderPhoto, SliderPhotoDto>();
+        CreateMap<SliderPhoto, SliderPhotoDto>()
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(x => BaseUrl + x.Photo.Url));
+
         CreateMap<AppUser, UserDto>();
         CreateMap<UpdateUserInfoDto, AppUser>();
         CreateMap<RegisterDto, AppUser>();
@@ -36,34 +41,34 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(x=>x.Photo == null?"No photo" : x.Photo.Url));
-        CreateMap<Photo, string>().ConvertUsing(p => (p.Url == null) ? "No Photo" : "http://mohammad09nour-001-site1.etempurl.com" + p.Url);
-        
-        CreateMap<Quantity, int>().ConvertUsing(q => q.Value);
+                opt.MapFrom(x => x.Photo == null ? "No photo" : BaseUrl + x.Photo.Url));
+
+        CreateMap<Photo, string>().ConvertUsing(p =>
+            (p.Url == null) ? "No Photo" : BaseUrl + p.Url);
 
         CreateMap<Payment, PaymentDto>()
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src => src.Photo))
+                opt.MapFrom(src => BaseUrl + src.Photo))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
-        
+
         CreateMap<Payment, CompanyPaymentDto>()
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src => src.Photo))
+                opt.MapFrom(src => BaseUrl + src.Photo))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
         CreateMap<Payment, OfficePaymentDto>().ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src => src.Photo));
+                opt.MapFrom(src => BaseUrl + src.Photo));
 
         CreateMap<Order, SellsDto>()
             .ForMember(dest => dest.UserEmail, opt =>
                 opt.MapFrom(src => src.User.Email))
             .ForMember(dest => dest.Username, opt =>
                 opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
-        
+
         CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
 
@@ -75,7 +80,7 @@ public class AutoMapperProfiles : Profile
             opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<Order, OrderDto>()
-           .ForMember(dest => dest.StatusIfCanceled, opt =>
+            .ForMember(dest => dest.StatusIfCanceled, opt =>
                 opt.MapFrom(src => statusForCancel[src.StatusIfCanceled]))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
@@ -85,10 +90,10 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.StatusIfCanceled, opt =>
                 opt.MapFrom(src => "Not allowed"))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src => src.Photo))
+                opt.MapFrom(src => src.Photo == null ? "No Photo" : BaseUrl + src.Photo.Url))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
-        
+
         CreateMap<DateTime, DateTime>()
             .ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
 
@@ -97,9 +102,10 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.UserName, opt =>
                 opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
             .ForMember(dest => dest.Status, opt =>
-               opt.MapFrom(src => status[src.Status]))
+                opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(src =>src.Photo == null ? "No Photo" : "http://mohammad09nour-001-site1.etempurl.com" + src.Photo.Url));
+                opt.MapFrom(src =>
+                    src.Photo == null ? "No Photo" : BaseUrl + src.Photo.Url));
 
 
         CreateMap<Payment, PaymentAdminDto>()
@@ -113,11 +119,11 @@ public class AutoMapperProfiles : Profile
                 opt.Condition((src, dest, srcMember) => srcMember != null)
             );
 
-        CreateMap<DebitHistory , DebitDto>()
-            .ForMember(dest=>dest.Username,opt=>
-            opt.MapFrom(src=>src.User.FirstName + " " + src.User.LastName))
-            .ForMember(dest=>dest.UserEmail,opt=>
-                opt.MapFrom(src=>src.User.Email));
+        CreateMap<DebitHistory, DebitDto>()
+            .ForMember(dest => dest.Username, opt =>
+                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
+            .ForMember(dest => dest.UserEmail, opt =>
+                opt.MapFrom(src => src.User.Email));
     }
     //"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"
 }

@@ -20,7 +20,7 @@ public class NotificationRepository : INotificationRepository
             .Include(x => x.User)
             .Include(x => x.Order)
             .Include(x => x.Payment)
-            .Include(x=>x.Payment!.Photo)
+            .Include(x => x.Payment!.Photo)
             .Where(x => x.User.Email.ToLower() == userEmail)
             .ToListAsync();
     }
@@ -33,5 +33,20 @@ public class NotificationRepository : INotificationRepository
     public void DeleteNotification(OrderAndPaymentNotification not)
     {
         _context.OrderAndPaymentNotifications.Remove(not);
+    }
+
+    public void AddNotificationForHistoryAsync(NotificationHistory history)
+    {
+        _context.NotificationsHistory.Add(history);
+    }
+
+    public async Task<List<NotificationHistory>> GetNotificationHistoryByEmailAsync(string email)
+    {
+        email = email.ToLower();
+        return await _context.NotificationsHistory
+            .Include(x => x.User)
+            .Where(x => x.User.Email.ToLower() == email)
+            .OrderByDescending(x=>x.CreatedAt)
+            .ToListAsync();
     }
 }

@@ -24,6 +24,7 @@ public interface IUnitOfWork
     IDebitRepository DebitRepository { get; }
     INotificationRepository NotificationRepository { get; }
     IOtherApiRepository OtherApiRepository { get; }
+    ISupportNumberRepository SupportNumberRepository { get; }
     Task<bool> Complete();
     bool HasChanges();
 

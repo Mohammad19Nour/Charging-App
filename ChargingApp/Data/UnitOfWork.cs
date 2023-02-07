@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         _mapper = mapper;
     }
+
     public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
     public IUserRepository UserRepository => new UserRepository(_context);
 
@@ -24,20 +25,27 @@ public class UnitOfWork : IUnitOfWork
     public IPaymentGatewayRepository PaymentGatewayRepository => new PaymentGatewayRepository(_context);
     public IProductRepository ProductRepository => new ProductRepository(_context);
     public IRechargeCodeRepository RechargeCodeRepository => new RechargeCodeRepository(_context);
-    public IRechargeMethodeRepository RechargeMethodeRepository => new RechargeMethodRepository(_context,mapper:_mapper);
+
+    public IRechargeMethodeRepository RechargeMethodeRepository =>
+        new RechargeMethodRepository(_context, mapper: _mapper);
+
     public IVipLevelRepository VipLevelRepository => new VipLevelRepository(_context);
-    public ICurrencyRepository CurrencyRepository => new CurrencyRepository(_context , _mapper);
+    public ICurrencyRepository CurrencyRepository => new CurrencyRepository(_context, _mapper);
     public IOurAgentsRepository OurAgentsRepository => new OurAgentsRepository(_context, _mapper);
+
     public ISpecificPriceForUserRepository SpecificPriceForUserRepository =>
         new SpecificPriceForUserRepository(_context);
+
     public IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository =>
         new BenefitPercentInSpecificVipLevelRepository(_context);
+
     public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
     public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);
     public IPhotoRepository PhotoRepository => new PhotoRepository(_context);
-    public IDebitRepository DebitRepository => new DebitRepository(_context,_mapper);
+    public IDebitRepository DebitRepository => new DebitRepository(_context, _mapper);
     public INotificationRepository NotificationRepository => new NotificationRepository(_context);
     public IOtherApiRepository OtherApiRepository => new OtherApiRepository(_context);
+    public ISupportNumberRepository SupportNumberRepository => new SupportNumberRepository(_context);
 
     public async Task<bool> Complete()
     {
@@ -46,7 +54,7 @@ public class UnitOfWork : IUnitOfWork
 
     public bool HasChanges()
     {
-        return _context.ChangeTracker.HasChanges(); 
+        return _context.ChangeTracker.HasChanges();
     }
 
     public void UpdateEntity(BaseEntity entity)

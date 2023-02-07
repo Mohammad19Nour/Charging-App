@@ -32,12 +32,14 @@ public class VipLevelRepository :IVipLevelRepository
 
     public async Task<int> GetVipLevelForPurchasingAsync(double purchase)
     {
-        return (await _context.VipLevels
+        var res = await _context.VipLevels
             .Where(x => x.VipLevel != 0)
             .Where(x => x.MinimumPurchase <= purchase)
             .OrderByDescending(x => x.MinimumPurchase)
             .AsNoTracking()
-            .FirstAsync()).VipLevel;
+            .FirstOrDefaultAsync();
+
+        return res?.VipLevel ?? 1;
     }
 
     public async Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel)
