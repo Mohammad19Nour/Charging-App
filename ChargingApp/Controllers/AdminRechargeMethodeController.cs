@@ -57,18 +57,24 @@ public class AdminRechargeMethodeController : AdminController
             var method = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodByIdAsync(rechargeMethodId);
 
             if (method is null)
-                return BadRequest(new ApiResponse(403, "Recharge method not found"));
+                return BadRequest(new ApiResponse(400, "Recharge method not found"));
 
             var agent = method.ChangerAndCompanies.FirstOrDefault(x => x.Id == agentId);
 
             if (agent is null)
-                return BadRequest(new ApiResponse(403, "Agent not found"));
-
+                return BadRequest(new ApiResponse(400, "Agent not found"));
+            if (string.IsNullOrEmpty(arabicName) && string.IsNullOrEmpty(englishName)) 
+                return BadRequest(new ApiResponse(400, 
+                    "You should provide some information to be updated "));
+           
             if (!string.IsNullOrEmpty(arabicName)) agent.ArabicName = arabicName;
             if (!string.IsNullOrEmpty(englishName)) agent.EnglishName = englishName;
 
+            _unitOfWork.RechargeMethodeRepository.UpdateAgent(agent);
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse(agent));
+            {
+                return Ok(new ApiOkResponse(_mapper.Map<AgentDto>(agent)));
+            }
 
             return BadRequest(new ApiResponse(400, "Failed to Update agent"));
         }

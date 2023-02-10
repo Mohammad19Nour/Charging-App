@@ -30,6 +30,12 @@ public class AdminRolesController : AdminController
                 UserName = u.FirstName + " " + u.LastName
             })
             .ToListAsync();
+
+        users = users.Where(x =>
+        {
+            return x.Roles.Count > 1 || (x.Roles.Count == 1 && x.Roles.Any(
+                y => y.ToLower() != "vip" && y.ToLower() != "normal"));
+        }).ToList();
         return Ok(users);
     }
 

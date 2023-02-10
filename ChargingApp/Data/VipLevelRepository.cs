@@ -55,6 +55,15 @@ public class VipLevelRepository :IVipLevelRepository
         return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel);
     }
 
+    public async Task<bool> CheckIfMinimumPurchasingIsValidAsync(double minPurchasing)
+    {
+        return await _context.VipLevels
+            .Where(x=>x.VipLevel > 0)
+            .Where(x=>x.MinimumPurchase >= minPurchasing )
+            .FirstOrDefaultAsync() == null;
+        
+    }
+
     public void UpdateVipLevel(VIPLevel vip)
     {
         _context.Entry(vip).State = EntityState.Modified;

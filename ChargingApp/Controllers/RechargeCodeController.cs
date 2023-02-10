@@ -71,6 +71,6 @@ public class RechargeCodeController : BaseApiController
 
     public class MyClass
     {
-        public string Code { get; }
+        public string Code { get; set; }
     }
 }

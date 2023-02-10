@@ -35,7 +35,9 @@ public static class Seed
             FirstName = "ka",
             LastName = "po",
             PhoneNumber = "369369",
-            Country = "ha"
+            Country = "ha",
+            EmailConfirmed = true,
+            Balance = 10000
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
         await userManager.AddToRoleAsync(user, "VIP");
@@ -49,6 +51,8 @@ public static class Seed
             LastName = "po",
             PhoneNumber = "369369",
             Country = "ha",
+            Balance = 10000,
+            EmailConfirmed = true
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
         await userManager.AddToRoleAsync(user, "VIP");
@@ -56,11 +60,11 @@ public static class Seed
         {
             UserName = "yy@d.com",
             Email = "yy@d.com",
-            VIPLevel = 2,
             FirstName = "ka",
             LastName = "po",
             PhoneNumber = "369369",
-            Country = "ha"
+            Country = "ha",
+            EmailConfirmed = true
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
         await userManager.AddToRoleAsync(user, "Normal");
@@ -73,7 +77,8 @@ public static class Seed
             FirstName = "ka",
             LastName = "po",
             PhoneNumber = "369369",
-            Country = "ha"
+            Country = "ha",
+            EmailConfirmed = true
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
         await userManager.AddToRoleAsync(user, "Normal");
@@ -82,19 +87,26 @@ public static class Seed
         {
             UserName = "kk@d.com",
             Email = "kk@d.com",
-            VIPLevel = 4,
+            VIPLevel = 1,
             FirstName = "ka",
             LastName = "po",
             PhoneNumber = "369369",
-            Country = "ha"
+            Country = "ha",
+            EmailConfirmed = true,
+            Balance = 10000
         };
         await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user, "VIP");
+        await userManager.AddToRolesAsync(user, new[] { "Admin_1","VIP" });
 
         var admin = new AppUser
         {
-            FirstName = "Admin", LastName = "Admin",
-            Email = "moh@gmail.com", UserName = "moh@gmail.com"
+            FirstName = "Admin",
+            LastName = "Admin",
+            Email = "moh@gmail.com",
+            UserName = "moh@gmail.com",
+            Balance = 10000,
+            VIPLevel = 1,
+            EmailConfirmed = true,
         };
         await userManager.CreateAsync(admin, "Admin!1");
         await userManager.AddToRolesAsync(admin, new[] { "Admin" });
@@ -117,11 +129,12 @@ public static class Seed
     {
         if (await context.Categories.AnyAsync()) return;
 
-        var photo = new Photo{Url = "ffff"};
-        context.Categories.Add(new Category { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true , Photo = photo});
+        var photo = new Photo { Url = "ffff" };
+        context.Categories.Add(new Category
+            { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true, Photo = photo });
         context.Categories.Add(new Category
         {
-            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false,Photo = photo
+            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false, Photo = photo
         });
         await context.SaveChangesAsync();
     }
@@ -227,8 +240,8 @@ public static class Seed
             EnglishName = "popo",
             ArabicName = "عربي"
         });
-        
-        
+
+
         var cc = await context.RechargeMethods
             .FirstOrDefaultAsync(x => x.Id == 1);
         cc.ChangerAndCompanies.Add(new ChangerAndCompany
@@ -255,6 +268,7 @@ public static class Seed
         });
         await context.SaveChangesAsync();
     }
+
     public static async Task SeedOurAgents(DataContext context)
     {
         if (await context.OurAgents.AnyAsync()) return;

@@ -26,8 +26,14 @@ public class AdminVipLevelController : AdminController
             var tmp = await _unitOfWork.VipLevelRepository.CheckIfExist(dto.VipLevel);
 
             if (tmp || dto.VipLevel == 0)
-                return BadRequest(new ApiResponse(400, "already exist"));
+                return BadRequest(new ApiResponse(400, "Vip level already exist"));
 
+            var validMinPurchasing = await _unitOfWork.VipLevelRepository
+                .CheckIfMinimumPurchasingIsValidAsync(dto.MinimumPurchase);
+
+            if (!validMinPurchasing)
+                return BadRequest(new ApiResponse(400, "Minimum purchase not valid"));
+            
             var vip = new VIPLevel
             {
                 VipLevel = dto.VipLevel,
