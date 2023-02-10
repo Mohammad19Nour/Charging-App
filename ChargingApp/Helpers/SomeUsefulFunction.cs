@@ -1,4 +1,5 @@
-﻿using ChargingApp.DTOs;
+﻿using System.Text.RegularExpressions;
+using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Interfaces;
 
@@ -186,5 +187,10 @@ public static class SomeUsefulFunction
            { "orderId", order.Id },
            { "status", "order " + Status[order.Status] },
        };
+   }
+   public static bool IsValidEmail(string email)
+   {
+       const string pattern = @"^[\w!#$%&'*+\-/=?\^_`{|}~]+(\.[\w!#$%&'*+\-/=?\^_`{|}~]+)*" + "@" + @"((([\-\w]+\.)+[a-zA-Z]{2,4})|(([0-9]{1,3}\.){3}[0-9]{1,3}))$";
+       return Regex.IsMatch(email, pattern);
    }
 }

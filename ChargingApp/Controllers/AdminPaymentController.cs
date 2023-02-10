@@ -93,13 +93,13 @@ public class AdminPaymentController : AdminController
             if (payment is null)
             {
                 Semaphore1.Release();
-                return NotFound(new ApiResponse(401, "this order doesn't exist"));
+                return NotFound(new ApiResponse(401, "this payment doesn't exist"));
             }
 
             if (payment.Status != 0)
             {
                 Semaphore1.Release();
-                return BadRequest(new ApiResponse(400, "this order already checked"));
+                return BadRequest(new ApiResponse(400, "this payment already checked"));
             }
 
             payment.Status = 2;

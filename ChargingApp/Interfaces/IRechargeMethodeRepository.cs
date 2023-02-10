@@ -10,4 +10,6 @@ public interface IRechargeMethodeRepository
     public void AddAgent(RechargeMethod method , ChangerAndCompany agent);
     public void DeleteAgent(ChangerAndCompany agent);
     public Task<RechargeMethod?> GetRechargeMethodByIdAsync(int methodId);
+    public void Update(RechargeMethod method);
+    public void UpdateAgent(ChangerAndCompany agent);
 }

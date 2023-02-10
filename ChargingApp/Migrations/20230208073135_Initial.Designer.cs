@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230207111015_Initial")]
+    [Migration("20230208073135_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,6 +317,33 @@ namespace ChargingApp.Migrations
                     b.ToTable("Favorites");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.NotificationHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ArabicDetails")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EnglishDetails")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NotificationsHistory");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -571,28 +598,6 @@ namespace ChargingApp.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ChargingApp.Entity.Quantity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Price")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("Quantities");
-                });
-
             modelBuilder.Entity("ChargingApp.Entity.RechargeCode", b =>
                 {
                     b.Property<string>("Code")
@@ -681,6 +686,21 @@ namespace ChargingApp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("SpecificPriceForUsers");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.SupportNumber", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SupportNumbers");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.VIPLevel", b =>
@@ -878,6 +898,17 @@ namespace ChargingApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.NotificationHistory", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Order", b =>
                 {
                     b.HasOne("ChargingApp.Entity.PaymentGateway", "PaymentGateway")
@@ -960,17 +991,6 @@ namespace ChargingApp.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Photo");
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.Quantity", b =>
-                {
-                    b.HasOne("ChargingApp.Entity.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.RechargeCode", b =>

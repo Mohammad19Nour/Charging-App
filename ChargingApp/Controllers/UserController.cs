@@ -34,8 +34,7 @@ public class UserController : BaseApiController
 
             if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-
-
+            
             if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
 
             _mapper.Map(updateUserInfoDto, user);
