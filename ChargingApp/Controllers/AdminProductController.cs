@@ -3,6 +3,7 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using ChargingApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,7 +28,7 @@ public class AdminProductController : AdminController
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-product-no-quantity/{categoryId:int}")]
     public async Task<ActionResult> AddProduct(int categoryId, [FromForm] NewProductDto dto
-        , [FromQuery] int? productId)
+        , [FromQuery] int? productId, [FromQuery] string? siteName)
     {
         try
         {
@@ -63,7 +64,17 @@ public class AdminProductController : AdminController
             _unitOfWork.ProductRepository.AddProduct(product);
             if (productId != null)
             {
-                var res = await _apiService.CheckProductByIdIfExistAsync((int)productId);
+                var hostingSite = await _unitOfWork.OtherApiRepository
+                    .GetHostingSiteByNameAsync(siteName);
+
+                Console.WriteLine(siteName);
+                if (hostingSite is null)
+                    return BadRequest(new ApiResponse(400, "" +
+                                                           "Site not found"));
+
+                var res = await _apiService.CheckProductByIdIfExistAsync((int)productId,
+                    hostingSite.BaseUrl, hostingSite.Token
+                );
 
                 if (!res)
                     return NotFound(new ApiResponse(404, "Product not found"));
@@ -75,7 +86,8 @@ public class AdminProductController : AdminController
                 _unitOfWork.OtherApiRepository.AddProduct(new ApiProduct
                 {
                     Product = product,
-                    ApiProductId = productId.Value
+                    ApiProductId = productId.Value,
+                    HostingSite = hostingSite
                 });
             }
 
@@ -295,7 +307,24 @@ public class AdminProductController : AdminController
     {
         try
         {
-            return Ok(new ApiOkResponse(await _apiService.GetAllProductsAsync()));
+            var hostingSites = await _unitOfWork.OtherApiRepository.GetAllHostingSiteAsync();
+
+            var list =
+                new List<Dictionary<string, object?>>();
+
+            foreach (var site in hostingSites)
+            {
+                var res = await _apiService
+                    .GetAllProductsAsync(site.BaseUrl, site.Token);
+                list.Add(new Dictionary<string, object?>
+                {
+                    { "site name", site.SiteName },
+                    { "status", res.Message },
+                    { "products", res.Status ? res.Products : new List<ApiService.ProductResponse>() }
+                });
+            }
+
+            return Ok(new ApiOkResponse(list));
         }
         catch (Exception e)
         {

@@ -147,6 +147,7 @@ public class AccountController : BaseApiController
 
             var x = new UserDto
             {
+                Email = user.Email.ToLower(),
                 FirstName = user.FirstName.ToLower(),
                 LastName = user.LastName.ToLower(),
                 Token = await _tokenService.CreateToken(user),

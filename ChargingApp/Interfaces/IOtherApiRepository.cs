@@ -14,4 +14,8 @@ public interface IOtherApiRepository
     public Task<int> GetApiOrderIdAsync(int ourOrderId);
     public Task<List<ApiOrder>> GetAllOrdersAsync();
     public Task<List<ApiProduct>> GetAllProductsAsync();
+    public Task<ApiProduct> GetProductByOurIdAsync(int id);
+    public Task<ApiOrder> GetOrderByOurIdAsync(int id);
+    public Task<HostingSite?> GetHostingSiteByNameAsync(string? name);
+    public Task<List<HostingSite>> GetAllHostingSiteAsync();
 }

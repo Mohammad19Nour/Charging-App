@@ -74,6 +74,21 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HostingSites",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SiteName = table.Column<string>(type: "TEXT", nullable: false),
+                    BaseUrl = table.Column<string>(type: "TEXT", nullable: false),
+                    Token = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HostingSites", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OurAgents",
                 columns: table => new
                 {
@@ -523,11 +538,18 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ApiProductId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ApiProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    HostingSiteId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApiProducts_HostingSites_HostingSiteId",
+                        column: x => x.HostingSiteId,
+                        principalTable: "HostingSites",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ApiProducts_Products_ProductId",
                         column: x => x.ProductId,
@@ -594,11 +616,18 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     OrderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ApiOrderId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ApiOrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    HostingSiteId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApiOrders_HostingSites_HostingSiteId",
+                        column: x => x.HostingSiteId,
+                        principalTable: "HostingSites",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ApiOrders_Orders_OrderId",
                         column: x => x.OrderId,
@@ -639,9 +668,19 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ApiOrders_HostingSiteId",
+                table: "ApiOrders",
+                column: "HostingSiteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ApiOrders_OrderId",
                 table: "ApiOrders",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiProducts_HostingSiteId",
+                table: "ApiProducts",
+                column: "HostingSiteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApiProducts_ProductId",
@@ -842,6 +881,9 @@ namespace ChargingApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "VipLevels");
+
+            migrationBuilder.DropTable(
+                name: "HostingSites");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

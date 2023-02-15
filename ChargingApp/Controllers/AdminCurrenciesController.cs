@@ -31,7 +31,9 @@ public class AdminCurrenciesController : AdminController
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "Updated successfully"));
 
-            return BadRequest(new ApiResponse(400, "Can't update currency"));
+            if (_unitOfWork.HasChanges())
+                return BadRequest(new ApiResponse(400, "Failed to update currency"));
+            return Ok(new ApiResponse(200));
         }
         catch (Exception e)
         {

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230208073135_Initial")]
+    [Migration("20230215151025_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,10 +28,15 @@ namespace ChargingApp.Migrations
                     b.Property<int>("ApiOrderId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("HostingSiteId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HostingSiteId");
 
                     b.HasIndex("OrderId");
 
@@ -47,10 +52,15 @@ namespace ChargingApp.Migrations
                     b.Property<int>("ApiProductId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("HostingSiteId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HostingSiteId");
 
                     b.HasIndex("ProductId");
 
@@ -315,6 +325,29 @@ namespace ChargingApp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorites");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.HostingSite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SiteName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HostingSites");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.NotificationHistory", b =>
@@ -809,22 +842,38 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.ApiOrder", b =>
                 {
+                    b.HasOne("ChargingApp.Entity.HostingSite", "HostingSite")
+                        .WithMany()
+                        .HasForeignKey("HostingSiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ChargingApp.Entity.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("HostingSite");
+
                     b.Navigation("Order");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.ApiProduct", b =>
                 {
+                    b.HasOne("ChargingApp.Entity.HostingSite", "HostingSite")
+                        .WithMany()
+                        .HasForeignKey("HostingSiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ChargingApp.Entity.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("HostingSite");
 
                     b.Navigation("Product");
                 });

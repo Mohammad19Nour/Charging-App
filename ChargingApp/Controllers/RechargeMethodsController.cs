@@ -1,9 +1,7 @@
-﻿using AutoMapper;
-using ChargingApp.DTOs;
+﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
@@ -11,12 +9,10 @@ namespace ChargingApp.Controllers;
 public class RechargeMethodsController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
 
-    public RechargeMethodsController(IUnitOfWork unitOfWork, IMapper mapper)
+    public RechargeMethodsController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
     }
 
     //  [Authorize(Policy = "RequiredVIPRole")]
@@ -31,7 +27,7 @@ public class RechargeMethodsController : BaseApiController
             var forBoth = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewaysAsync();
 
             res.ForPaymentAndRecharge = forBoth;
-            res.ForRecharge = forRecharge;
+            res.ForRecharge = forRecharge??new List<RechargeMethodDto>();
             return Ok(new ApiOkResponse(result: res));
         }
         catch (Exception e)

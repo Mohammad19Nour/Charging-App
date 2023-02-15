@@ -109,7 +109,7 @@ public static class Seed
             EmailConfirmed = true,
         };
         await userManager.CreateAsync(admin, "Admin!1");
-        await userManager.AddToRolesAsync(admin, new[] { "Admin" });
+        await userManager.AddToRolesAsync(admin, new[] { "Admin","VIP" });
     }
 
     public static async Task SeedVipLevels(DataContext context)
@@ -286,6 +286,20 @@ public static class Seed
             ArabicName = "عربي",
             City = "homs",
             PhoneNumber = "656566451"
+        });
+
+        await context.SaveChangesAsync();
+    }
+    public static async Task SeedSites(DataContext context)
+    {
+        if (await context.HostingSites.AnyAsync()) return;
+
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Fast store",
+            BaseUrl = "https://api.fast-store.co/client/api" ,
+            Token = "7515d6dd5ae4de7b4e7de94c55aea5a2ff17fa37f45da962"
+            
         });
 
         await context.SaveChangesAsync();

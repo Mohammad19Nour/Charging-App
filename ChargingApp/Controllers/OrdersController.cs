@@ -17,16 +17,14 @@ public class OrdersController : BaseApiController
     private readonly IMapper _mapper;
     private readonly IApiService _apiService;
     private readonly IPhotoService _photoService;
-    private readonly INotificationService _notificationService;
 
     public OrdersController(IUnitOfWork unitOfWork, IMapper mapper, IApiService apiService
-        , IPhotoService photoService, INotificationService notificationService)
+        , IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _apiService = apiService;
         _photoService = photoService;
-        _notificationService = notificationService;
     }
 
     [Authorize(Policy = "Required_Normal_Role")]
@@ -131,9 +129,14 @@ public class OrdersController : BaseApiController
                 .CheckIfProductExistAsync(product.Id, true);
             if (fromApi)
             {
+                var apiProduct = await _unitOfWork.OtherApiRepository
+                    .GetProductByOurIdAsync(product.Id);
+                var hostingSite = apiProduct.HostingSite;
+
                 var apiId = await _unitOfWork.OtherApiRepository
                     .GetApiProductIdAsync(product.Id);
-                var respo = await _apiService.SendOrderAsync(apiId, dto.Quantity, dto.PlayerId);
+                var respo = await _apiService.SendOrderAsync(apiId, dto.Quantity,
+                    dto.PlayerId, hostingSite.BaseUrl, hostingSite.Token);
                 if (!respo.Success)
                 {
                     return Ok(new ApiResponse(200, respo.Message));
@@ -142,7 +145,8 @@ public class OrdersController : BaseApiController
                 _unitOfWork.OtherApiRepository.AddOrder(new ApiOrder
                 {
                     Order = order,
-                    ApiOrderId = respo.OrderId
+                    ApiOrderId = respo.OrderId,
+                    HostingSite = hostingSite
                 });
             }
 
@@ -189,7 +193,7 @@ public class OrdersController : BaseApiController
             if (paymentGateway is null)
                 return BadRequest(new ApiResponse(404, "payment gateway isn't exist"));
 
-            if (dto.PlayerName.Length == 0)
+            if (string.IsNullOrEmpty(dto.PlayerName))
                 return BadRequest(new ApiResponse(400, "player name is required"));
 
             if (dto.Quantity < product.MinimumQuantityAllowed)
@@ -298,8 +302,12 @@ public class OrdersController : BaseApiController
 
                 var apiId = await _unitOfWork.OtherApiRepository
                     .GetApiOrderIdAsync(order.Id);
+                var apiOrder = await _unitOfWork.OtherApiRepository
+                    .GetOrderByOurIdAsync(orderId);
 
-                var response = await _apiService.CancelOrderByIdAsync(apiId);
+                var hostingSite = apiOrder.HostingSite;
+                var response = await _apiService.CancelOrderByIdAsync(apiId,
+                    hostingSite.BaseUrl, hostingSite.Token);
 
                 if (!response.Success)
                     return BadRequest(new ApiResponse(400, response.Message));

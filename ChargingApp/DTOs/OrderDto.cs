@@ -15,6 +15,8 @@ public class OrderDto
 }
 
 public class NormalOrderDto : OrderDto
-{ 
+{
+    public string GatewayArabicName { get; set; }
+    public string GatewayEnglishName { get; set; }
     public string? ReceiptNumberUrl { get; set; }
 }

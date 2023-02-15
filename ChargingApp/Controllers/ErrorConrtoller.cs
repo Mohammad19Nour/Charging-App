@@ -11,5 +11,4 @@ public class ErrorController : BaseApiController
     {
         return new ObjectResult(new ApiResponse(code));
     }
-    
 }

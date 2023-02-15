@@ -42,6 +42,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<ApiOrder> ApiOrders { get; set; }
     public DbSet<NotificationHistory> NotificationsHistory { get; set; }
     public DbSet<SupportNumber> SupportNumbers { get; set; }
+    public DbSet<HostingSite>HostingSites { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

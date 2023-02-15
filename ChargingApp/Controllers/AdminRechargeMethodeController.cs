@@ -32,7 +32,12 @@ public class AdminRechargeMethodeController : AdminController
             if (rechargeMethod is null)
                 return NotFound(new ApiResponse(404, "recharge method not found"));
 
-            var agent = _mapper.Map<ChangerAndCompany>(dto);
+            var agent =new ChangerAndCompany
+            {
+                ArabicName = dto.ArabicName,
+                EnglishName = dto.EnglishName,
+                RechargeMethodMethod = rechargeMethod
+            };
             _unitOfWork.RechargeMethodeRepository.AddAgent(rechargeMethod, agent);
 
             if (await _unitOfWork.Complete())

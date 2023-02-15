@@ -25,7 +25,13 @@ public class AdminOurAgentController : AdminController
     {
         try
         {
-            var agent = _mapper.Map<OurAgent>(dto);
+            var agent = new OurAgent
+            {
+                ArabicName = dto.ArabicName,
+                EnglishName = dto.EnglishName,
+                City = dto.City,
+                PhoneNumber = dto.PhoneNumber
+            };
             _unitOfWork.OurAgentsRepository.AddAgent(agent);
 
             if (await _unitOfWork.Complete()) return Ok(new ApiResponse(201, "agent added"));

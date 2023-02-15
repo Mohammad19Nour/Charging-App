@@ -14,7 +14,7 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
-        CreateMap<AppUser , AdminDto>();
+        CreateMap<AppUser, AdminDto>();
         CreateMap<ProductToUpdateDto, Product>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ProductWithQuantityToUpdateDto, Product>()
@@ -49,13 +49,13 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<Payment, PaymentDto>()
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src =>src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url))
+                opt.MapFrom(src => src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
         CreateMap<Payment, CompanyPaymentDto>()
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
-                opt.MapFrom(src =>src.Photo == null ? "No photo" :  BaseUrl + src.Photo.Url))
+                opt.MapFrom(src => src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
@@ -88,6 +88,10 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<Order, OrderAdminDto>();
         CreateMap<Order, NormalOrderDto>()
+            .ForMember(dest => dest.GatewayArabicName, opt =>
+                opt.MapFrom(src => src.PaymentGateway!.ArabicName))
+            .ForMember(dest => dest.GatewayEnglishName, opt =>
+                opt.MapFrom(src => src.PaymentGateway!.EnglishName))
             .ForMember(dest => dest.StatusIfCanceled, opt =>
                 opt.MapFrom(src => "Not allowed"))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>

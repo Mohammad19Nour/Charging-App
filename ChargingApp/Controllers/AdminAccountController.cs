@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize(Policy = "Required_Admin_Role")]
+[Authorize(Policy = "Required_Administrator_Role")]
 public class AdminAccountController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
