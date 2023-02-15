@@ -23,7 +23,7 @@ public class PhotoService : IPhotoService
                 Directory.CreateDirectory(directory);
             }
 
-            var fileName = file.FileName;
+            var fileName = file.FileName.Where(c => c != ' ').Aggregate("", (current, c) => current + c);
 
             fileName = DateTime.Now.ToString("yyyyMMddHHmmss_") + Path.GetFileName(fileName);
 

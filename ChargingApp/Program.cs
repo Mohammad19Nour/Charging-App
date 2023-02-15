@@ -83,6 +83,13 @@ using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 try
 {
+    
+    var directory = Path.Combine(Directory.GetCurrentDirectory(), "directory");
+
+    if (!Directory.Exists(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
     var context = services.GetRequiredService<DataContext>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
@@ -96,6 +103,7 @@ try
     await Seed.SeedCompanies(context);
     await Seed.SeedCurrency(context);
     await Seed.SeedOurAgents(context);
+    await Seed.SeedSites(context);
 }
 catch (Exception e)
 {

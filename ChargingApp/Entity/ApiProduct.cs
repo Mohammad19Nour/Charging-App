@@ -4,4 +4,5 @@ public class ApiProduct : BaseEntity
 {
     public Product Product { get; set; }
     public int ApiProductId { get; set; }
+    public HostingSite HostingSite { get; set; }
 }

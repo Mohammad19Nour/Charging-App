@@ -28,7 +28,7 @@ public class SliderRepository : ISliderRepository
         _context.SliderPhotos.Remove(photo);
     }
 
-    public async Task<List<SliderPhotoDto>?> GetSliderPhotosAsync()
+    public async Task<List<SliderPhotoDto>> GetSliderPhotosAsync()
     {
         return await _context.SliderPhotos
             .Include(p => p.Photo)

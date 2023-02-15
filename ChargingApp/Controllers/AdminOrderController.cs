@@ -163,8 +163,11 @@ public class AdminOrderController : AdminController
                 var apiId = await _unitOfWork.OtherApiRepository
                     .GetApiProductIdAsync(order.Product.Id);
 
+                var hostingSite = (await _unitOfWork.OtherApiRepository
+                    .GetOrderByOurIdAsync(orderId)).HostingSite; 
                 var response = await _apiService
-                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId);
+                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId,hostingSite.BaseUrl
+                    ,hostingSite.Token);
 
                 if (!response.Success)
                 {

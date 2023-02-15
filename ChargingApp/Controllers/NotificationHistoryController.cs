@@ -1,5 +1,4 @@
-﻿using ChargingApp.Entity;
-using ChargingApp.Errors;
+﻿using ChargingApp.Errors;
 using ChargingApp.Extentions;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;

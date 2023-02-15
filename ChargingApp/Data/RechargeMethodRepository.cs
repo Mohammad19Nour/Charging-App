@@ -28,8 +28,6 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
 
     public void AddAgent(RechargeMethod method, ChangerAndCompany agent)
     {
-        method.ChangerAndCompanies ??= new List<ChangerAndCompany>();
-
         method.ChangerAndCompanies.Add(agent);
     }
 
@@ -42,7 +40,7 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
     {
         return await _context.RechargeMethods
             .Include(x=>x.ChangerAndCompanies)
-            .AsNoTracking()
+          //  .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == methodId);
     }
 

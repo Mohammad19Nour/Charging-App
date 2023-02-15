@@ -1,5 +1,4 @@
 ﻿using ChargingApp.DTOs;
-using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Mvc;

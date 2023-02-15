@@ -16,6 +16,7 @@ public class OtherApiRepository : IOtherApiRepository
     public async Task<bool> CheckIfProductExistAsync(int productId, bool ourProduct)
     {
         var query = _context.ApiProducts
+            .Include(x => x.HostingSite)
             .Include(x => x.Product)
             .AsNoTracking();
 
@@ -52,7 +53,7 @@ public class OtherApiRepository : IOtherApiRepository
     public void DeleteProduct(int productId)
     {
         var product = _context.ApiProducts
-            .Include(x=>x.Product)
+            .Include(x => x.Product)
             .First(x => x.Product.Id == productId);
         _context.ApiProducts.Remove(product);
     }
@@ -60,7 +61,7 @@ public class OtherApiRepository : IOtherApiRepository
     public void DeleteOrder(int orderId)
     {
         var order = _context.ApiOrders
-            .Include(x=>x.Order)
+            .Include(x => x.Order)
             .First(x => x.Order.Id == orderId);
         _context.ApiOrders.Remove(order);
     }
@@ -68,6 +69,7 @@ public class OtherApiRepository : IOtherApiRepository
     public async Task<int> GetApiProductIdAsync(int ourProductId)
     {
         return (await _context.ApiProducts
+            .Include(x => x.HostingSite)
             .Include(p => p.Product)
             .AsNoTracking()
             .Where(x => x.Product.Id == ourProductId).FirstAsync()).ApiProductId;
@@ -77,19 +79,58 @@ public class OtherApiRepository : IOtherApiRepository
     {
         return (await _context.ApiOrders
             .Include(p => p.Order)
+            .Include(x => x.HostingSite)
             .AsNoTracking()
             .Where(x => x.Order.Id == ourOrderId).FirstAsync()).ApiOrderId;
     }
 
     public async Task<List<ApiOrder>> GetAllOrdersAsync()
     {
-        return await _context.ApiOrders.Include(x => x.Order)
+        return await _context.ApiOrders
+            .Include(x => x.HostingSite)
+            .Include(x => x.Order)
             .ToListAsync();
     }
 
     public async Task<List<ApiProduct>> GetAllProductsAsync()
     {
-        return await _context.ApiProducts.Include(x => x.Product)
+        return await _context.ApiProducts
+            .Include(x => x.HostingSite)
+            .Include(x => x.Product)
             .ToListAsync();
+    }
+
+    public async Task<ApiProduct> GetProductByOurIdAsync(int id)
+    {
+        return await _context.ApiProducts
+            .Include(x => x.Product)
+            .Include(x => x.HostingSite)
+            .Where(x => x.Product.Id == id)
+            .FirstAsync();
+    }
+
+    public async Task<ApiOrder> GetOrderByOurIdAsync(int id)
+    {
+        return await _context.ApiOrders
+            .Include(x => x.Order)
+            .Include(x => x.HostingSite)
+            .Where(x => x.Order.Id == id)
+            .Where(x => x.Order.Id == id)
+            .FirstAsync();
+    }
+
+    public async Task<HostingSite?> GetHostingSiteByNameAsync(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+        
+            name = name.ToLower();
+        return await _context.HostingSites
+            .Where(x => x.SiteName.ToLower() == name)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<HostingSite>> GetAllHostingSiteAsync()
+    {
+        return await _context.HostingSites.ToListAsync();
     }
 }
