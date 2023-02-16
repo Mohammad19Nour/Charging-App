@@ -32,15 +32,12 @@ public static class ApplicationServiceExtensions
         //  services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddDbContext<DataContext>(options =>
         {
-            var connectionString =
-                "Data source=chargingapp.db";
-            var servConnectionString =
-                "Data Source=SQL8003.site4now.net;Initial Catalog=db_a91f76_wwr;User Id=db_a91f76_wwr_admin;Password=Mohamed09914";
-
-            options.UseSqlite(connectionString);
+            options.UseSqlite(
+                config.GetConnectionString("DefaultConnection"));
         });
         services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"directory") ))
+            .PersistKeysToFileSystem(
+                new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "directory")))
             .UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration
                 {
