@@ -6,7 +6,7 @@ namespace ChargingApp.Helpers;
 
 public class AutoMapperProfiles : Profile
 {
-    private const string BaseUrl = "http://mohammad09nour-001-site1.etempurl.com";
+    private const string BaseUrl = "http://chargingapp-001-site1.atempurl.com";
 
     public AutoMapperProfiles()
     {
