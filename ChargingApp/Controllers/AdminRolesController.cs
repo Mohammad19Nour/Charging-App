@@ -1,8 +1,10 @@
 ﻿using ChargingApp.Entity;
+using ChargingApp.Errors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NUnit.Framework;
 
 namespace ChargingApp.Controllers;
 
@@ -25,18 +27,33 @@ public class AdminRolesController : AdminController
             .Select(u => new
             {
                 u.Id,
-                Roles = u.UserRoles.Select(r => r.Role.Name).ToList(),
+                Roles = u.UserRoles
+                    .Select(r => r.Role.Name.ToLower()
+                    ).ToList(),
                 UserEmail = u.Email,
                 UserName = u.FirstName + " " + u.LastName
             })
             .ToListAsync();
 
         users = users.Where(x =>
+            x.Roles.Any(s => s != "vip" && s != "normal")).ToList();
+
+        var res = new[]
         {
-            return x.Roles.Count > 1 || (x.Roles.Count == 1 && x.Roles.Any(
-                y => y.ToLower() != "vip" && y.ToLower() != "normal"));
+            new
+            {
+                Id = 0, Roles = new List<string>(), UserEmail = string.Empty, UserName = string.Empty
+            }
+        }.ToList();
+
+        res = users.Select(x => new
+        {
+            x.Id,
+            Roles = x.Roles.Where(s => s != "vip" && s != "normal").ToList(),
+            x.UserEmail,
+            x.UserName
         }).ToList();
-        return Ok(users);
+        return Ok(new ApiOkResponse(res));
     }
 
     [HttpPost("edit-roles/{userEmail}")]
@@ -48,6 +65,16 @@ public class AdminRolesController : AdminController
         var user = await _userManager.FindByEmailAsync(userEmail);
 
         if (user == null) return NotFound("user not found");
+
+        if (selectedRoles.Length == 0)
+            return BadRequest(new ApiResponse(400, "should specify some roles"));
+        selectedRoles = selectedRoles.Select(x => x.ToLower()).ToArray();
+
+        selectedRoles = selectedRoles.Where(x => x != "normal" && x != "vip").ToArray();
+
+
+        if (selectedRoles.Length == 0)
+            return BadRequest(new ApiResponse(400, "should specify some roles other than vip"));
 
         var userRoles = await _userManager.GetRolesAsync(user);
         userRoles = userRoles.Select(x => x.ToLower()).ToArray();
@@ -62,6 +89,9 @@ public class AdminRolesController : AdminController
         if (!result.Succeeded)
             return BadRequest("Failed");
 
-        return Ok(await _userManager.GetRolesAsync(user));
+        var response = await _userManager.GetRolesAsync(user);
+
+        response = response.Where(x => x.ToLower() != "normal" && x.ToLower() != "vip").ToList();
+        return Ok(new ApiOkResponse(response));
     }
 }
