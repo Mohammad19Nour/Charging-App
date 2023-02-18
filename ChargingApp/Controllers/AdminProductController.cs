@@ -263,12 +263,9 @@ public class AdminProductController : AdminController
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
 
-            var photo = new Photo
-            {
-                Url = result.Url
-            };
             product.Photo ??= new Photo();
-            product.Photo = photo;
+            product.Photo.Url = result.Url;
+            _unitOfWork.ProductRepository.UpdateProduct(product);
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "image updated"));

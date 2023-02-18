@@ -68,6 +68,7 @@ public class AdminVipLevelController : AdminController
             if (dto.MinimumPurchase != null && vipLevel != 0)
                 vip.MinimumPurchase = (double)dto.MinimumPurchase;
 
+            _unitOfWork.VipLevelRepository.UpdateVipLevel(vip);
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "updated successfully"));
             return BadRequest(new ApiResponse(400, "Failed to update vip level"));

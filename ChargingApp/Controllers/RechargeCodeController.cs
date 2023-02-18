@@ -36,9 +36,11 @@ public class RechargeCodeController : BaseApiController
             tmpCode.User = user;
             user.Balance += tmpCode.Value;
             tmpCode.TakedTime = DateTime.Now;
+            
+            _unitOfWork.UserRepository.UpdateUserInfo(user);
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse("Recharge successfully. your balance is " + user.Balance));
+                return Ok(new ApiOkResponse("Recharged successfully. your balance is " + user.Balance));
 
             return BadRequest(new ApiResponse(400, "something went wrong"));
         }

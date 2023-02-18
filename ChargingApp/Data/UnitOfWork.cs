@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Data;
 
-public class UnitOfWork : IUnitOfWork,IDisposable
+public class UnitOfWork : IUnitOfWork
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
@@ -60,10 +60,5 @@ public class UnitOfWork : IUnitOfWork,IDisposable
     public void UpdateEntity(BaseEntity entity)
     {
         _context.Entry(entity).State = EntityState.Modified;
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
     }
 }

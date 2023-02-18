@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,7 @@ public class CurrencyRepository : ICurrencyRepository
     private readonly DataContext _context;
     private readonly IMapper _mapper;
 
-    public CurrencyRepository(DataContext context , IMapper mapper)
+    public CurrencyRepository(DataContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -21,10 +22,10 @@ public class CurrencyRepository : ICurrencyRepository
     {
         currencyName = currencyName.ToLower();
         return (await _context.Currencies
-            .Where(x => x.Name.ToLower() == currencyName )
-            .FirstAsync()
+                .AsNoTracking()
+                .Where(x => x.Name.ToLower() == currencyName)
+                .FirstAsync()
             ).ValuePerDollar;
-
     }
 
     public async Task<double> GetTurkishCurrency()
@@ -37,19 +38,6 @@ public class CurrencyRepository : ICurrencyRepository
         return await GetCurrencyByName("syrian");
     }
 
-    public async Task<bool> SetCurrencyValeByName(string currencyName, double value)
-    {
-        
-        currencyName = currencyName.ToLower();
-        var currency = await _context.Currencies
-            .FirstOrDefaultAsync(x => x.Name.ToLower() == currencyName);
-        
-        if (currency is null) return false;
-
-        currency.ValuePerDollar = value;
-        return true;
-    }
-
     public async Task<List<CurrencyDto>> GetCurrencies()
     {
         return await _context.Currencies
@@ -59,13 +47,20 @@ public class CurrencyRepository : ICurrencyRepository
 
     public async Task<bool> CheckIfExistByNameAsync(string name)
     {
-        var res = await _context.Currencies.FirstOrDefaultAsync(x => x.Name.ToLower() == name);
+        var res = await _context.Currencies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name.ToLower() == name);
         return res != null;
     }
 
-    public async void UpdateByNameAsync(string name , double value)
+    public void UpdateByName(Currency currency)
     {
-        var res = await _context.Currencies.FirstOrDefaultAsync(x => x.Name.ToLower() == name);
-        if (res != null) res.ValuePerDollar = value;
+        _context.Currencies.Update(currency);
+    }
+
+    public async Task<Currency?> GetCurrencyByNameAsync(string name)
+    {
+        return await _context.Currencies
+            .FirstOrDefaultAsync(x => x.Name.ToLower() == name);
     }
 }
