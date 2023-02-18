@@ -19,33 +19,47 @@ public class ApiService : IApiService
     public async Task<(bool Success, string Message, int OrderId)> SendOrderAsync(int productId, double qty,
         string playerId, string baseUrl, string token)
     {
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("api-token",
-            token);
-        var uuid = Guid.NewGuid().ToString();
-        var response = await httpClient.GetAsync(baseUrl +
-                                                 "/newOrder/" + productId + "/params?playerID=" + playerId + "&qty=" +
-                                                 qty + "&order_uuid=" + uuid);
-
-        if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Unauthorized &&
-            response.StatusCode != HttpStatusCode.ExpectationFailed)
-            return (false, "Something went wrong", 1);
-
-        var content = await response.Content.ReadAsByteArrayAsync();
-        var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var data = jsonElement.GetProperty("data");
-            var id = data.GetProperty("order_id").ToString();
-            var orderId = int.Parse(id);
-            return (true, "Waiting", orderId);
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("api-token",
+                token);
+            var uuid = Guid.NewGuid().ToString();
+            var response = await httpClient.GetAsync(baseUrl +
+                                                     "/newOrder/" + productId + "/params?playerID=" + playerId +
+                                                     "&qty=" +
+                                                     qty + "&order_uuid=" + uuid);
+
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Unauthorized &&
+                response.StatusCode != HttpStatusCode.ExpectationFailed)
+                return (false, "Something went wrong", 1);
+
+            var content = await response.Content.ReadAsByteArrayAsync();
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = jsonElement.GetProperty("data");
+                var status = data.GetProperty("status").ToString();
+
+                if (status == "not_available")
+                    return (false, status, 1);
+
+                var id = data.GetProperty("order_id").ToString();
+                var orderId = int.Parse(id);
+                return (true, "Waiting", orderId);
+            }
+
+            var str = jsonElement.GetProperty("msg").ToString();
+            var message = Encoding.Unicode.GetString(Encoding.Unicode.GetBytes(str));
+
+            return (false, message, 1);
         }
-
-        var str = jsonElement.GetProperty("msg").ToString();
-        var message = Encoding.Unicode.GetString(Encoding.Unicode.GetBytes(str));
-
-        return (false, message, 1);
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public async Task<(bool Succeed, string Status )> CheckOrderStatusAsync(int orderId
@@ -84,26 +98,34 @@ public class ApiService : IApiService
     public async Task<(bool Status, string Message, List<ProductResponse>? Products)> GetAllProductsAsync(
         string baseUrl, string token)
     {
-        var httpClient = new HttpClient();
+        try
+        {
+            var httpClient = new HttpClient();
 
-        httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        httpClient.DefaultRequestHeaders.Add("api-token",
-            token);
-        var response = await httpClient.GetAsync(baseUrl + "/products");
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            httpClient.DefaultRequestHeaders.Add("api-token",
+                token);
+            var response = await httpClient.GetAsync(baseUrl + "/products");
 
-        if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Unauthorized &&
-            response.StatusCode != HttpStatusCode.ExpectationFailed)
-            return (false, "Something went wrong", new List<ProductResponse>());
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Unauthorized &&
+                response.StatusCode != HttpStatusCode.ExpectationFailed)
+                return (false, "Something went wrong", new List<ProductResponse>());
 
-        var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
-            return (true, "Success", JsonSerializer.Deserialize<List<ProductResponse>>(content));
+            if (response.IsSuccessStatusCode)
+                return (true, "Success", JsonSerializer.Deserialize<List<ProductResponse>>(content));
 
-        var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
-        var str = jsonElement.GetProperty("msg").ToString();
-        var message = Encoding.Unicode.GetString(Encoding.Unicode.GetBytes(str));
-        return (false,message,new List<ProductResponse>());
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
+            var str = jsonElement.GetProperty("msg").ToString();
+            var message = Encoding.Unicode.GetString(Encoding.Unicode.GetBytes(str));
+            return (false, message, new List<ProductResponse>());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public async Task<(bool Success, string Message)> CancelOrderByIdAsync(int apiOrderId

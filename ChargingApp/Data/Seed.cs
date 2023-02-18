@@ -301,6 +301,25 @@ public static class Seed
             Token = "7515d6dd5ae4de7b4e7de94c55aea5a2ff17fa37f45da962"
             
         });
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Prince Cash",
+            BaseUrl = "https://api.prince-cash.com/client/api" ,
+            Token = "c9fe2310c360010d1349258c9672e98fd8a87adc827a10d4"
+        });
+        
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Speed Card",
+            BaseUrl = "https://api.speedcard.vip/client/api" ,
+            Token = "207f93847085daf3c62f1b9dc3990290b12affea9d22afe8"
+        });
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Life Cash",
+            BaseUrl = "https://api.life-cash.com/client/api" ,
+            Token = "d1158cc2aaecd9afd6f8bcaca0fad78afca8d9d9c28b97b0"
+        });
 
         await context.SaveChangesAsync();
     }
