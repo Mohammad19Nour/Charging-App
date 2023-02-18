@@ -51,6 +51,8 @@ public class AdminPaymentController : AdminController
             payment.AddedValue -= mn;
 
             payment.User.Balance += payment.AddedValue;
+            
+            _unitOfWork.UserRepository.UpdateUserInfo(payment.User);
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
                 new NotificationHistory
                 {

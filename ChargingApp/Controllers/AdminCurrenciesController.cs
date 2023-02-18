@@ -21,12 +21,22 @@ public class AdminCurrenciesController : AdminController
     {
         try
         {
+            if (string.IsNullOrEmpty(dto.Name))
+                return BadRequest(new ApiResponse(400, "currency name can't be empty"));
+
             dto.Name = dto.Name.ToLower();
 
             if (!await _unitOfWork.CurrencyRepository.CheckIfExistByNameAsync(dto.Name))
                 return BadRequest(new ApiResponse(404, "currency not found"));
 
-            _unitOfWork.CurrencyRepository.UpdateByNameAsync(dto.Name, dto.ValuePerDollar);
+            var currency = await _unitOfWork.CurrencyRepository.GetCurrencyByNameAsync(dto.Name);
+
+            if (currency is null)
+                return BadRequest(new ApiResponse(400, "something went wrong during updating currency"));
+
+            currency.ValuePerDollar = dto.ValuePerDollar;
+
+            _unitOfWork.CurrencyRepository.UpdateByName(currency);
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "Updated successfully"));

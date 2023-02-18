@@ -23,14 +23,11 @@ public static class SomeUsefulFunction
 
             if (user.VIPLevel == 0) return priceX;
 
-            Console.WriteLine(user.TotalForVIPLevel + " " + user.VIPLevel +"\n\n*-*\n");
-
             user.TotalPurchasing += priceX;
 
             user.TotalForVIPLevel += priceX;
             user.VIPLevel = await unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
-        Console.WriteLine(user.TotalForVIPLevel + " " + user.VIPLevel +"\n\n*+*\n");
 
             return priceX;
         }
@@ -62,13 +59,15 @@ public static class SomeUsefulFunction
 
         for (var i = 0; i < benefitPercent.Count; i++)
         {
-            if (total == 0) break;
             if (minimumP[i] < user.TotalForVIPLevel && minimumP[i + 1] < user.TotalForVIPLevel) continue;
 
 
+            user.VIPLevel = await unitOfWork.VipLevelRepository
+                .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
             var specificBenefit = await unitOfWork.BenefitPercentInSpecificVipLevelRepository
                 .GetBenefitPercentForProductAsync(product.Id, user.VIPLevel);
             var globalBenefit = benefitPercent[i];
+            
 
             if (specificBenefit is null)
                 total += total * globalBenefit / 100;
@@ -85,7 +84,7 @@ public static class SomeUsefulFunction
             user.VIPLevel = vipLevels[i].VipLevel;
             price += d;
             
-            if (total == 0) break;
+             if (total == 0) break;
 
             if (specificBenefit is null)
                 total -= total * globalBenefit / 100;

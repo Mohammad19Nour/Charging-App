@@ -63,7 +63,7 @@ public class PaymentsController : BaseApiController
                 Photo = photo,
                 PaymentType = "Companies",
             };
-
+            
             _unitOfWork.PaymentRepository.AddPayment(payment);
 
             if (!await _unitOfWork.Complete())

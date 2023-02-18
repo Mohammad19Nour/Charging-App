@@ -54,11 +54,9 @@ public class AdminOurAgentController : AdminController
 
             if (agent == null)
                 return BadRequest(new ApiResponse(404, "agent not found"));
-            Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
 
             _mapper.Map(dto, agent);
 
-            Console.WriteLine(dto.City + "  " + agent.City + "\n\n\n\n");
             _unitOfWork.OurAgentsRepository.UpdateAgent(agent);
 
             if (await _unitOfWork.Complete())

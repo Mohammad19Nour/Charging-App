@@ -17,14 +17,16 @@ public class OrdersController : BaseApiController
     private readonly IMapper _mapper;
     private readonly IApiService _apiService;
     private readonly IPhotoService _photoService;
+    private readonly INotificationService _notificationService;
 
     public OrdersController(IUnitOfWork unitOfWork, IMapper mapper, IApiService apiService
-        , IPhotoService photoService)
+        , IPhotoService photoService,INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _apiService = apiService;
         _photoService = photoService;
+        _notificationService = notificationService;
     }
 
     [Authorize(Policy = "Required_Normal_Role")]
@@ -35,7 +37,7 @@ public class OrdersController : BaseApiController
         {
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-         //   if (user is null) return BadRequest(new ApiResponse(401));
+            if (user is null) return BadRequest(new ApiResponse(401));
 
             return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
         }
@@ -103,6 +105,8 @@ public class OrdersController : BaseApiController
                 PlayerName = dto.PlayerName
             };
 
+            var lastVipLevel = user.VIPLevel;
+
             if (!product.CanChooseQuantity)
             {
                 order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity,
@@ -139,7 +143,7 @@ public class OrdersController : BaseApiController
                     dto.PlayerId, hostingSite.BaseUrl, hostingSite.Token);
                 if (!respo.Success)
                 {
-                    return Ok(new ApiResponse(200, respo.Message));
+                    return BadRequest(new ApiResponse(400, respo.Message));
                 }
 
                 _unitOfWork.OtherApiRepository.AddOrder(new ApiOrder
@@ -154,6 +158,20 @@ public class OrdersController : BaseApiController
             order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
 
+            if (lastVipLevel < user.VIPLevel)
+            {
+                var curr = new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
+                    EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
+                };
+                _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+
+                await _notificationService.VipLevelNotification(order.User.Email,
+                    "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+            }
+            _unitOfWork.UserRepository.UpdateUserInfo(user);
             _unitOfWork.OrdersRepository.AddOrder(order);
 
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));

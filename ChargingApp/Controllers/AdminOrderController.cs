@@ -255,7 +255,7 @@ public class AdminOrderController : AdminController
                     var curr = new NotificationHistory
                     {
                         User = order.User,
-                        ArabicDetails = " تم ترقي مستواك الى vip  " + order.User.VIPLevel,
+                        ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
                         EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
                     };
                    _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
@@ -347,13 +347,14 @@ public class AdminOrderController : AdminController
                 user.TotalForVIPLevel -= order.TotalPrice;
                 user.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
+                _unitOfWork.UserRepository.UpdateUserInfo(user);
                 
                 if (lastVip > order.User.VIPLevel)
                 {
                     var curr = new NotificationHistory
                     {
                         User = order.User,
-                        ArabicDetails = " تم اعادة مستواك الى  " + order.User.VIPLevel,
+                        ArabicDetails = " تم اعادة مستواك الى vip  " + order.User.VIPLevel,
                         EnglishDetails = "Your level is returned back to vip " + order.User.VIPLevel
                     };
                     _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);

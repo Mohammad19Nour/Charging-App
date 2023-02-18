@@ -31,17 +31,17 @@ public class AdminCategoryController : AdminController
             if (dto.ImageFile is null)
                 return BadRequest(new ApiResponse(400, "image file is null"));
 
-            var photo = await _unitOfWork.PhotoRepository.AddPhotoAsync(dto.ImageFile);
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
 
-            if (photo is null)
-                return BadRequest(new ApiResponse(400, "Failed to upload photo"));
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, "Failed to upload photo  " + result.Message));
 
             var category = new Category
             {
                 EnglishName = dto.EnglishName,
                 ArabicName = dto.ArabicName,
                 HasSubCategories = dto.HasSubCategories,
-                Photo = photo
+                Photo = new Photo { Url = result.Url }
             };
 
             _unitOfWork.CategoryRepository.AddCategory(category);
@@ -84,10 +84,12 @@ public class AdminCategoryController : AdminController
 
             if (!_unitOfWork.HasChanges() || !tmp) return BadRequest(new ApiResponse(400, "Failed to delete category"));
 
-            await _unitOfWork.Complete();
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to update photo"));
+               
             if (name != null) await _photoService.DeletePhotoAsync(name);
 
             return Ok(new ApiResponse(201, "Deleted successfully"));
+
         }
         catch (Exception e)
         {

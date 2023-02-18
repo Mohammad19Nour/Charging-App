@@ -53,6 +53,8 @@ public class AdminUserController : AdminController
             user.TotalForVIPLevel = await _unitOfWork.VipLevelRepository
                 .GetMinimumPurchasingForVipLevelAsync(newVipLevel);
 
+            _unitOfWork.UserRepository.UpdateUserInfo(user);
+            
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "updated successfully"));
 
@@ -94,7 +96,7 @@ public class AdminUserController : AdminController
                 User = user,
                 DebitValue = debitValue
             });
-
+            
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "added successfully"));
 
@@ -143,6 +145,7 @@ public class AdminUserController : AdminController
             };
             _unitOfWork.SpecificPriceForUserRepository.AddProductPriceForUser(spec);
 
+            _unitOfWork.UserRepository.UpdateUserInfo(user);
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "added successfully"));
 
