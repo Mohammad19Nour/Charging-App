@@ -79,6 +79,40 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("v1/swagger.json", "MyAPI V1");
+    });
+}
+
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseStatusCodePagesWithReExecute("/errors/{0}");
+
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors(x => x
+    .AllowAnyOrigin()
+    .WithOrigins("http://localhost:4200")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .SetIsOriginAllowed((_) => true));
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseDefaultFiles();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.MapControllers();
+app.MapHub<PresenceHub>("/hubs");
+
+
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 try
@@ -111,44 +145,4 @@ catch (Exception e)
     throw;
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("v1/swagger.json", "MyAPI V1");
-    });
-}
-
-app.UseMiddleware<ExceptionMiddleware>();
-
-app.UseStatusCodePagesWithReExecute("/errors/{0}");
-
-app.UseRouting();
-app.UseCors(x => x
-    .AllowAnyOrigin()
-    .WithOrigins("http://localhost:4200")
-    .AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()
-    .SetIsOriginAllowed((_) => true));
-
-/*
-app.UseCors(x => 
-    x.SetIsOriginAllowed(_ => true)
-        .AllowCredentials()
-        .AllowAnyHeader()
-        .WithOrigins("http://localhost:4200")
-.AllowAnyMethod());*/
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseDefaultFiles();
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.MapControllers();
-app.MapHub<PresenceHub>("/hubs");
-app.Run();
+await app.RunAsync();

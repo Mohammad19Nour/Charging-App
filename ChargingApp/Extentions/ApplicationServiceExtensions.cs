@@ -28,6 +28,7 @@ public static class ApplicationServiceExtensions
         services.AddTransient<IEmailHelper, EmailSenderService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddMvc();
 
         //  services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddDbContext<DataContext>(options =>

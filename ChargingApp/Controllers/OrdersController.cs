@@ -35,7 +35,7 @@ public class OrdersController : BaseApiController
         {
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
-            if (user is null) return BadRequest(new ApiResponse(401));
+         //   if (user is null) return BadRequest(new ApiResponse(401));
 
             return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
         }
