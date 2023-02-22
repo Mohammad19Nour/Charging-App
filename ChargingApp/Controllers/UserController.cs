@@ -34,7 +34,7 @@ public class UserController : BaseApiController
 
             if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-            
+
             if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
 
             _mapper.Map(updateUserInfoDto, user);
@@ -67,6 +67,9 @@ public class UserController : BaseApiController
 
             var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
             var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+            var vipPurchase = user.TotalForVIPLevel;
+            vipPurchase -= await _unitOfWork.VipLevelRepository
+                .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
 
             res.MyWallet = new WalletDto
             {
@@ -82,6 +85,10 @@ public class UserController : BaseApiController
                 DollarTotalPurchase = user.TotalPurchasing,
                 SyrianTotalPurchase = user.TotalPurchasing * syrian,
                 TurkishTotalPurchase = user.TotalPurchasing * turkish,
+
+                TurkishVIPPurchase = vipPurchase * turkish,
+                SurianVIPPurchase = vipPurchase * syrian,
+                DollarVIPPurchase = vipPurchase
             };
             if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
 
@@ -197,6 +204,12 @@ public class UserController : BaseApiController
         var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
         var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
 
+        var vipPurchase = user.TotalForVIPLevel;
+       
+        var t= await _unitOfWork.VipLevelRepository
+            .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
+        vipPurchase -= t;
+        Console.WriteLine(t+"\n\n");
         var myWallet = new WalletDto
         {
             DollarBalance = user.Balance,
@@ -211,6 +224,10 @@ public class UserController : BaseApiController
             DollarTotalPurchase = user.TotalPurchasing,
             SyrianTotalPurchase = user.TotalPurchasing * syrian,
             TurkishTotalPurchase = user.TotalPurchasing * turkish,
+
+            TurkishVIPPurchase = vipPurchase * turkish,
+            SurianVIPPurchase = vipPurchase * syrian,
+            DollarVIPPurchase = vipPurchase
         };
 
         if (!(user.Debit > 0)) return myWallet;

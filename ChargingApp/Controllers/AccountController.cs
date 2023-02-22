@@ -123,6 +123,9 @@ public class AccountController : BaseApiController
 
             var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
             var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+            var vipPurchase = user.TotalForVIPLevel;
+            vipPurchase -= await _unitOfWork.VipLevelRepository
+                .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
 
             var myWallet = new WalletDto
             {
@@ -137,6 +140,10 @@ public class AccountController : BaseApiController
                 DollarTotalPurchase = user.TotalPurchasing,
                 SyrianTotalPurchase = user.TotalPurchasing * syrian,
                 TurkishTotalPurchase = user.TotalPurchasing * turkish,
+                
+                TurkishVIPPurchase = vipPurchase * turkish,
+                SurianVIPPurchase = vipPurchase * syrian,
+                DollarVIPPurchase = vipPurchase
             };
             if (user.Debit > 0)
             {

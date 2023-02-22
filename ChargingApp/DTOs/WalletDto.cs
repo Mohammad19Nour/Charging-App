@@ -14,4 +14,8 @@ public class WalletDto
     public double SyrianDebit { get; set; }
     public double DollarDebit { get; set; }
 
+    public double DollarVIPPurchase { get; set; }
+    public double SurianVIPPurchase { get; set; }
+    public double TurkishVIPPurchase { get; set; }
+
 }

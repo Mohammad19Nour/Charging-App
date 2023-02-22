@@ -18,4 +18,5 @@ public interface IOtherApiRepository
     public Task<ApiOrder> GetOrderByOurIdAsync(int id);
     public Task<HostingSite?> GetHostingSiteByNameAsync(string? name);
     public Task<List<HostingSite>> GetAllHostingSiteAsync();
+    public void UpdateHostingSite(HostingSite site);
 }

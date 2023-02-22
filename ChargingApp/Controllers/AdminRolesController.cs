@@ -80,6 +80,9 @@ public class AdminRolesController : AdminController
         userRoles = userRoles.Select(x => x.ToLower()).ToArray();
         selectedRoles = selectedRoles.Select(x => x.ToLower()).ToArray();
 
+        if (userRoles.Any(x => x.ToLower() == "admin"))
+            return BadRequest(new ApiResponse(400, "Can't update the role of admin"));
+
         var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles));
 
         if (!result.Succeeded)

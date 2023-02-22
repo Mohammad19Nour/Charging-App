@@ -9,8 +9,10 @@ public class VipLevelInfo
 public class VipLevelDto
 {
     public int VipLevel { get; set; }
-    public double MinimumPurchase { get; set; }
+    public double BenefitPercent { get; set; }
+    public double Purchase { get; set; }
 }
+
 public class NewVipLevel
 {
     public int VipLevel { get; set; }

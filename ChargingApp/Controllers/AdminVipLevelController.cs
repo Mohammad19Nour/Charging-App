@@ -28,12 +28,20 @@ public class AdminVipLevelController : AdminController
             if (tmp || dto.VipLevel == 0)
                 return BadRequest(new ApiResponse(400, "Vip level already exist"));
 
-            var validMinPurchasing = await _unitOfWork.VipLevelRepository
-                .CheckIfMinimumPurchasingIsValidAsync(dto.MinimumPurchase);
+            var vips = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
 
-            if (!validMinPurchasing)
-                return BadRequest(new ApiResponse(400, "Minimum purchase not valid"));
-            
+            if (vips.Count > 1)
+            {
+                vips.Sort((x, y) => x.VipLevel.CompareTo(y.VipLevel));
+                var last = vips.Last().VipLevel;
+
+                if (dto.VipLevel != 1 + last)
+                    return BadRequest(new ApiResponse(400, "vip level should be " + last + 1));
+            }
+
+            else if (dto.VipLevel != 1)
+                return BadRequest(new ApiResponse(400, "vip level should be " + 1));
+
             var vip = new VIPLevel
             {
                 VipLevel = dto.VipLevel,
@@ -58,17 +66,25 @@ public class AdminVipLevelController : AdminController
     {
         try
         {
-            var vip = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(vipLevel);
+            var vip = await _unitOfWork.VipLevelRepository.CheckIfExist(vipLevel);
 
-            if (vip is null) return NotFound(new ApiResponse(404, "vip level not found"));
+            if (!vip) return NotFound(new ApiResponse(404, "vip level not found"));
 
+            var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
+
+          
             if (dto.BenefitPercent != null)
-                vip.BenefitPercent = (double)dto.BenefitPercent;
+                levels[vipLevel].BenefitPercent = (double)dto.BenefitPercent;
 
             if (dto.MinimumPurchase != null && vipLevel != 0)
-                vip.MinimumPurchase = (double)dto.MinimumPurchase;
+                levels[vipLevel].Purchase = (double)dto.MinimumPurchase;
 
-            _unitOfWork.VipLevelRepository.UpdateVipLevel(vip);
+            for (int j = 1; j < levels.Count; j++)
+            {
+                levels[j].MinimumPurchase = levels[j-1].MinimumPurchase+levels[j-1].Purchase;
+                _unitOfWork.VipLevelRepository.UpdateVipLevel(levels[j]);
+            }
+
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "updated successfully"));
             return BadRequest(new ApiResponse(400, "Failed to update vip level"));
