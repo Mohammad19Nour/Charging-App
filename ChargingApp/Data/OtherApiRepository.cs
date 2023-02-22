@@ -122,8 +122,8 @@ public class OtherApiRepository : IOtherApiRepository
     public async Task<HostingSite?> GetHostingSiteByNameAsync(string? name)
     {
         if (string.IsNullOrEmpty(name)) return null;
-        
-            name = name.ToLower();
+
+        name = name.ToLower();
         return await _context.HostingSites
             .Where(x => x.SiteName.ToLower() == name)
             .FirstOrDefaultAsync();
@@ -132,5 +132,10 @@ public class OtherApiRepository : IOtherApiRepository
     public async Task<List<HostingSite>> GetAllHostingSiteAsync()
     {
         return await _context.HostingSites.ToListAsync();
+    }
+
+    public void UpdateHostingSite(HostingSite site)
+    {
+        _context.HostingSites.Update(site);
     }
 }

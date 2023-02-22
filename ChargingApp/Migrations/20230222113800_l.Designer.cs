@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230218122756_Initial")]
-    partial class Initial
+    [Migration("20230222113800_l")]
+    partial class l
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -746,6 +746,9 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<double>("MinimumPurchase")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Purchase")
                         .HasColumnType("REAL");
 
                     b.Property<int>("VipLevel")

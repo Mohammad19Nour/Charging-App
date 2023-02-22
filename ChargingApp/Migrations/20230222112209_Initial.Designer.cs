@@ -3,6 +3,7 @@ using System;
 using ChargingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230222112209_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.7");
@@ -744,9 +746,6 @@ namespace ChargingApp.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<double>("MinimumPurchase")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("Purchase")
                         .HasColumnType("REAL");
 
                     b.Property<int>("VipLevel")
