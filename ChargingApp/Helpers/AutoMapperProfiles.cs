@@ -21,6 +21,7 @@ public class AutoMapperProfiles : Profile
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<VIPLevel, VipLevelDto>();
+        CreateMap<VIPLevel, AdminVipLevelDto>();
         CreateMap<SliderPhoto, SliderPhotoDto>()
             .ForMember(dest => dest.Photo, opt =>
                 opt.MapFrom(x => BaseUrl + x.Photo.Url));

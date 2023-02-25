@@ -1,4 +1,5 @@
-﻿using ChargingApp.DTOs;
+﻿using AutoMapper;
+using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
@@ -12,10 +13,31 @@ namespace ChargingApp.Controllers;
 public class AdminVipLevelController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public AdminVipLevelController(IUnitOfWork unitOfWork)
+    public AdminVipLevelController(IUnitOfWork unitOfWork , IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
+    }
+
+    [HttpGet("vip-levels")]
+    public async Task<ActionResult<List<AdminVipLevelDto>>> GetVipLevels()
+    {
+        try
+        {
+            var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
+            levels = levels.Where(x => x.VipLevel != 0).ToList();
+
+            var res = levels.Select(x => _mapper.Map<AdminVipLevelDto>(x));
+
+            return Ok(new ApiOkResponse(res));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpPost("add-new-vip-level")]
