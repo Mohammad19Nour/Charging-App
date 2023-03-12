@@ -129,12 +129,12 @@ public static class Seed
     {
         if (await context.Categories.AnyAsync()) return;
 
-        var photo = new Photo { Url = "ffff" };
+        var photo = new Photo { Url = "/testt" };
         context.Categories.Add(new Category
             { EnglishName = "pubg", ArabicName = "arabic", HasSubCategories = true, Photo = photo });
         context.Categories.Add(new Category
         {
-            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false, Photo = photo
+            EnglishName = "clash royal", ArabicName = "arabic", HasSubCategories = false, Photo = new Photo{Url = "/test"}
         });
         await context.SaveChangesAsync();
     }
