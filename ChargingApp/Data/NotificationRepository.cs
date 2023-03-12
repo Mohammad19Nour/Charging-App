@@ -21,7 +21,9 @@ public class NotificationRepository : INotificationRepository
             .Include(x => x.Order)
             .Include(x => x.Payment)
             .Include(x => x.Payment!.Photo)
+            .Include(x => x.Order!.Photo)
             .Where(x => x.User.Email.ToLower() == userEmail)
+            .OrderByDescending(x=>x.Order!.CreatedAt)
             .ToListAsync();
     }
 

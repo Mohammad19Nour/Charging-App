@@ -111,7 +111,10 @@ public class AutoMapperProfiles : Profile
                 opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.Photo, opt =>
                 opt.MapFrom(src =>
-                    src.Photo == null ? "No Photo" : BaseUrl + src.Photo.Url));
+                    src.Photo == null ? "No Photo" : BaseUrl + src.Photo.Url))
+            .ForMember(dest => dest.Quantity, opt =>
+                opt.MapFrom(src =>
+                    src.TotalQuantity));
 
 
         CreateMap<Payment, PaymentAdminDto>()
