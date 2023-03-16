@@ -233,6 +233,8 @@ public class AdminOrderController : AdminController
 
                 if (order.TotalPrice <= order.User.Balance)
                 {
+                    order.User.TotalPurchasing += order.TotalPrice;
+                    order.User.TotalForVIPLevel += order.TotalPrice;
                     order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
                     order.User.Balance -= order.TotalPrice;
@@ -241,9 +243,7 @@ public class AdminOrderController : AdminController
                     order.Notes = "Succeed";
                 }
                 else
-                {
-                    order.User.TotalPurchasing -= order.TotalPrice;
-                    order.User.TotalForVIPLevel -= order.TotalPrice;
+                {;
                     order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
                     order.Status = 3; // wrong

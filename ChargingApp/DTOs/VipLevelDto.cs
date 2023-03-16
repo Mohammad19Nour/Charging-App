@@ -15,6 +15,7 @@ public class VipLevelDto
 
 public class AdminVipLevelDto : VipLevelDto{
    public double BenefitPercent { get; set; }
+   public double Purchase { get; set; }
 }
 
 public class NewVipLevel
