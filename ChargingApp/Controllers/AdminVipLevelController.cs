@@ -51,6 +51,7 @@ public class AdminVipLevelController : AdminController
                 return BadRequest(new ApiResponse(400, "Vip level already exist"));
 
             var vips = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
+            vips.Sort((x , y) =>x.Id.CompareTo(y.Id));
 
             if (vips.Count > 1)
             {
@@ -64,11 +65,17 @@ public class AdminVipLevelController : AdminController
             else if (dto.VipLevel != 1)
                 return BadRequest(new ApiResponse(400, "vip level should be " + 1));
 
+            double prevSum = 0;
+
+            if (vips.Count > 0)
+                prevSum = vips.Last(x => x.VipLevel > 0).MinimumPurchase +
+                          vips.Last(x => x.VipLevel > 0).Purchase ;
             var vip = new VIPLevel
             {
                 VipLevel = dto.VipLevel,
-                MinimumPurchase = dto.MinimumPurchase,
-                BenefitPercent = dto.BenefitPercent
+                Purchase = dto.MinimumPurchase,
+                BenefitPercent = dto.BenefitPercent,
+                MinimumPurchase = prevSum
             };
             _unitOfWork.VipLevelRepository.AddVipLevel(vip);
 

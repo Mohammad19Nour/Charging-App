@@ -154,6 +154,8 @@ public class OrdersController : BaseApiController
                 });
             }
 
+            user.TotalPurchasing += order.TotalPrice;
+            user.TotalForVIPLevel += order.TotalPrice;
             user.Balance -= order.TotalPrice;
             order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
