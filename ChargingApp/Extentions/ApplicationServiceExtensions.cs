@@ -33,7 +33,7 @@ public static class ApplicationServiceExtensions
         //  services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddDbContext<DataContext>(options =>
         {
-            options.UseSqlite(
+            options.UseSqlServer(
                 config.GetConnectionString("DefaultConnection"));
         });
         services.AddDataProtection()

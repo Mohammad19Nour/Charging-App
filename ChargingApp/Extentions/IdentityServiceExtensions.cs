@@ -67,7 +67,6 @@ public static class IdentityServiceExtensions
                 {
                     OnTokenValidated = async context =>
                     {
-                        Console.WriteLine("884\n\n\n\n");
                         var userManager = context.HttpContext.RequestServices
                             .GetRequiredService<UserManager<AppUser>>();
                         var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;

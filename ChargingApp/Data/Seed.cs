@@ -7,9 +7,9 @@ namespace ChargingApp.Data;
 
 public static class Seed
 {
-    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+    public static async Task SeedRoles( RoleManager<AppRole> roleManager)
     {
-        if (await userManager.Users.AnyAsync()) return;
+        if (await roleManager.Roles.AnyAsync()) return;
 
         var roles = new List<AppRole>
         {
@@ -26,77 +26,11 @@ public static class Seed
         {
             await roleManager.CreateAsync(role);
         }
+    }
 
-        var user = new AppUser
-        {
-            UserName = "mm@d.comwd",
-            Email = "mm@d.comwd",
-            VIPLevel = 1,
-            FirstName = "ka",
-            LastName = "po",
-            PhoneNumber = "369369",
-            Country = "ha",
-            EmailConfirmed = true,
-            Balance = 10000
-        };
-        await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user, "VIP");
-
-        user = new AppUser
-        {
-            UserName = "mm@d.com",
-            Email = "mm@d.com",
-            VIPLevel = 1,
-            FirstName = "ka",
-            LastName = "po",
-            PhoneNumber = "369369",
-            Country = "ha",
-            Balance = 10000,
-            EmailConfirmed = true
-        };
-        await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user, "VIP");
-        user = new AppUser
-        {
-            UserName = "yy@d.com",
-            Email = "yy@d.com",
-            FirstName = "ka",
-            LastName = "po",
-            PhoneNumber = "369369",
-            Country = "ha",
-            EmailConfirmed = true
-        };
-        await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user, "Normal");
-
-        user = new AppUser
-        {
-            UserName = "oo@d.com",
-            Email = "oo@d.com",
-            VIPLevel = 1,
-            FirstName = "ka",
-            LastName = "po",
-            PhoneNumber = "369369",
-            Country = "ha",
-            EmailConfirmed = true
-        };
-        await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRoleAsync(user, "Normal");
-
-        user = new AppUser
-        {
-            UserName = "kk@d.com",
-            Email = "kk@d.com",
-            VIPLevel = 1,
-            FirstName = "ka",
-            LastName = "po",
-            PhoneNumber = "369369",
-            Country = "ha",
-            EmailConfirmed = true,
-            Balance = 10000
-        };
-        await userManager.CreateAsync(user, "Pa$w0rs");
-        await userManager.AddToRolesAsync(user, new[] { "Admin_1","VIP" });
+    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+    {
+        if (await userManager.Users.AnyAsync()) return;
 
         var admin = new AppUser
         {
@@ -116,15 +50,130 @@ public static class Seed
     {
         if (await context.VipLevels.AnyAsync()) return;
 
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 30, VipLevel = 0 });
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 20, VipLevel = 1 });
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 15, VipLevel = 2, MinimumPurchase = 1000 });
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 10, VipLevel = 3, MinimumPurchase = 2000 });
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 5, VipLevel = 4, MinimumPurchase = 3000 });
+        // normal user is considered as vip 0 so don't remove this line
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 0, VipLevel = 0 });
+        
+        await context.SaveChangesAsync();
+    }
+
+
+    public static async Task SeedPayments(DataContext context)
+    {
+        if (await context.PaymentGateways.AnyAsync()) return;
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "lord",
+            ArabicName = "اللورد للحوالات المالية",
+            BagAddress = "2654jhjh"
+        });
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "USDT",
+            ArabicName = "USDT",
+            BagAddress = "hku5416"
+        });
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "Payeer",
+            ArabicName = "Payeer",
+            BagAddress = "lscwlncwlc"
+        });
+        context.PaymentGateways.Add(new PaymentGateway
+        {
+            EnglishName = "Binance",
+            ArabicName = "Binance",
+            BagAddress = "cdncwlkcnlscm"
+        });
 
         await context.SaveChangesAsync();
     }
 
+    public static async Task SeedPaymentMethods(DataContext context)
+    {
+        if (await context.RechargeMethods.AnyAsync()) return;
+
+        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "شركات التحويل", EnglishName = "Companies" });
+        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "مكاتب الصرافين", EnglishName = "Offices" });
+        await context.SaveChangesAsync();
+    }
+
+    public static async Task SeedCurrency(DataContext context)
+    {
+        if (await context.Currencies.AnyAsync()) return;
+
+        context.Currencies.Add(new Currency
+        {
+            Name = "Turkish",
+            ValuePerDollar = 20,
+        });
+        context.Currencies.Add(new Currency
+        {
+            Name = "Syrian",
+            ValuePerDollar = 6000,
+        });
+        await context.SaveChangesAsync();
+    }
+    public static async Task SeedSites(DataContext context)
+    {
+        if (await context.HostingSites.AnyAsync()) return;
+
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Fast store",
+            BaseUrl = "https://api.fast-store.co/client/api" ,
+            Token = "7515d6dd5ae4de7b4e7de94c55aea5a2ff17fa37f45da962"
+            
+        });
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Prince Cash",
+            BaseUrl = "https://api.prince-cash.com/client/api" ,
+            Token = "c9fe2310c360010d1349258c9672e98fd8a87adc827a10d4"
+        });
+        
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Speed Card",
+            BaseUrl = "https://api.speedcard.vip/client/api" ,
+            Token = "207f93847085daf3c62f1b9dc3990290b12affea9d22afe8"
+        });
+        context.HostingSites.Add(new HostingSite
+        {
+            SiteName = "Life Cash",
+            BaseUrl = "https://api.life-cash.com/client/api" ,
+            Token = "d1158cc2aaecd9afd6f8bcaca0fad78afca8d9d9c28b97b0"
+        });
+
+        await context.SaveChangesAsync();
+    }
+    /*
+    public static async Task SeedCompanies(DataContext context)
+    {
+        if (await context.ChangerAndCompanies.AnyAsync()) return;
+
+        var com = await context.RechargeMethods
+            .FirstOrDefaultAsync(x => x.Id == 2);
+        com.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "eng",
+            ArabicName = "arb"
+        });
+        com.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "popo",
+            ArabicName = "عربي"
+        });
+
+
+        var cc = await context.RechargeMethods
+            .FirstOrDefaultAsync(x => x.Id == 1);
+        cc.ChangerAndCompanies.Add(new ChangerAndCompany
+        {
+            EnglishName = "eng",
+            ArabicName = "اسم عربي"
+        });
+        await context.SaveChangesAsync();
+    }
     public static async Task SeedCategories(DataContext context)
     {
         if (await context.Categories.AnyAsync()) return;
@@ -183,91 +232,7 @@ public static class Seed
         context.Products.Add(product);
         await context.SaveChangesAsync();
     }
-
-    public static async Task SeedPayments(DataContext context)
-    {
-        if (await context.PaymentGateways.AnyAsync()) return;
-        context.PaymentGateways.Add(new PaymentGateway
-        {
-            EnglishName = "lord",
-            ArabicName = "اللورد للحوالات المالية",
-            BagAddress = "2654jhjh"
-        });
-        context.PaymentGateways.Add(new PaymentGateway
-        {
-            EnglishName = "USDT",
-            ArabicName = "USDT",
-            BagAddress = "hku5416"
-        });
-        context.PaymentGateways.Add(new PaymentGateway
-        {
-            EnglishName = "Payeer",
-            ArabicName = "Payeer",
-            BagAddress = "lscwlncwlc"
-        });
-        context.PaymentGateways.Add(new PaymentGateway
-        {
-            EnglishName = "Binance",
-            ArabicName = "Binance",
-            BagAddress = "cdncwlkcnlscm"
-        });
-
-        await context.SaveChangesAsync();
-    }
-
-    public static async Task SeedPaymentMethods(DataContext context)
-    {
-        if (await context.RechargeMethods.AnyAsync()) return;
-
-        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "شركات التحويل", EnglishName = "Companies" });
-        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "مكاتب الصرافين", EnglishName = "Offices" });
-        await context.SaveChangesAsync();
-    }
-
-    public static async Task SeedCompanies(DataContext context)
-    {
-        if (await context.ChangerAndCompanies.AnyAsync()) return;
-
-        var com = await context.RechargeMethods
-            .FirstOrDefaultAsync(x => x.Id == 2);
-        com.ChangerAndCompanies.Add(new ChangerAndCompany
-        {
-            EnglishName = "eng",
-            ArabicName = "arb"
-        });
-        com.ChangerAndCompanies.Add(new ChangerAndCompany
-        {
-            EnglishName = "popo",
-            ArabicName = "عربي"
-        });
-
-
-        var cc = await context.RechargeMethods
-            .FirstOrDefaultAsync(x => x.Id == 1);
-        cc.ChangerAndCompanies.Add(new ChangerAndCompany
-        {
-            EnglishName = "eng",
-            ArabicName = "اسم عربي"
-        });
-        await context.SaveChangesAsync();
-    }
-
-    public static async Task SeedCurrency(DataContext context)
-    {
-        if (await context.Currencies.AnyAsync()) return;
-
-        context.Currencies.Add(new Currency
-        {
-            Name = "Turkish",
-            ValuePerDollar = 20,
-        });
-        context.Currencies.Add(new Currency
-        {
-            Name = "Syrian",
-            ValuePerDollar = 6000,
-        });
-        await context.SaveChangesAsync();
-    }
+    
 
     public static async Task SeedOurAgents(DataContext context)
     {
@@ -289,38 +254,5 @@ public static class Seed
         });
 
         await context.SaveChangesAsync();
-    }
-    public static async Task SeedSites(DataContext context)
-    {
-        if (await context.HostingSites.AnyAsync()) return;
-
-        context.HostingSites.Add(new HostingSite
-        {
-            SiteName = "Fast store",
-            BaseUrl = "https://api.fast-store.co/client/api" ,
-            Token = "7515d6dd5ae4de7b4e7de94c55aea5a2ff17fa37f45da962"
-            
-        });
-        context.HostingSites.Add(new HostingSite
-        {
-            SiteName = "Prince Cash",
-            BaseUrl = "https://api.prince-cash.com/client/api" ,
-            Token = "c9fe2310c360010d1349258c9672e98fd8a87adc827a10d4"
-        });
-        
-        context.HostingSites.Add(new HostingSite
-        {
-            SiteName = "Speed Card",
-            BaseUrl = "https://api.speedcard.vip/client/api" ,
-            Token = "207f93847085daf3c62f1b9dc3990290b12affea9d22afe8"
-        });
-        context.HostingSites.Add(new HostingSite
-        {
-            SiteName = "Life Cash",
-            BaseUrl = "https://api.life-cash.com/client/api" ,
-            Token = "d1158cc2aaecd9afd6f8bcaca0fad78afca8d9d9c28b97b0"
-        });
-
-        await context.SaveChangesAsync();
-    }
+    }*/
 }

@@ -21,7 +21,7 @@ builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
 {
     builder
         .AllowAnyOrigin()
-         .WithOrigins("http://localhost:4200")
+         .WithOrigins("https://app.quickstoreqs.com")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
@@ -97,7 +97,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors(x => x
     .AllowAnyOrigin()
-    .WithOrigins("http://localhost:4200")
+    .WithOrigins("https://app.quickstoreqs.com")
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
@@ -128,15 +128,16 @@ try
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     await context.Database.MigrateAsync();
+    await Seed.SeedRoles(roleManager);
     await Seed.SeedUsers(userManager, roleManager);
-    await Seed.SeedCategories(context);
+  //  await Seed.SeedCategories(context);
     await Seed.SeedVipLevels(context);
-    await Seed.SeedProducts(context);
+  //  await Seed.SeedProducts(context);
     await Seed.SeedPayments(context);
     await Seed.SeedPaymentMethods(context);
-    await Seed.SeedCompanies(context);
+  //  await Seed.SeedCompanies(context);
     await Seed.SeedCurrency(context);
-    await Seed.SeedOurAgents(context);
+  //  await Seed.SeedOurAgents(context);
     await Seed.SeedSites(context); 
 }
 catch (Exception e)
