@@ -137,7 +137,7 @@ try
     await Seed.SeedCompanies(context);
     await Seed.SeedCurrency(context);
     await Seed.SeedOurAgents(context);
-    await Seed.SeedSites(context);
+    await Seed.SeedSites(context); 
 }
 catch (Exception e)
 {
