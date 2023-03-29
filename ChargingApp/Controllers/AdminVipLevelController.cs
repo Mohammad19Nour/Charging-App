@@ -68,8 +68,8 @@ public class AdminVipLevelController : AdminController
             double prevSum = 0;
 
             if (vips.Count > 0)
-                prevSum = vips.Last(x => x.VipLevel > 0).MinimumPurchase +
-                          vips.Last(x => x.VipLevel > 0).Purchase ;
+                prevSum = vips.Last(x => x.VipLevel >= 0).MinimumPurchase +
+                          vips.Last(x => x.VipLevel >= 0).Purchase ;
             var vip = new VIPLevel
             {
                 VipLevel = dto.VipLevel,
