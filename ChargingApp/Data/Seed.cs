@@ -36,8 +36,11 @@ public static class Seed
         {
             FirstName = "Admin",
             LastName = "Admin",
-            Email = "moh@gmail.com",
-            UserName = "moh@gmail.com",
+            Email = "Admin@Admin.com",
+            UserName = "Admin@Admin.com",
+            City = "Admin",
+            Country = "Admin",
+            PhoneNumber = "8596539",
             Balance = 10000,
             VIPLevel = 1,
             EmailConfirmed = true,
@@ -52,6 +55,7 @@ public static class Seed
 
         // normal user is considered as vip 0 so don't remove this line
         context.VipLevels.Add(new VIPLevel { BenefitPercent = 0, VipLevel = 0 });
+        context.VipLevels.Add(new VIPLevel { BenefitPercent = 10, VipLevel = 1 });
         
         await context.SaveChangesAsync();
     }
