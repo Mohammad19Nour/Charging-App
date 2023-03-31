@@ -206,8 +206,12 @@ public static class SomeUsefulFunction
         }
     }
 
-    public static async Task SendVipLevelNotification()
+    public static Dictionary<string,dynamic> GetVipLevelNotification(int lvl)
     {
+        return new Dictionary<string, dynamic>
+        {
+            { "status","Your vip level is : " + lvl }
+        };
     }
 
     public static Dictionary<string, dynamic> GetPaymentNotificationDetails(Payment order)
@@ -218,8 +222,7 @@ public static class SomeUsefulFunction
             { "status", "payment " + Status[order.Status] }
         };
     }
-
-
+    
     public static Dictionary<string, dynamic> GetOrderNotificationDetails(Order order)
     {
         return new Dictionary<string, dynamic>

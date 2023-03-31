@@ -167,6 +167,7 @@ public class UserController : BaseApiController
         }
     }
 
+    [Authorize(Policy = "Required_VIP_Role")]
     [HttpGet("account-info")]
     public async Task<ActionResult> AccountInfo()
     {
@@ -188,11 +189,21 @@ public class UserController : BaseApiController
             var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
             levels = levels.Where(x => x.VipLevel != 0).ToList();
 
+            var vipLevels = levels.Select(x => _mapper.Map<VipLevelDto>(x)).ToList();
+
+            decimal percentage = user.TotalForVIPLevel;
+            foreach (var lvl in vipLevels)
+            {
+                if (lvl.VipLevel >= user.VIPLevel) break;
+                percentage -= lvl.Purchase;
+            }
+
+            percentage = percentage / vipLevels[user.VIPLevel - 1].Purchase * 100;
             var res = new AccountInfoDto
             {
-                UserVipLevel = "VIP " + user.VIPLevel,
-                MyWallet = await GetMyWallet(user),
-                VipLevels = levels.Select(x => _mapper.Map<VipLevelDto>(x)).ToList()
+                UserVipLevel = user.VIPLevel,
+                PurchasingPercentForCurrentVipLevel = percentage,
+                VipLevels = vipLevels
             };
 
             return Ok(new ApiOkResponse(res));
@@ -211,11 +222,11 @@ public class UserController : BaseApiController
         var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
 
         var vipPurchase = user.TotalForVIPLevel;
-       
-        var t= await _unitOfWork.VipLevelRepository
+
+        var t = await _unitOfWork.VipLevelRepository
             .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
         vipPurchase -= t;
-        Console.WriteLine(t+"\n\n");
+        Console.WriteLine(t + "\n\n");
         var myWallet = new WalletDto
         {
             DollarBalance = user.Balance,

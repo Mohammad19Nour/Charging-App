@@ -39,6 +39,7 @@ public class PaymentRepository : IPaymentRepository
         if (id is null) return null;
 
         return await _context.ChangerAndCompanies
+            .Include(x=>x.RechargeMethodMethod)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 

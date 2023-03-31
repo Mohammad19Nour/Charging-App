@@ -179,7 +179,8 @@ public class OrdersController : BaseApiController
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
                 await _notificationService.VipLevelNotification(order.User.Email,
-                    "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+                    "Vip level status notification", 
+                    SomeUsefulFunction.GetVipLevelNotification(order.User.VIPLevel));
             }
 
             _unitOfWork.UserRepository.UpdateUserInfo(user);
@@ -341,6 +342,7 @@ public class OrdersController : BaseApiController
                 _unitOfWork.OtherApiRepository.DeleteOrder(order.Id);
             }
 
+            var lastVip = user.VIPLevel;
             if (!normal)
             {
                 order.User.Balance += order.TotalPrice;
@@ -350,13 +352,47 @@ public class OrdersController : BaseApiController
                     .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
             }
 
+            if (lastVip > order.User.VIPLevel)
+            {
+                var curr = new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = " تم اعادة مستواك الى vip  " + order.User.VIPLevel,
+                    EnglishDetails = "Your level is returned back to vip " + order.User.VIPLevel
+                };
+                _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+            }
+
             order.Status = 5;
             order.StatusIfCanceled = 2;
 
-            if (await _unitOfWork.Complete())
-                return Ok(new ApiResponse(201, "Cancelled successfully "));
+            var not = new OrderAndPaymentNotification()
+            {
+                User = order.User,
+                Order = order
+            };
 
-            return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = " تم الغاء الطلب رقم " + orderId,
+                    EnglishDetails = "Order with id " + orderId + " has been cancelled "
+                });
+
+
+            if (!await _unitOfWork.Complete())
+                return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
+
+            if (lastVip > user.VIPLevel)
+                await _notificationService.VipLevelNotification(order.User.Email,
+                    "Vip level status notification",
+                    SomeUsefulFunction.GetVipLevelNotification(user.VIPLevel));
+
+            await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, not,
+                "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+
+            return Ok(new ApiResponse(201, "Cancelled successfully "));
         }
         catch (Exception e)
         {
