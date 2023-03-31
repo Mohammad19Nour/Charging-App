@@ -5,7 +5,7 @@ public class PaymentDto
     public int Id { get; set; }
     public DateTime CreatedDate { get; set; }
     public string? Notes { get; set; }
-    public double AddedValue { get; set; }
+    public decimal AddedValue { get; set; }
     public string Status { get; set; }
     public string Username { get; set; }
     public string PaymentType { get; set; }

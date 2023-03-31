@@ -5,8 +5,8 @@ namespace ChargingApp.Interfaces;
 
 public interface ICurrencyRepository
 {
-    public Task<double> GetTurkishCurrency();
-    public Task<double> GetSyrianCurrency();
+    public Task<decimal> GetTurkishCurrency();
+    public Task<decimal> GetSyrianCurrency();
     public Task<List<CurrencyDto>> GetCurrencies();
     public Task<bool> CheckIfExistByNameAsync(string name);
     public void UpdateByName(Currency currency);

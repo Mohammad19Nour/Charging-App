@@ -16,7 +16,7 @@ public class ApiService : IApiService
         return list != null && list.Any(x => x.id == id);
     }
 
-    public async Task<(bool Success, string Message, int OrderId)> SendOrderAsync(int productId, double qty,
+    public async Task<(bool Success, string Message, int OrderId)> SendOrderAsync(int productId, decimal qty,
         string playerId, string baseUrl, string token)
     {
         try

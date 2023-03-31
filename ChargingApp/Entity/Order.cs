@@ -6,17 +6,17 @@ public class Order :BaseEntity
     public int UserId { get; set; }
     public Product? Product { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public double TotalPrice { get; set; }
+    public decimal TotalPrice { get; set; }
     public Photo? Photo { get; set; }
     public string? PlayerId { get; set; }
     public string PlayerName { get; set; }
     public string? ProductEnglishName { get; set; }
     public string? ProductArabicName { get; set; }
 
-    public double Price { get; set; }
+    public decimal Price { get; set; }
     public bool CanChooseQuantity { get; set; }
-    public double TotalQuantity { get; set; } = 1;
-    public double Quantity { get; set; } = 1;
+    public decimal TotalQuantity { get; set; } = 1; // total that user buy
+    public decimal Quantity { get; set; } = 1; // total in system to calc benefit reports
     public PaymentGateway? PaymentGateway { get; set; }
     public string OrderType { get; set; } = "Normal";
     public string Notes { get; set; }= "Pending";

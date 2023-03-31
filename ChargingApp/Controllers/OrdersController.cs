@@ -20,7 +20,7 @@ public class OrdersController : BaseApiController
     private readonly INotificationService _notificationService;
 
     public OrdersController(IUnitOfWork unitOfWork, IMapper mapper, IApiService apiService
-        , IPhotoService photoService,INotificationService notificationService)
+        , IPhotoService photoService, INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -122,8 +122,18 @@ public class OrdersController : BaseApiController
 
                 var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
                     .GetProductPriceForUserAsync(product.Id, user);
-                order.TotalPrice = specificPrice ?? product.Price;
+
+                if (specificPrice != null)
+                {
+                    order.TotalQuantity = product.Quantity;
+                    order.TotalPrice = (decimal)specificPrice;
+                }
+                else
+                    order.TotalPrice = product.Price;
+
                 order.Quantity = product.Quantity;
+                user.TotalPurchasing += order.TotalPrice;
+                user.TotalForVIPLevel += order.TotalPrice;
             }
 
             if (order.TotalPrice > user.Balance)
@@ -154,8 +164,6 @@ public class OrdersController : BaseApiController
                 });
             }
 
-            user.TotalPurchasing += order.TotalPrice;
-            user.TotalForVIPLevel += order.TotalPrice;
             user.Balance -= order.TotalPrice;
             order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
@@ -173,6 +181,7 @@ public class OrdersController : BaseApiController
                 await _notificationService.VipLevelNotification(order.User.Email,
                     "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
             }
+
             _unitOfWork.UserRepository.UpdateUserInfo(user);
             _unitOfWork.OrdersRepository.AddOrder(order);
 
@@ -255,12 +264,9 @@ public class OrdersController : BaseApiController
             else
             {
                 order.TotalQuantity = await
-                    SomeUsefulFunction.CalcTotalQuantity((int)dto.Quantity, product, user, _unitOfWork);
+                    SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
 
-                var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
-                    .GetProductPriceForUserAsync(product.Id, user);
-
-                order.TotalPrice = specificPrice ?? product.Price;
+                order.TotalPrice = product.Price;
                 order.Quantity = product.Quantity;
             }
 

@@ -70,27 +70,34 @@ public static class IdentityServiceExtensions
                         var userManager = context.HttpContext.RequestServices
                             .GetRequiredService<UserManager<AppUser>>();
                         var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
-                        if (claimsIdentity is null) context.Fail("Unauthorized");
-
-                        var email = claimsIdentity?.FindFirst(ClaimTypes.Email)?.Value;
-
-                        if (email is null)
-                        {
+                        if (claimsIdentity is null)
                             context.Fail("Unauthorized");
-                        }
-
-                        var user = await userManager.FindByEmailAsync(email);
-                        if (user == null)
+                        else
                         {
-                            context.Fail("Unauthorized");
+                            var email = claimsIdentity?.FindFirst(ClaimTypes.Email)?.Value;
+
+                            if (email is null)
+                            {
+                                context.Fail("Unauthorized");
+                            }
+                            else
+                            {
+                                var user = await userManager.FindByEmailAsync(email);
+                                if (user == null)
+                                {
+                                    context.Fail("Unauthorized");
+                                }
+                                else
+                                {
+                                    var roles = await userManager.GetRolesAsync(user);
+
+                                    // Add the custom claim to the bearer token
+                                    var identity = new ClaimsIdentity();
+                                    identity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+                                    context.Principal?.AddIdentity(identity);
+                                }
+                            }
                         }
-
-                        var roles = await userManager.GetRolesAsync(user);
-
-                        // Add the custom claim to the bearer token
-                        var identity = new ClaimsIdentity();
-                        identity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
-                        context.Principal?.AddIdentity(identity);
                     },
                     OnMessageReceived = context =>
                     {

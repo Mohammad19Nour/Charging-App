@@ -18,7 +18,7 @@ public class CurrencyRepository : ICurrencyRepository
         _mapper = mapper;
     }
 
-    private async Task<double> GetCurrencyByName(string currencyName)
+    private async Task<decimal> GetCurrencyByName(string currencyName)
     {
         currencyName = currencyName.ToLower();
         return (await _context.Currencies
@@ -28,12 +28,12 @@ public class CurrencyRepository : ICurrencyRepository
             ).ValuePerDollar;
     }
 
-    public async Task<double> GetTurkishCurrency()
+    public async Task<decimal> GetTurkishCurrency()
     {
         return await GetCurrencyByName("turkish");
     }
 
-    public async Task<double> GetSyrianCurrency()
+    public async Task<decimal> GetSyrianCurrency()
     {
         return await GetCurrencyByName("syrian");
     }

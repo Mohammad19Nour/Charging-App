@@ -104,7 +104,7 @@ public class AccountController : BaseApiController
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+    public async Task<IActionResult> Login(LoginDto loginDto)
     {
         try
         {
@@ -121,38 +121,57 @@ public class AccountController : BaseApiController
                 return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
             }
 
-            var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-            var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
-            var vipPurchase = user.TotalForVIPLevel;
-            vipPurchase -= await _unitOfWork.VipLevelRepository
-                .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
+            var roles =await  _userManager.GetRolesAsync(user);
 
-            var myWallet = new WalletDto
+            if (roles.Any(x => x.ToLower() == "vip"))
             {
-                DollarBalance = user.Balance,
-                SyrianBalance = user.Balance * syrian,
-                TurkishBalance = user.Balance * turkish,
 
-                DollarDebit = user.Debit,
-                SyrianDebit = user.Debit * syrian,
-                TurkishDebit = user.Debit * turkish,
+                var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+                var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+                var vipPurchase = user.TotalForVIPLevel;
+                vipPurchase -= await _unitOfWork.VipLevelRepository
+                    .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
 
-                DollarTotalPurchase = user.TotalPurchasing,
-                SyrianTotalPurchase = user.TotalPurchasing * syrian,
-                TurkishTotalPurchase = user.TotalPurchasing * turkish,
-                
-                TurkishVIPPurchase = vipPurchase * turkish,
-                SurianVIPPurchase = vipPurchase * syrian,
-                DollarVIPPurchase = vipPurchase
-            };
-            if (user.Debit > 0)
-            {
-                myWallet.TurkishBalance *= -1;
-                myWallet.SyrianBalance *= -1;
-                myWallet.DollarBalance *= -1;
+                var myWallet = new WalletDto
+                {
+                    DollarBalance = user.Balance,
+                    SyrianBalance = user.Balance * syrian,
+                    TurkishBalance = user.Balance * turkish,
+
+                    DollarDebit = user.Debit,
+                    SyrianDebit = user.Debit * syrian,
+                    TurkishDebit = user.Debit * turkish,
+
+                    DollarTotalPurchase = user.TotalPurchasing,
+                    SyrianTotalPurchase = user.TotalPurchasing * syrian,
+                    TurkishTotalPurchase = user.TotalPurchasing * turkish,
+
+                    TurkishVIPPurchase = vipPurchase * turkish,
+                    SurianVIPPurchase = vipPurchase * syrian,
+                    DollarVIPPurchase = vipPurchase
+                };
+                if (user.Debit > 0)
+                {
+                    myWallet.TurkishBalance *= -1;
+                    myWallet.SyrianBalance *= -1;
+                    myWallet.DollarBalance *= -1;
+                }
+
+                return Ok(new UserDto
+                {
+                    Email = user.Email.ToLower(),
+                    FirstName = user.FirstName.ToLower(),
+                    LastName = user.LastName.ToLower(),
+                    Token = await _tokenService.CreateToken(user),
+                    PhoneNumber = user.PhoneNumber,
+                    City = user.City,
+                    Country = user.Country,
+                    MyWallet = myWallet,
+                    AccountType = "Vip " + (user.VIPLevel)
+                });
             }
 
-            var x = new UserDto
+            var normalUser = new NormalUserDto
             {
                 Email = user.Email.ToLower(),
                 FirstName = user.FirstName.ToLower(),
@@ -161,15 +180,9 @@ public class AccountController : BaseApiController
                 PhoneNumber = user.PhoneNumber,
                 City = user.City,
                 Country = user.Country,
-                MyWallet = myWallet,
-                AccountType = user.VIPLevel switch
-                {
-                    0 => "Normal",
-                    _ => "Vip " + (user.VIPLevel)
-                }
+                AccountType = "Normal"
             };
-
-            return Ok(new ApiOkResponse(x));
+            return Ok(new ApiOkResponse(normalUser));
         }
         catch (Exception e)
         {

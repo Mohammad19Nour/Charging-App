@@ -2,20 +2,20 @@
 
 public class WalletDto
 {
-    public double TurkishBalance { get; set; }
-    public double SyrianBalance { get; set; }
-    public double DollarBalance { get; set; }
+    public decimal TurkishBalance { get; set; }
+    public decimal SyrianBalance { get; set; }
+    public decimal DollarBalance { get; set; }
     
-    public double TurkishTotalPurchase { get; set; }
-    public double SyrianTotalPurchase { get; set; }
-    public double DollarTotalPurchase { get; set; }
+    public decimal TurkishTotalPurchase { get; set; }
+    public decimal SyrianTotalPurchase { get; set; }
+    public decimal DollarTotalPurchase { get; set; }
 
-    public double TurkishDebit { get; set; }
-    public double SyrianDebit { get; set; }
-    public double DollarDebit { get; set; }
+    public decimal TurkishDebit { get; set; }
+    public decimal SyrianDebit { get; set; }
+    public decimal DollarDebit { get; set; }
 
-    public double DollarVIPPurchase { get; set; }
-    public double SurianVIPPurchase { get; set; }
-    public double TurkishVIPPurchase { get; set; }
+    public decimal DollarVIPPurchase { get; set; }
+    public decimal SurianVIPPurchase { get; set; }
+    public decimal TurkishVIPPurchase { get; set; }
 
 }

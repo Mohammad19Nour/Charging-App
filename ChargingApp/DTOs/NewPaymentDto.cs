@@ -6,7 +6,7 @@ public class NewPaymentDto
 {
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string? Notes { get; set; }
-    [Required] public double AddedValue { get; set; }
+    [Required] public decimal AddedValue { get; set; }
     [Required] public IFormFile ImageFile { get; set; }
 }
 

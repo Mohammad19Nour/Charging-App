@@ -41,8 +41,8 @@ public class OrdersRepository : IOrdersRepository
     {
         return await _context.Orders
             .Include(u => u.User)
-            .Include(x=>x.Product)
-            .Include(x=>x.Photo)
+            .Include(x => x.Product)
+            .Include(x => x.Photo)
             .FirstOrDefaultAsync(x => x.Id == orderId);
     }
 
@@ -94,23 +94,24 @@ public class OrdersRepository : IOrdersRepository
     }
 
 
-    public async Task<List<Order>> GetPendingOrdersAsync(string email = "" )
+    public async Task<List<Order>> GetPendingOrdersAsync(string email = "")
     {
         email = email.ToLower();
-        
+
         var res = _context.Orders
             .Include(x => x.Photo)
             .Include(x => x.User)
             .Include(x => x.Product)
-           // .OrderByDescending(x => x.CreatedAt)
+            // .OrderByDescending(x => x.CreatedAt)
             .Where(x => x.Status == 0 || x.Status == 4);
-        
+
         if (!string.IsNullOrEmpty(email))
             res = res.Where(x => x.User.Email == email);
 
+
+        res = res.OrderByDescending(x => x.CreatedAt);
         var ret = await res.ToListAsync();
-        Console.WriteLine(ret.Count+"\n\n");
-         return ret;
+        return ret;
     }
 
     public async Task<bool> CheckPendingOrdersForUserByEmailAsync(string email)
@@ -142,6 +143,8 @@ public class OrdersRepository : IOrdersRepository
             query = query.Where(x => x.CreatedAt.Year == dto.Year);
         if (userEmail != null)
             query = query.Where(x => x.User.Email == userEmail);
+
+        query = query.OrderByDescending(x => x.CreatedAt);
 
         return await query.ToListAsync();
     }

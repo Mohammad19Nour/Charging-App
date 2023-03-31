@@ -6,9 +6,9 @@ public class OrderDto
     public DateTime CreatedAt { get; set; }
     public string ProductEnglishName { get; set; }
     public string ProductArabicName { get; set; }
-    public double TotalPrice { get; set; }
+    public decimal TotalPrice { get; set; }
     public string PlayerId { get; set; }
-    public double TotalQuantity { get; set; }
+    public decimal TotalQuantity { get; set; }
     public string Status { get; set; }
     public string Notes { get; set; }
     public string StatusIfCanceled { get; set; }

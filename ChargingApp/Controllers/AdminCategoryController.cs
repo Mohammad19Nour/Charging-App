@@ -23,13 +23,27 @@ public class AdminCategoryController : AdminController
     }
 
     [Authorize(Policy = "Required_Admins_Role")]
+    [HttpGet("category/{id:int}")]
+    public async Task<ActionResult<CategoryResultDto>> GetCategory(int id)
+    {
+        var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(id);
+
+        if (category == null)
+            return BadRequest(new ApiResponse(400, "Can't find category with id " + id));
+        return new CategoryResultDto
+        {
+            Category = await _unitOfWork.CategoryRepository.GetCategoryByIdProjectedAsync(id)
+        };
+    }
+
+    [Authorize(Policy = "Required_Admins_Role")]
     [HttpPost("add-category")]
     public async Task<ActionResult> AddCategory([FromForm] NewCategoryDto dto)
     {
         try
         {
             if (dto.ImageFile is null)
-                return BadRequest(new ApiResponse(400, "image file is null"));
+                return BadRequest(new ApiResponse(400, "Image file is required"));
 
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
 
@@ -85,11 +99,10 @@ public class AdminCategoryController : AdminController
             if (!_unitOfWork.HasChanges() || !tmp) return BadRequest(new ApiResponse(400, "Failed to delete category"));
 
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to update photo"));
-               
+
             if (name != null) await _photoService.DeletePhotoAsync(name);
 
             return Ok(new ApiResponse(201, "Deleted successfully"));
-
         }
         catch (Exception e)
         {
@@ -149,9 +162,9 @@ public class AdminCategoryController : AdminController
 
         if (await _unitOfWork.Complete())
         {
-            return Ok(new ApiResponse(200, "File uploaded successfully."));
+            return Ok(new ApiResponse(200, "Image updated successfully."));
         }
 
-        return BadRequest(new ApiResponse(400, "Failed"));
+        return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
     }
 }

@@ -13,7 +13,7 @@ public class BenefitPercentInSpecificVipLevelRepository : IBenefitPercentInSpeci
         _context = context;
     }
 
-    public async Task<double?> GetBenefitPercentForProductAsync(int productId, int vipLevel)
+    public async Task<decimal?> GetBenefitPercentForProductAsync(int productId, int vipLevel)
     {
         var tmp = await _context.SpecificBenefit
             .Where(x => x.ProductId == productId)

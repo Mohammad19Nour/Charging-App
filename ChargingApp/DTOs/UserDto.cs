@@ -23,6 +23,13 @@ public class UserDto : UserInfo
     
 }
 
+public class NormalUserDto : UserInfo
+{
+    public string AccountType { get; set; }
+    public string Email { get; set; }
+    public string Token { get; set; }
+}
+
 public class UserInfoDto : UserInfo
 { 
     
@@ -30,4 +37,13 @@ public class UserInfoDto : UserInfo
     public string AccountType { get; set; }
     
     public WalletDto MyWallet { get; set; }
+}
+
+
+public class NormalUserInfoDto : UserInfo
+{ 
+    
+    public string Email { get; set; }
+    public string AccountType { get; set; }
+    
 }
