@@ -1,6 +1,7 @@
 ﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,11 +14,14 @@ public class AdminUserController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
+    private readonly INotificationService _notificationService;
 
-    public AdminUserController(IUnitOfWork unitOfWork, UserManager<AppUser> userManager)
+    public AdminUserController(IUnitOfWork unitOfWork, UserManager<AppUser> userManager
+        , INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
+        _notificationService = notificationService;
     }
 
     [HttpPost("update-user-vip-level")]
@@ -54,9 +58,22 @@ public class AdminUserController : AdminController
                 .GetMinimumPurchasingForVipLevelAsync(newVipLevel);
 
             _unitOfWork.UserRepository.UpdateUserInfo(user);
-            
+            var curr = new NotificationHistory
+            {
+                User = user,
+                ArabicDetails = " تم ترقية مستواك الى vip " + user.VIPLevel,
+                EnglishDetails = "Your level is upgrade to vip " + user.VIPLevel
+            };
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+
             if (await _unitOfWork.Complete())
+            {
+                await _notificationService.VipLevelNotification(user.Email,
+                    "Vip level status notification",
+                    SomeUsefulFunction.GetVipLevelNotification(user.VIPLevel));
+
                 return Ok(new ApiResponse(200, "updated successfully"));
+            }
 
             return BadRequest(new ApiResponse(400, "Failed to update user vip level"));
         }
@@ -96,7 +113,7 @@ public class AdminUserController : AdminController
                 User = user,
                 DebitValue = debitValue
             });
-            
+
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "added successfully"));
 

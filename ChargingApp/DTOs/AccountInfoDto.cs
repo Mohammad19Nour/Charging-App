@@ -2,9 +2,9 @@
 
 public class AccountInfoDto
 {
-    public string UserVipLevel { get; set; }
-    public WalletDto MyWallet { get; set; }
+    public int UserVipLevel { get; set; }
     public List<VipLevelDto> VipLevels { get; set; }
+    public decimal PurchasingPercentForCurrentVipLevel { get; set; }
 
 
     
