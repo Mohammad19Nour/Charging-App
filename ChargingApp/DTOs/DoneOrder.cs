@@ -1,0 +1,16 @@
+﻿namespace ChargingApp.DTOs;
+
+public class DoneOrder
+{
+    public int Id { get; set; }
+    public decimal TotalPrice { get; set; }
+    public string PlayerId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public decimal Quantity { get; set; } = 1;
+    public string ProductEnglishName { get; set; }
+    public string ProductArabicName { get; set; }
+    public string UserName { get; set; }
+    public string OrderType { get; set; } = "Normal";
+    public string Photo { get; set; }
+    public string Status { get; set; } = "Succeed";
+}

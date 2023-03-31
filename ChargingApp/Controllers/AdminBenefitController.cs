@@ -20,7 +20,7 @@ public class AdminBenefitController : AdminController
     }
 
     [HttpPost("add-specific-benefit-for-product")]
-    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId, int vipLevel, double benefitPercent)
+    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId, int vipLevel, decimal benefitPercent)
     {
         try
         {

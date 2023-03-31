@@ -14,14 +14,31 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
+        CreateMap<Order, DoneOrder>().ForMember(dest => dest.Status, opt =>
+                opt.MapFrom(src => status[src.Status]))
+            .ForMember(dest => dest.UserName, opt =>
+                opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
+            .ForMember(dest => dest.Status, opt =>
+                opt.MapFrom(src => status[src.Status]))
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(src =>
+                    src.Photo == null ? "No Photo" : BaseUrl + src.Photo.Url))
+            .ForMember(dest => dest.Quantity, opt =>
+                opt.MapFrom(src =>
+                    src.TotalQuantity));
+        ;
         CreateMap<AppUser, AdminDto>();
         CreateMap<ProductToUpdateDto, Product>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ProductWithQuantityToUpdateDto, Product>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
-        CreateMap<VIPLevel, VipLevelDto>();
-        CreateMap<VIPLevel, AdminVipLevelDto>();
+        CreateMap<VIPLevel, VipLevelDto>()
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(x => BaseUrl + x.Photo.Url));
+        CreateMap<VIPLevel, AdminVipLevelDto>().ForMember(dest => dest.Photo, opt =>
+            opt.MapFrom(x => BaseUrl + x.Photo.Url));
+        ;
         CreateMap<SliderPhoto, SliderPhotoDto>()
             .ForMember(dest => dest.Photo, opt =>
                 opt.MapFrom(x => BaseUrl + x.Photo.Url));
@@ -73,6 +90,8 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
+        CreateMap<AppUser, NormalUserInfoDto>().ForMember(dest => dest.AccountType, opt =>
+            opt.MapFrom(src => "Normal"));
 
         CreateMap<CategoryUpdateDto, Category>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));

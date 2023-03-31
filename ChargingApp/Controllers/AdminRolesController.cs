@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 
 namespace ChargingApp.Controllers;
 
@@ -12,10 +11,12 @@ namespace ChargingApp.Controllers;
 public class AdminRolesController : AdminController
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
 
-    public AdminRolesController(UserManager<AppUser> userManager)
+    public AdminRolesController(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     [HttpGet("users-with-roles")]
@@ -75,6 +76,20 @@ public class AdminRolesController : AdminController
 
         if (selectedRoles.Length == 0)
             return BadRequest(new ApiResponse(400, "should specify some roles other than vip"));
+
+        if (selectedRoles.Any(x => x.ToLower() == "admin"))
+            return BadRequest(new ApiResponse(400, "can't add admin role"));
+
+        var appRoles = await _roleManager.Roles.ToListAsync();
+
+        foreach (var dtoRole in selectedRoles)
+        {
+            var ok = appRoles.Any(x => x.Name.ToLower() == dtoRole.ToLower());
+
+            if (!ok)
+                return BadRequest(new ApiResponse(400, "Role " + dtoRole + " not found"));
+            
+        }
 
         var userRoles = await _userManager.GetRolesAsync(user);
         userRoles = userRoles.Select(x => x.ToLower()).ToArray();

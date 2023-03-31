@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ChargingApp.DTOs;
 using ChargingApp.Errors;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ public class AdminReportController : BaseApiController
     {
         try
         {
-            var (ans, msg) = CheckDate(dto);
+            var (ans, msg) = SomeUsefulFunction.CheckDate(dto);
 
             if (!ans) return BadRequest(new ApiResponse(400, msg));
 
@@ -43,7 +44,7 @@ public class AdminReportController : BaseApiController
     {
         try
         {
-            var (ans, msg) = CheckDate(dto);
+            var (ans, msg) = SomeUsefulFunction.CheckDate(dto);
 
             if (!ans) return BadRequest(new ApiResponse(400, msg));
 
@@ -63,13 +64,13 @@ public class AdminReportController : BaseApiController
     {
         try
         {
-            var (ans, msg) = CheckDate(dto);
+            var (ans, msg) = SomeUsefulFunction.CheckDate(dto);
 
             if (!ans) return BadRequest(new ApiResponse(400, msg));
 
             var res = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
+            res = res.Where(x => x.Status == 1).ToList();
             var listOfSells = res.Select(x => _mapper.Map<SellsDto>(x));
-
             var sellsDto = listOfSells as SellsDto[] ?? listOfSells.ToArray();
             var totalPurchasing = sellsDto.Sum(x => x.TotalPrice);
 
@@ -82,31 +83,28 @@ public class AdminReportController : BaseApiController
         }
     }
 
-    private (bool Res, string Message) CheckDate(DateQueryDto dto)
+    private async Task<decimal> CalcBenefit(DateQueryDto dto)
     {
-        if (dto.Year == null)
-            return (false, "you should specify year");
-
-        if (dto.Month is null && dto.Day != null)
-            return (false, "you should specify month of day");
-
-        return (true, "");
-    }
-
-    private async Task<double> CalcBenefit(DateQueryDto dto)
-    {
-        var res = 0.0;
+        decimal res = 0;
         var doneOrders = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
 
+        doneOrders = doneOrders.Where(x => x.Status == 1).ToList();
         foreach (var t in doneOrders)
         {
             if (!t.CanChooseQuantity)
                 res += t.TotalPrice - t.Price * t.TotalQuantity;
             else
             {
-                var perUnit = t.Price / t.Quantity;
-                var rem = t.Quantity - t.TotalQuantity;
-                res += rem * perUnit;
+                if (t.Price == t.TotalPrice)
+                {
+                    var perUnit = t.Price / t.Quantity;
+                    var rem = t.Quantity - t.TotalQuantity;
+                    res += rem * perUnit;
+                }
+                else
+                {
+                    res += t.TotalPrice - t.Price;
+                }
             }
         }
 

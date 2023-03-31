@@ -15,12 +15,15 @@ public class VipLevelRepository :IVipLevelRepository
 
     public async Task<List<VIPLevel>> GetAllVipLevelsAsync()
     {
-        return await _context.VipLevels.ToListAsync();
+        return await _context.VipLevels
+            .Include(x=>x.Photo)
+            .ToListAsync();
     }
 
-    public async Task<double> GetBenefitPercentForVipLevel(int vipLevel)
+    public async Task<decimal> GetBenefitPercentForVipLevel(int vipLevel)
     {
-        var res = await _context.VipLevels.FirstAsync(x => x.VipLevel == vipLevel);
+        var res = await _context.VipLevels
+            .FirstAsync(x => x.VipLevel == vipLevel);
         
         return res.BenefitPercent;
     } 
@@ -30,7 +33,7 @@ public class VipLevelRepository :IVipLevelRepository
         return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel) != null;
     }
 
-    public async Task<int> GetVipLevelForPurchasingAsync(double purchase)
+    public async Task<int> GetVipLevelForPurchasingAsync(decimal purchase)
     {
         var res = await _context.VipLevels
             .Where(x => x.VipLevel != 0)
@@ -42,7 +45,7 @@ public class VipLevelRepository :IVipLevelRepository
         return res?.VipLevel ?? 1;
     }
 
-    public async Task<double> GetMinimumPurchasingForVipLevelAsync(int vipLevel)
+    public async Task<decimal> GetMinimumPurchasingForVipLevelAsync(int vipLevel)
     {
         var v = await _context.VipLevels
             .Where(x => x.VipLevel == vipLevel)
@@ -52,10 +55,12 @@ public class VipLevelRepository :IVipLevelRepository
 
     public async Task<VIPLevel?> GetVipLevelAsync(int vipLevel)
     {
-        return await _context.VipLevels.FirstOrDefaultAsync(x => x.VipLevel == vipLevel);
+        return await _context.VipLevels
+            .Include(x=>x.Photo)
+            .FirstOrDefaultAsync(x => x.VipLevel == vipLevel);
     }
 
-    public async Task<bool> CheckIfMinimumPurchasingIsValidAsync(double minPurchasing)
+    public async Task<bool> CheckIfMinimumPurchasingIsValidAsync(decimal minPurchasing)
     {
         return await _context.VipLevels
             .Where(x=>x.VipLevel > 0)

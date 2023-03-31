@@ -9,7 +9,7 @@ public class SellsDto
     public string? PlayerId { get; set; }
     public string ProductEnglishName { get; set; }
     public string ProductArabicName { get; set; }
-    public double TotalPrice { get; set; }
-    public double TotalQuantity { get; set; } = 1;
+    public decimal TotalPrice { get; set; }
+    public decimal TotalQuantity { get; set; } = 1;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -63,40 +63,46 @@ public class UserController : BaseApiController
 
             if (user is null) return Unauthorized(new ApiResponse(401));
 
-            var res = _mapper.Map<UserInfoDto>(user);
-
-            var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
-            var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
-            var vipPurchase = user.TotalForVIPLevel;
-            vipPurchase -= await _unitOfWork.VipLevelRepository
-                .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
-
-            res.MyWallet = new WalletDto
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(x => x.ToLower() == "vip"))
             {
-                DollarBalance = user.Balance,
-                SyrianBalance = user.Balance * syrian,
-                TurkishBalance = user.Balance * turkish,
+                var res = _mapper.Map<UserInfoDto>(user);
 
-                DollarDebit = user.Debit,
-                SyrianDebit = user.Debit * syrian,
-                TurkishDebit = user.Debit * turkish,
+                var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
+                var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
+                var vipPurchase = user.TotalForVIPLevel;
+                vipPurchase -= await _unitOfWork.VipLevelRepository
+                    .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
+
+                res.MyWallet = new WalletDto
+                {
+                    DollarBalance = user.Balance,
+                    SyrianBalance = user.Balance * syrian,
+                    TurkishBalance = user.Balance * turkish,
+
+                    DollarDebit = user.Debit,
+                    SyrianDebit = user.Debit * syrian,
+                    TurkishDebit = user.Debit * turkish,
 
 
-                DollarTotalPurchase = user.TotalPurchasing,
-                SyrianTotalPurchase = user.TotalPurchasing * syrian,
-                TurkishTotalPurchase = user.TotalPurchasing * turkish,
+                    DollarTotalPurchase = user.TotalPurchasing,
+                    SyrianTotalPurchase = user.TotalPurchasing * syrian,
+                    TurkishTotalPurchase = user.TotalPurchasing * turkish,
 
-                TurkishVIPPurchase = vipPurchase * turkish,
-                SurianVIPPurchase = vipPurchase * syrian,
-                DollarVIPPurchase = vipPurchase
-            };
-            if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
+                    TurkishVIPPurchase = vipPurchase * turkish,
+                    SurianVIPPurchase = vipPurchase * syrian,
+                    DollarVIPPurchase = vipPurchase
+                };
+                if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
 
-            res.MyWallet.TurkishBalance *= -1;
-            res.MyWallet.SyrianBalance *= -1;
-            res.MyWallet.DollarBalance *= -1;
+                res.MyWallet.TurkishBalance *= -1;
+                res.MyWallet.SyrianBalance *= -1;
+                res.MyWallet.DollarBalance *= -1;
 
-            return Ok(new ApiOkResponse(res));
+                return Ok(new ApiOkResponse(res));
+            }
+
+            return Ok(new ApiOkResponse(_mapper.Map<NormalUserInfoDto>(user)));
         }
         catch (Exception e)
         {

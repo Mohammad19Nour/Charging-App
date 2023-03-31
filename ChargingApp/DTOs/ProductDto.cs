@@ -14,8 +14,8 @@ public class ProductDto : ProductInfo
 {
     public int Id { get; set; }
     public string Photo { get; set; }
-    public double TurkishPrice { get; set; }
-    public double SyrianPrice { get; set; }
-    public double Price { get; set; }
-    public double Quantity { get; set; }
+    public decimal TurkishPrice { get; set; }
+    public decimal SyrianPrice { get; set; }
+    public decimal Price { get; set; }
+    public decimal Quantity { get; set; }
 }

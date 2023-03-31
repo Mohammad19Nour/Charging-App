@@ -196,7 +196,7 @@ public class AdminProductController : AdminController
             return BadRequest(new ApiResponse(400, "can't update product with qty"));
 
         if (dto.Price != null)
-            product.Price = (double)dto.Price;
+            product.Price = (decimal)dto.Price;
 
         if (dto.Available != null)
             product.Available = (bool)dto.Available;
@@ -230,10 +230,10 @@ public class AdminProductController : AdminController
             return BadRequest(new ApiResponse(400, "can't update product without qty"));
 
         if (dto.Price != null)
-            product.Price = (double)dto.Price;
+            product.Price = (decimal)dto.Price;
 
         if (dto.Quantity != null)
-            product.Quantity = (double)dto.Quantity;
+            product.Quantity = (decimal)dto.Quantity;
 
         if (dto.Available != null)
             product.Available = (bool)dto.Available;

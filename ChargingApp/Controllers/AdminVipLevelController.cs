@@ -14,11 +14,14 @@ public class AdminVipLevelController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPhotoService _photoService;
 
-    public AdminVipLevelController(IUnitOfWork unitOfWork , IMapper mapper)
+    public AdminVipLevelController(IUnitOfWork unitOfWork, IMapper mapper
+        , IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _photoService = photoService;
     }
 
     [HttpGet("vip-levels")]
@@ -41,7 +44,7 @@ public class AdminVipLevelController : AdminController
     }
 
     [HttpPost("add-new-vip-level")]
-    public async Task<ActionResult> AddNewVipLevel([FromBody] NewVipLevel dto)
+    public async Task<ActionResult<AdminVipLevelDto>> AddNewVipLevel([FromForm] NewVipLevel dto)
     {
         try
         {
@@ -51,7 +54,7 @@ public class AdminVipLevelController : AdminController
                 return BadRequest(new ApiResponse(400, "Vip level already exist"));
 
             var vips = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
-            vips.Sort((x , y) =>x.Id.CompareTo(y.Id));
+            vips.Sort((x, y) => x.Id.CompareTo(y.Id));
 
             if (vips.Count > 1)
             {
@@ -59,28 +62,39 @@ public class AdminVipLevelController : AdminController
                 var last = vips.Last().VipLevel;
 
                 if (dto.VipLevel != 1 + last)
-                    return BadRequest(new ApiResponse(400, "vip level should be " + last + 1));
+                    return BadRequest(new ApiResponse(400, "vip level should be " + (last + 1) ));
             }
 
             else if (dto.VipLevel != 1)
                 return BadRequest(new ApiResponse(400, "vip level should be " + 1));
 
-            double prevSum = 0;
+            if (dto.ImageFile == null)
+                return BadRequest(new ApiResponse(400, "Image file is required"));
+
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, "Failed to upload photo  " + result.Message));
+
+            decimal prevSum = 0;
 
             if (vips.Count > 0)
                 prevSum = vips.Last(x => x.VipLevel >= 0).MinimumPurchase +
-                          vips.Last(x => x.VipLevel >= 0).Purchase ;
+                          vips.Last(x => x.VipLevel >= 0).Purchase;
             var vip = new VIPLevel
             {
                 VipLevel = dto.VipLevel,
-                Purchase = dto.MinimumPurchase,
+                Purchase = dto.Purchase,
                 BenefitPercent = dto.BenefitPercent,
-                MinimumPurchase = prevSum
+                MinimumPurchase = prevSum,
+                Photo = new Photo { Url = result.Url }
             };
+
             _unitOfWork.VipLevelRepository.AddVipLevel(vip);
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiResponse(200));
+                return Ok(new ApiOkResponse(_mapper.Map<AdminVipLevelDto>(vip)));
+
             return BadRequest(new ApiResponse(400, "something went wrong"));
         }
         catch (Exception e)
@@ -101,16 +115,15 @@ public class AdminVipLevelController : AdminController
 
             var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
 
-          
             if (dto.BenefitPercent != null)
-                levels[vipLevel].BenefitPercent = (double)dto.BenefitPercent;
+                levels[vipLevel].BenefitPercent = (decimal)dto.BenefitPercent;
 
-            if (dto.MinimumPurchase != null && vipLevel != 0)
-                levels[vipLevel].Purchase = (double)dto.MinimumPurchase;
+            if (dto.Purchase != null && vipLevel != 0)
+                levels[vipLevel].Purchase = (decimal)dto.Purchase;
 
             for (int j = 1; j < levels.Count; j++)
             {
-                levels[j].MinimumPurchase = levels[j-1].MinimumPurchase+levels[j-1].Purchase;
+                levels[j].MinimumPurchase = levels[j - 1].MinimumPurchase + levels[j - 1].Purchase;
                 _unitOfWork.VipLevelRepository.UpdateVipLevel(levels[j]);
             }
 
@@ -123,5 +136,33 @@ public class AdminVipLevelController : AdminController
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    [HttpPut("update-photo/{vipLevelId:int}")]
+    public async Task<ActionResult> UpdateImage(int vipLevelId, IFormFile? imageFile)
+    {
+        var vipLevel = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(vipLevelId);
+
+        if (vipLevel == null)
+            return BadRequest(new ApiResponse(400, "Vip level " + vipLevelId
+                                                                + " not found"));
+        if (imageFile == null) return BadRequest(new ApiResponse(400, "Image file is required"));
+
+        var result = await _photoService.AddPhotoAsync(imageFile);
+
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
+
+        var name = vipLevel.Photo.Url;
+        vipLevel.Photo.Url = result.Url;
+
+        _unitOfWork.VipLevelRepository.UpdateVipLevel(vipLevel);
+
+        if (!await _unitOfWork.Complete())
+            return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
+
+        if (name != null) await _photoService.DeletePhotoAsync(name);
+
+        return Ok(new ApiResponse(200, "Image updated successfully."));
     }
 }

@@ -148,6 +148,10 @@ public class AdminOrderController : AdminController
                 return BadRequest(new ApiResponse(400, "this order already checked"));
             }
 
+            if (order.Product == null)
+                return BadRequest(new ApiResponse(400
+                    , "The product not found.. it maybe deleted"));
+
             var tmp = await _unitOfWork.OtherApiRepository
                 .CheckIfProductExistAsync(order.Product.Id, true); //from other site
 
@@ -164,10 +168,11 @@ public class AdminOrderController : AdminController
                     .GetApiProductIdAsync(order.Product.Id);
 
                 var hostingSite = (await _unitOfWork.OtherApiRepository
-                    .GetOrderByOurIdAsync(orderId)).HostingSite; 
+                    .GetOrderByOurIdAsync(orderId)).HostingSite;
+
                 var response = await _apiService
-                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId,hostingSite.BaseUrl
-                    ,hostingSite.Token);
+                    .SendOrderAsync(apiId, order.TotalQuantity, order.PlayerId, hostingSite.BaseUrl
+                        , hostingSite.Token);
 
                 if (!response.Success)
                 {
@@ -207,6 +212,8 @@ public class AdminOrderController : AdminController
                 return BadRequest(new ApiResponse(400, "Failed to approve order"));
             }
 
+            order.Status = 1; // accepted
+
             if (order.OrderType.ToLower() == "vip")
             {
                 order.User.TotalPurchasing -= order.TotalPrice;
@@ -229,12 +236,24 @@ public class AdminOrderController : AdminController
                         order.TotalQuantity = await
                             SomeUsefulFunction.CalcTotalQuantity(order.Product.Quantity, order.Product
                                 , order.User, _unitOfWork);
+                    var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                        .GetProductPriceForUserAsync(order.Product.Id, order.User);
+
+                    order.Quantity = order.Product.Quantity;
+                    if (specificPrice != null)
+                    {
+                        order.TotalPrice = (decimal)specificPrice;
+                        order.TotalQuantity = order.Quantity;
+                    }
+                    else
+                        order.TotalPrice = order.Product.Price;
+
+                    order.User.TotalPurchasing += order.TotalPrice;
+                    order.User.TotalForVIPLevel += order.TotalPrice;
                 }
 
                 if (order.TotalPrice <= order.User.Balance)
                 {
-                    order.User.TotalPurchasing += order.TotalPrice;
-                    order.User.TotalForVIPLevel += order.TotalPrice;
                     order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
                     order.User.Balance -= order.TotalPrice;
@@ -243,7 +262,9 @@ public class AdminOrderController : AdminController
                     order.Notes = "Succeed";
                 }
                 else
-                {;
+                {
+                    order.User.TotalPurchasing -= order.TotalPrice;
+                    order.User.TotalForVIPLevel -= order.TotalPrice;
                     order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                         .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
                     order.Status = 3; // wrong
@@ -258,7 +279,7 @@ public class AdminOrderController : AdminController
                         ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
                         EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
                     };
-                   _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+                    _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
                     await _notificationService.VipLevelNotification(order.User.Email,
                         "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
@@ -287,6 +308,7 @@ public class AdminOrderController : AdminController
             };
             await _notificationService.NotifyUserByEmail(order.User.Email, _unitOfWork, notr,
                 "Order status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
+            _unitOfWork.UserRepository.UpdateUserInfo(order.User);
 
             if (await _unitOfWork.Complete())
             {
@@ -348,7 +370,7 @@ public class AdminOrderController : AdminController
                 user.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
                 _unitOfWork.UserRepository.UpdateUserInfo(user);
-                
+
                 if (lastVip > order.User.VIPLevel)
                 {
                     var curr = new NotificationHistory
@@ -433,12 +455,23 @@ public class AdminOrderController : AdminController
                         t.TotalQuantity = await
                             SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
                                 , t.User, _unitOfWork);
+                        var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                            .GetProductPriceForUserAsync(t.Product.Id, t.User);
+
+                        if (specificPrice != null)
+                        {
+                            t.TotalPrice = (decimal)specificPrice;
+                            t.TotalQuantity = t.Quantity;
+                        }
+                        else
+                            t.TotalPrice = t.Product.Price;
+
+                        t.User.TotalPurchasing += t.TotalPrice;
+                        t.User.TotalForVIPLevel += t.TotalPrice;
                     }
 
                     if (t.User.Balance >= t.TotalPrice)
                     {
-                        t.User.TotalPurchasing += t.TotalPrice;
-                        t.User.TotalForVIPLevel += t.TotalPrice;
                         t.User.Balance -= t.TotalPrice;
                         t.User.VIPLevel = await _unitOfWork.VipLevelRepository
                             .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
@@ -497,15 +530,32 @@ public class AdminOrderController : AdminController
                         t.TotalQuantity = await
                             SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
                                 , t.User, _unitOfWork);
+
+                        var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
+                            .GetProductPriceForUserAsync(t.Product.Id, t.User);
+
+                        if (specificPrice != null)
+                        {
+                            t.TotalPrice = (decimal)specificPrice;
+                            t.TotalQuantity = t.Quantity;
+                        }
+                        else
+                            t.TotalPrice = t.Product.Price;
+
+                        t.User.TotalPurchasing += t.TotalPrice;
+                        t.User.TotalForVIPLevel += t.TotalPrice;
                     }
 
                     if (t.User.Balance >= t.TotalPrice)
                     {
-                        t.User.TotalPurchasing += t.TotalPrice;
-                        t.User.TotalForVIPLevel += t.TotalPrice;
                         t.User.Balance -= t.TotalPrice;
                         t.User.VIPLevel = await _unitOfWork.VipLevelRepository
                             .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+                    }
+                    else
+                    {
+                        t.User.TotalPurchasing -= t.TotalPrice;
+                        t.User.TotalForVIPLevel -= t.TotalPrice;
                     }
 
                     var x = new PendingOrderDto();
@@ -522,5 +572,17 @@ public class AdminOrderController : AdminController
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    [HttpGet("done-orders")]
+    public async Task<ActionResult<List<DoneOrder>>> DoneOrders([FromQuery] DateQueryDto dto)
+    {
+        var (ans, msg) = SomeUsefulFunction.CheckDate(dto);
+
+        if (!ans) return BadRequest(new ApiResponse(400, msg));
+
+        var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
+        var orders = _mapper.Map<List<DoneOrder>>(result);
+        return Ok(orders);
     }
 }

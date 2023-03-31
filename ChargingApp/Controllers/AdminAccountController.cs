@@ -30,9 +30,9 @@ public class AdminAccountController : BaseApiController
     {
         try
         {
-            if (dto.Roles.Count == 0)
-                return BadRequest(new ApiResponse(400, "Roles shouldn't be empty"));
-
+            if (string.IsNullOrEmpty(dto.Email))
+                return BadRequest(new ApiResponse(400,"Email is required"));
+            
             dto.Email = dto.Email.ToLower();
 
             if (!SomeUsefulFunction.IsValidEmail(email: dto.Email))
@@ -44,6 +44,12 @@ public class AdminAccountController : BaseApiController
             {
                 return BadRequest(new ApiResponse(400, "This email is already used"));
             }
+
+            if (dto.Roles.Count == 0)
+                return BadRequest(new ApiResponse(400, "Roles shouldn't be empty"));
+
+            if (dto.Roles.Any(x => x.ToLower() == "admin"))
+                return BadRequest(new ApiResponse(400, "can't add admin user"));
 
             user = new AppUser
             {
@@ -75,5 +81,33 @@ public class AdminAccountController : BaseApiController
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    [HttpDelete("email")]
+    public async Task<ActionResult<bool>> DeleteAccount([FromQuery] string email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return BadRequest(new ApiResponse(400));
+
+        email = email.ToLower();
+        var isValidEmail = SomeUsefulFunction.IsValidEmail(email);
+
+        if (!isValidEmail)
+            return BadRequest(new ApiResponse(400, "You should provide a valid email"));
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+            return BadRequest(new ApiResponse(404, "User with email : " + email + " not found"));
+        var roles = await _userManager.GetRolesAsync(user);
+
+        if (roles.Any(x => x.ToLower() == "admin"))
+            return BadRequest(new ApiResponse(400, "You can't delete the user with admin role"));
+
+        var res = await _userManager.DeleteAsync(user);
+
+        if (res.Succeeded) return Ok(new ApiResponse(200, "User deleted"));
+
+        return BadRequest(new ApiResponse(400, "Can't delete the user... something went wrong"));
     }
 }

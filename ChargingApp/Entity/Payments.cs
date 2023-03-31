@@ -4,7 +4,7 @@ public class Payment :BaseEntity
 {
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string? Notes{ get; set; }
-    public double AddedValue { get; set; }
+    public decimal AddedValue { get; set; }
     public Photo? Photo { get; set; }
     public int Status { get; set; } = 0;//0-pending 1-succeed 2-rejected
     public string? Username { get; set; }

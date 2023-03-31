@@ -68,7 +68,7 @@ public class AdminUserController : AdminController
     }
 
     [HttpPost("add-debit")]
-    public async Task<ActionResult> AddDebit(string userEmail, double debitValue)
+    public async Task<ActionResult> AddDebit(string userEmail, decimal debitValue)
     {
         try
         {

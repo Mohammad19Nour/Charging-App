@@ -42,32 +42,6 @@ public class PhotoService : IPhotoService
             Console.WriteLine(e);
             return (false, "", "Failed tp upload photo");
         }
-        /*  var uploadResult = new ImageUploadResult();
-  
-          if (file.Length > 0)
-          { 
-              using var stream = file.OpenReadStream();
-  
-              var uploadParams = new ImageUploadParams
-              {
-                  File = new FileDescription(file.Name , stream),
-                  Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
-              };
-  
-              try
-              {
-  
-                  uploadResult = await _cloudinary.UploadAsync(uploadParams);
-              }
-              catch (Exception e)
-              {
-                  Console.WriteLine(e);
-                  
-                  throw new Exception("Failed to upload photo.. check your internet");
-              }
-          }
-  
-          return uploadResult;*/
     }
 
     public async Task<bool> DeletePhotoAsync(string name)

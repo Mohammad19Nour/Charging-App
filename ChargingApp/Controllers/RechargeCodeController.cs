@@ -18,7 +18,7 @@ public class RechargeCodeController : BaseApiController
 
     [Authorize(Policy = "Required_VIP_Role")]
     [HttpPost]
-    public async Task<ActionResult<double>> Recharge([FromBody] MyClass obj)
+    public async Task<ActionResult<decimal>> Recharge([FromBody] MyClass obj)
     {
         try
         {
@@ -60,7 +60,7 @@ public class RechargeCodeController : BaseApiController
             var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);
 
             if (codes is null)
-                return BadRequest(new ApiResponse(400, "something happened"));
+                return BadRequest(new ApiResponse(400, "should provide number of codes and their values"));
 
             return Ok(new ApiOkResponse(codes));
         }

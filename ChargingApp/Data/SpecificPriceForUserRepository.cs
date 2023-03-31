@@ -13,7 +13,7 @@ public class SpecificPriceForUserRepository : ISpecificPriceForUserRepository
         _context = context;
     }
 
-    public async Task<double?> GetProductPriceForUserAsync(int productId, AppUser user)
+    public async Task<decimal?> GetProductPriceForUserAsync(int productId, AppUser user)
     {
         //Console.WriteLine(productId + " " + user.Id + " "+ user.VIPLevel + "\n\n-**");
         return (await _context.SpecificPriceForUsers
