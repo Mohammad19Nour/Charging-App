@@ -236,7 +236,7 @@ namespace ChargingApp.Migrations
                     b.Property<bool>("HasSubCategories")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("PhotoId")
+                    b.Property<int>("PhotoId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -907,7 +907,9 @@ namespace ChargingApp.Migrations
                 {
                     b.HasOne("ChargingApp.Entity.Photo", "Photo")
                         .WithMany()
-                        .HasForeignKey("PhotoId");
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Photo");
                 });

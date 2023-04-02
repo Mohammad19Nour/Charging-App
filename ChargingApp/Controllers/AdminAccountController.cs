@@ -31,8 +31,8 @@ public class AdminAccountController : BaseApiController
         try
         {
             if (string.IsNullOrEmpty(dto.Email))
-                return BadRequest(new ApiResponse(400,"Email is required"));
-            
+                return BadRequest(new ApiResponse(400, "Email is required"));
+
             dto.Email = dto.Email.ToLower();
 
             if (!SomeUsefulFunction.IsValidEmail(email: dto.Email))
@@ -104,10 +104,20 @@ public class AdminAccountController : BaseApiController
         if (roles.Any(x => x.ToLower() == "admin"))
             return BadRequest(new ApiResponse(400, "You can't delete the user with admin role"));
 
-        var res = await _userManager.DeleteAsync(user);
+        var orders = await _unitOfWork.OrdersRepository
+            .GetOrdersForSpecificProduct(user.Id);
 
-        if (res.Succeeded) return Ok(new ApiResponse(200, "User deleted"));
+        foreach (var t in orders.Where(t => t != null))
+        {
+            _unitOfWork.OrdersRepository.DeleteOrder(t);
+        }
 
-        return BadRequest(new ApiResponse(400, "Can't delete the user... something went wrong"));
+        _unitOfWork.UserRepository.DeleteUser(user);
+
+        if (!await _unitOfWork.Complete())
+            return BadRequest(new ApiResponse(400, "Can't delete the user... something went wrong"));
+        
+        await _userManager.DeleteAsync(user);
+        return Ok(new ApiResponse(200, "User deleted"));
     }
 }

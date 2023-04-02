@@ -6,6 +6,6 @@ public interface IUserRepository
 {
     public Task<AppUser?> GetUserByEmailAsync(string? email);
     public void UpdateUserInfo(AppUser user) ;
-    public Task<bool> DeleteUserByEmail(string? email);
+    public void DeleteUser(AppUser user);
     public Task<decimal> GetBenefitPercentAsync(string? email);
 }

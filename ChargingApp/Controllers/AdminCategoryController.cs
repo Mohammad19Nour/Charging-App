@@ -85,21 +85,37 @@ public class AdminCategoryController : AdminController
 
             var name = category.Photo?.Url;
 
-            if (category.Products != null)
-                foreach (var t in category.Products)
+            foreach (var t in category.Products)
+            {
+                var ordersForThisProduct = await _unitOfWork.OrdersRepository
+                    .GetOrdersForSpecificProduct(t.Id);
+
+                if (ordersForThisProduct.Any(x => x.Status is 0 or 4))
+                    return BadRequest(new ApiResponse(400, "There are pending orders for for some products in this category..."));
+
+                var fromOtherApi = await _unitOfWork.OtherApiRepository
+                    .CheckIfProductExistAsync(t.Id, true);
+
+                foreach (var x in ordersForThisProduct)
                 {
-                    var y = await _unitOfWork.ProductRepository.GetProductByIdAsync(t.Id);
-                    if (y != null)
-                        _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
+                    x!.Product = null;
                 }
 
+                if (fromOtherApi)
+                    _unitOfWork.OtherApiRepository.DeleteProduct(t.Id);
+
+                _unitOfWork.ProductRepository.DeleteProductFromCategory(t);
+            }
+
             _unitOfWork.CategoryRepository.DeleteCategory(category);
-            var tmp = category.Photo != null &&
-                      await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id);
 
-            if (!_unitOfWork.HasChanges() || !tmp) return BadRequest(new ApiResponse(400, "Failed to delete category"));
+            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to delete category"));
 
-            if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Failed to update photo"));
+            if (category.Photo != null &&
+                await _unitOfWork.PhotoRepository.DeletePhotoByIdAsync(category.Photo.Id))
+            {
+                await _unitOfWork.Complete();
+            }
 
             if (name != null) await _photoService.DeletePhotoAsync(name);
 

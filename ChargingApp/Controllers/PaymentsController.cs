@@ -42,6 +42,9 @@ public class PaymentsController : BaseApiController
             if (agent is null)
                 return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
+            if (agent.RechargeMethodMethod.EnglishName.ToLower() != "companies")
+                return BadRequest(new ApiResponse(400,"This agent not found"));
+           
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
@@ -100,6 +103,9 @@ public class PaymentsController : BaseApiController
 
             if (agent is null)
                 return BadRequest(new ApiResponse(400, "this agent isn't exist"));
+
+            if (agent.RechargeMethodMethod.EnglishName.ToLower() != "offices")
+                return BadRequest(new ApiResponse(400,"This agent not found"));
 
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
             if (!result.Success)

@@ -64,25 +64,6 @@ public class OrdersRepository : IOrdersRepository
             .ToListAsync();
     }
 
-    public async Task<List<OrderAdminDto>> GetCanceledOrdersRequestAsync(string? userEmail = null)
-    {
-        if (userEmail != null)
-            return await _context.Orders
-                .Include(x => x.User)
-                .Where(x => x.StatusIfCanceled == 1 && x.Status == 0)
-                .Where(x => x.User.Email == userEmail.ToLower())
-                .OrderByDescending(x => x.CreatedAt)
-                .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-        return await _context.Orders
-            .Include(x => x.User)
-            .Where(x => x.StatusIfCanceled == 1 && x.Status == 0)
-            .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<OrderAdminDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
-    }
-
     public async Task<Order?> GetLastOrderForUserByIdAsync(int userId)
     {
         var order = await _context.Orders
@@ -148,5 +129,12 @@ public class OrdersRepository : IOrdersRepository
         query = query.OrderByDescending(x => x.CreatedAt);
 
         return await query.ToListAsync();
+    }
+
+    public async Task<List<Order?>> GetOrdersForSpecificProduct(int productId)
+    {
+        return await _context.Orders
+            .Include(x=>x.Product)
+            .Where(x => x.Product.Id == productId).ToListAsync();
     }
 }
