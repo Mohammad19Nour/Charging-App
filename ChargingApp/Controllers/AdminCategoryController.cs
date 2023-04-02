@@ -89,7 +89,8 @@ public class AdminCategoryController : AdminController
                 foreach (var t in category.Products)
                 {
                     var y = await _unitOfWork.ProductRepository.GetProductByIdAsync(t.Id);
-                    _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
+                    if (y != null)
+                        _unitOfWork.ProductRepository.DeleteProductFromCategory(y);
                 }
 
             _unitOfWork.CategoryRepository.DeleteCategory(category);

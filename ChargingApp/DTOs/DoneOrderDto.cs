@@ -1,6 +1,6 @@
 ﻿namespace ChargingApp.DTOs;
 
-public class DoneOrder
+public class DoneOrderDto
 {
     public int Id { get; set; }
     public decimal TotalPrice { get; set; }

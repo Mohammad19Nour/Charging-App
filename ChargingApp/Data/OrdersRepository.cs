@@ -121,7 +121,8 @@ public class OrdersRepository : IOrdersRepository
         var res = await _context.Orders
             .Include(x => x.User)
             .AsNoTracking()
-            .Where(x => x.Status == 0 && x.User.Email.ToLower() == email)
+            .Where(x => x.Status == 0 || x.Status == 4)
+            .Where(x => x.User.Email.ToLower() == email)
             .FirstOrDefaultAsync();
 
         return res != null;
