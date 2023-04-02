@@ -14,7 +14,7 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
-        CreateMap<Order, DoneOrder>().ForMember(dest => dest.Status, opt =>
+        CreateMap<Order, DoneOrderDto>().ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.UserName, opt =>
                 opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))

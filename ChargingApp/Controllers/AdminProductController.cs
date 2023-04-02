@@ -122,10 +122,11 @@ public class AdminProductController : AdminController
             using var quantity = dto.QuantityList.GetEnumerator();
             using var price = dto.PriceList.GetEnumerator();
 
+            quantity.MoveNext();
+            price.MoveNext();
+
             foreach (var t in dto.PriceList)
             {
-                quantity.MoveNext();
-                price.MoveNext();
                 var product = new Product
                 {
                     EnglishName = category.EnglishName,
@@ -135,8 +136,10 @@ public class AdminProductController : AdminController
                     Price = price.Current,
                     Quantity = quantity.Current,
                 };
-
-                _unitOfWork.ProductRepository.AddProduct(product);
+                if (product.Price != 0 || product.Quantity != 0)
+                    _unitOfWork.ProductRepository.AddProduct(product);
+                quantity.MoveNext();
+                price.MoveNext();
             }
 
             if (await _unitOfWork.Complete())
@@ -163,8 +166,11 @@ public class AdminProductController : AdminController
 
             var orders = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
 
+            if (orders.Count > 0)
+                return BadRequest(new ApiResponse(400,"There are a pending orders for this product..."));
+            
             var fromOtherApi = await _unitOfWork.OtherApiRepository
-                .CheckIfProductExistAsync(productId, false);
+                .CheckIfProductExistAsync(productId, true);
 
             if (fromOtherApi)
                 _unitOfWork.OtherApiRepository.DeleteProduct(productId);

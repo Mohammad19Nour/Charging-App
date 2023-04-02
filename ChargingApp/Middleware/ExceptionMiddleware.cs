@@ -22,15 +22,10 @@ public class ExceptionMiddleware
     {
         try
         {
-            if (!context.User.Identity.IsAuthenticated)
-            {
-                Console.WriteLine("fee\n");
-            }
             await _next(context);
         }
         catch (Exception e)
         {
-            Console.WriteLine("ded\n");
             _logger.LogError(e,e.Message);
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

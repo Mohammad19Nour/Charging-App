@@ -183,7 +183,7 @@ public class AdminOrderController : AdminController
         if (!ans) return BadRequest(new ApiResponse(400, msg));
 
         var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
-        var orders = _mapper.Map<List<DoneOrder>>(result);
+        var orders = _mapper.Map<List<DoneOrderDto>>(result);
         return Ok(orders);
     }
 }

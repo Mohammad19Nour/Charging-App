@@ -54,8 +54,10 @@ public class OtherApiRepository : IOtherApiRepository
     {
         var product = _context.ApiProducts
             .Include(x => x.Product)
-            .First(x => x.Product.Id == productId);
-        _context.ApiProducts.Remove(product);
+            .FirstOrDefault(x => x.Product.Id == productId);
+
+        if (product != null)
+            _context.ApiProducts.Remove(product);
     }
 
     public void DeleteOrder(int orderId)
