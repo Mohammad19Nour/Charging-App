@@ -10,9 +10,8 @@ public interface IOrdersRepository
     public Task<Order?> GetOrderByIdAsync(int orderId);
     public Task<List<NormalOrderDto>> GetNormalUserOrdersAsync(int userId);
     public Task<List<OrderDto>> GetVipUserOrdersAsync(int userId);
-    public Task<List<OrderAdminDto>> GetCanceledOrdersRequestAsync(string? userEmail = null);
-    public Task<Order?> GetLastOrderForUserByIdAsync(int userId);
     public Task<List<Order>> GetPendingOrdersAsync(string email = "");
     public Task<bool> CheckPendingOrdersForUserByEmailAsync(string email);
     public Task<List<Order>> GetDoneOrders( DateQueryDto dto,string? user );
+    public Task<List<Order?>> GetOrdersForSpecificProduct(int productId);
 }

@@ -27,13 +27,9 @@ public class UserRepository : IUserRepository
         _context.Entry(user).State = EntityState.Modified;
     }
 
-    public async Task<bool> DeleteUserByEmail(string? email)
+    public void DeleteUser(AppUser user)
     {
-        var user = await GetUserByEmailAsync(email);
-        if (user == null) return false;
-        
         _context.Users.Remove(user);
-        return true;
     }
 
     public async Task<decimal> GetBenefitPercentAsync(string? email)

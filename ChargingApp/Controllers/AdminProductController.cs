@@ -164,17 +164,22 @@ public class AdminProductController : AdminController
             if (product is null)
                 return NotFound(new ApiResponse(403, "this product isn't exist"));
 
-            var orders = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
-
-            if (orders.Count > 0)
-                return BadRequest(new ApiResponse(400,"There are a pending orders for this product..."));
+            var ordersForThisProduct = await _unitOfWork.OrdersRepository
+                .GetOrdersForSpecificProduct(productId);
             
+            if (ordersForThisProduct.Any(x => x.Status is 0 or 4))
+                return BadRequest(new ApiResponse(400, "There are pending orders for this product..."));
+
             var fromOtherApi = await _unitOfWork.OtherApiRepository
                 .CheckIfProductExistAsync(productId, true);
+            
+            foreach (var t in ordersForThisProduct)
+            {
+                t!.Product = null;
+            }
 
             if (fromOtherApi)
                 _unitOfWork.OtherApiRepository.DeleteProduct(productId);
-
             _unitOfWork.ProductRepository.DeleteProductFromCategory(product);
 
             if (await _unitOfWork.Complete())

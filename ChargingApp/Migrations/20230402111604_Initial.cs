@@ -374,7 +374,7 @@ namespace ChargingApp.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     EnglishName = table.Column<string>(type: "TEXT", nullable: true),
                     ArabicName = table.Column<string>(type: "TEXT", nullable: true),
-                    PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false),
                     HasSubCategories = table.Column<bool>(type: "INTEGER", nullable: false),
                     Available = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -385,7 +385,8 @@ namespace ChargingApp.Migrations
                         name: "FK_Categories_Photos_PhotoId",
                         column: x => x.PhotoId,
                         principalTable: "Photos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(

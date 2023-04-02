@@ -209,6 +209,15 @@ public class OrdersController : BaseApiController
 
             if (user is null) return BadRequest(new ApiResponse(401));
 
+         /*   var roles = User.GetRoles();
+
+            if (roles.Any(x =>
+                {
+                    var tmp = x.ToLower();
+                    return tmp is "admin" or "admin_1" or "admin_2" or "advancedemployee" or "normalemployee";
+                }))
+                return BadRequest(new ApiResponse(403,"You're admin.. Can't make an order with this account"));
+            */
             var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
             if (product is null)
