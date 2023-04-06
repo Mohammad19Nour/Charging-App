@@ -38,11 +38,12 @@ public class CategoriesController : BaseApiController
             if (user != null)
             {
                 vipLevel = user.VIPLevel;
+                res.Category.Products = await PriceForVIP.CalcPriceForProducts
+                    (user, res.Category.Products, _unitOfWork, vipLevel);
             }
-
-
-            res.Category.Products = await SomeUsefulFunction.CalcPriceForProducts
-                (user, res.Category.Products, _unitOfWork, vipLevel);
+            else
+                res.Category.Products = await PriceForNormal.CalcPriceForProducts
+                    (user, res.Category.Products, _unitOfWork, vipLevel);
 
             return Ok(new ApiOkResponse(res));
         }

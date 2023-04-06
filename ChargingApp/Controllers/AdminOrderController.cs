@@ -32,30 +32,35 @@ public class AdminOrderController : AdminController
             foreach (var t in res)
             {
                 if (t.OrderType.ToLower() == "normal")
+                    continue;
+                t.User.TotalPurchasing -= t.TotalPrice;
+                t.User.TotalForVIPLevel -= t.TotalPrice;
+                t.User.Balance += t.TotalPrice;
+                t.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                    .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+            }
+
+            foreach (var t in res)
+            {
+                if (t.OrderType.ToLower() == "normal")
                 {
                     tmp.Add(_mapper.Map<PendingOrderDto>(t));
                 }
                 else
                 {
-                    t.User.TotalPurchasing -= t.TotalPrice;
-                    t.User.TotalForVIPLevel -= t.TotalPrice;
-                    t.User.Balance += t.TotalPrice;
-                    t.User.VIPLevel = await _unitOfWork.VipLevelRepository
-                        .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
-
                     if (t.Product is null) continue;
-
                     if (!t.CanChooseQuantity)
                     {
-                        var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                        var pr = await PriceForVIP.CannotChooseQuantity
                             (t.TotalQuantity, t.Product, t.User, _unitOfWork);
                         t.TotalPrice = pr;
                     }
                     else
                     {
                         t.TotalQuantity = await
-                            SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
+                            PriceForVIP.CalcTotalQuantity(t.Product.Quantity, t.Product
                                 , t.User, _unitOfWork);
+
                         var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
                             .GetProductPriceForUserAsync(t.Product.Id, t.User);
 
@@ -101,7 +106,17 @@ public class AdminOrderController : AdminController
         try
         {
             var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync(email);
-
+            res = res.Where(x => x.User.Email.ToLower() == email.ToLower()).ToList();
+            foreach (var t in res)
+            {
+                if (t.OrderType.ToLower() == "normal")
+                    continue;
+                t.User.TotalPurchasing -= t.TotalPrice;
+                t.User.TotalForVIPLevel -= t.TotalPrice;
+                t.User.Balance += t.TotalPrice;
+                t.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                    .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+            }
             var tmp = new List<PendingOrderDto>();
 
             foreach (var t in res)
@@ -122,14 +137,14 @@ public class AdminOrderController : AdminController
 
                     if (!t.CanChooseQuantity)
                     {
-                        var pr = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                        var pr = await PriceForVIP.CannotChooseQuantity
                             (t.TotalQuantity, t.Product, t.User, _unitOfWork);
                         t.TotalPrice = pr;
                     }
                     else
                     {
                         t.TotalQuantity = await
-                            SomeUsefulFunction.CalcTotalQuantity(t.Product.Quantity, t.Product
+                            PriceForVIP.CalcTotalQuantity(t.Product.Quantity, t.Product
                                 , t.User, _unitOfWork);
 
                         var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
@@ -176,7 +191,7 @@ public class AdminOrderController : AdminController
     }
 
     [HttpGet("done-orders")]
-    public async Task<ActionResult> DoneOrders([FromQuery] DateQueryDto dto)
+    public async Task<ActionResult<List<DoneOrderDto>>> DoneOrders([FromQuery] DateQueryDto dto)
     {
         var (ans, msg) = SomeUsefulFunction.CheckDate(dto);
 

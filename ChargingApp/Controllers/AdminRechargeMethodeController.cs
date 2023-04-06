@@ -19,7 +19,6 @@ public class AdminRechargeMethodeController : AdminController
         _mapper = mapper;
     }
 
-
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-agent/{rechargeMethodId:int}")]
     public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)

@@ -6,7 +6,7 @@ namespace ChargingApp.Helpers;
 
 public class AutoMapperProfiles : Profile
 {
-    private const string BaseUrl = "https://app.quickstoreqs.com";
+    private const string BaseUrl = "http://chargingapp-001-site1.atempurl.com";
 
     public AutoMapperProfiles()
     {
@@ -14,6 +14,8 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
+        CreateMap<UpdatePaymentGatewayDto,PaymentGateway>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<Order, DoneOrderDto>().ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.UserName, opt =>

@@ -17,7 +17,7 @@ public interface IUnitOfWork
     ICurrencyRepository CurrencyRepository { get; }
     IOurAgentsRepository OurAgentsRepository { get; }
     ISpecificPriceForUserRepository SpecificPriceForUserRepository { get; }
-    IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository { get; }
+    ISpecificBenefitPercentRepository SpecificBenefitPercentRepository { get; }
     IFavoriteRepository FavoriteRepository { get; }
     ISliderRepository SliderRepository { get; }
     IPhotoRepository PhotoRepository { get; }

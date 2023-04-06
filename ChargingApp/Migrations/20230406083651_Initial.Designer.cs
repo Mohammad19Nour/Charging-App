@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230402111604_Initial")]
+    [Migration("20230406083651_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -199,25 +199,6 @@ namespace ChargingApp.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("ChargingApp.Entity.BenefitPercentInSpecificVilLevel", b =>
-                {
-                    b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("VipLevel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<double>("BenefitPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("ProductId", "VipLevel");
-
-                    b.ToTable("SpecificBenefit");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.Category", b =>
@@ -694,6 +675,23 @@ namespace ChargingApp.Migrations
                     b.HasIndex("PhotoId");
 
                     b.ToTable("SliderPhotos");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.SpecificBenefitPercent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("BenefitPercent")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SpecificBenefit");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.SpecificPriceForUser", b =>

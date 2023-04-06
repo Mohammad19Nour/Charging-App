@@ -33,7 +33,7 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<OurAgent> OurAgents { get; set; }
     public DbSet<SpecificPriceForUser> SpecificPriceForUsers { get; set; }
-    public DbSet<BenefitPercentInSpecificVilLevel> SpecificBenefit { get; set; }
+    public DbSet<SpecificBenefitPercent> SpecificBenefit { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<SliderPhoto> SliderPhotos { get; set; }
     public DbSet<Photo> Photos { get; set; }
@@ -57,8 +57,6 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUser
             .WithOne(u => u.Role)
             .HasForeignKey(ur => ur.RoleId)
             .IsRequired();
-        builder.Entity<BenefitPercentInSpecificVilLevel>()
-            .HasKey(p => new { p.ProductId, p.VipLevel });
         
         builder.Entity<Favorite>()
             .HasKey(p => new { p.CategoryId, p.UserId });

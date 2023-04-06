@@ -62,7 +62,7 @@ public class AdminUserController : AdminController
             {
                 User = user,
                 ArabicDetails = " تم ترقية مستواك الى vip " + user.VIPLevel,
-                EnglishDetails = "Your level is upgrade to vip " + user.VIPLevel
+                EnglishDetails = "Your level has been upgraded to vip " + user.VIPLevel
             };
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 

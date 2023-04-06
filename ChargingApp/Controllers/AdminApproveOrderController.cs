@@ -131,14 +131,14 @@ public class AdminApproveOrderController : BaseApiController
                 if (!order.CanChooseQuantity)
                 {
                     if (order.Product != null)
-                        order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity
+                        order.TotalPrice = await PriceForVIP.CannotChooseQuantity
                             (order.TotalQuantity, order.Product, order.User, _unitOfWork);
                 }
                 else
                 {
                     if (order.Product != null)
                         order.TotalQuantity = await
-                            SomeUsefulFunction.CalcTotalQuantity(order.Product.Quantity, order.Product
+                            PriceForVIP.CalcTotalQuantity(order.Product.Quantity, order.Product
                                 , order.User, _unitOfWork);
                     var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
                         .GetProductPriceForUserAsync(order.Product.Id, order.User);
@@ -181,7 +181,7 @@ public class AdminApproveOrderController : BaseApiController
                     {
                         User = order.User,
                         ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
-                        EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
+                        EnglishDetails = "Your level has been upgraded to vip " + order.User.VIPLevel
                     };
                     _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 

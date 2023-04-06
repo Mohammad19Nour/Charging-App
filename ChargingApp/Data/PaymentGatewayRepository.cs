@@ -26,4 +26,15 @@ public class PaymentGatewayRepository : IPaymentGatewayRepository
             
             ToListAsync();
     }
+
+    public async Task<PaymentGateway?> GetPaymentGatewayByIdAsync(int id)
+    {
+        return await _context.PaymentGateways
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public void UpdateGateway(PaymentGateway gateway)
+    {
+        _context.PaymentGateways.Update(gateway);
+    }
 }
