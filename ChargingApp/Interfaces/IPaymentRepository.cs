@@ -10,4 +10,6 @@ public interface IPaymentRepository
     public Task<ChangerAndCompany?> GetPaymentAgentByIdAsync(int? id);
     public Task<Payment?> GetPaymentByIdAsync(int id);
     public Task<List<PaymentAdminDto>> GetAllPendingPaymentsAsync(string? userEmail);
-} 
+    public void DeletePayments(Payment[] payments);
+    public IQueryable<Payment> GetQueryable();
+}

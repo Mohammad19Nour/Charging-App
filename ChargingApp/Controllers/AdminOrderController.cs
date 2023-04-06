@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using ChargingApp.DTOs;
+using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Controllers;
 
@@ -117,6 +119,7 @@ public class AdminOrderController : AdminController
                 t.User.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
             }
+
             var tmp = new List<PendingOrderDto>();
 
             foreach (var t in res)
@@ -200,5 +203,45 @@ public class AdminOrderController : AdminController
         var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
         var orders = _mapper.Map<List<DoneOrderDto>>(result);
         return Ok(orders);
+    }
+
+    // delete done orders in last 6 months
+    [HttpDelete("delete-orders")]
+    public async Task<ActionResult<bool>> DeleteOrders()
+    {
+        try
+        {
+            var dateTime = DateTime.UtcNow.AddDays(-1);
+
+            var orderQuery = _unitOfWork.OrdersRepository.GetQueryable();
+
+            orderQuery = orderQuery.Where(x => x.Status == 1)
+                .Where(x => x.CreatedAt < dateTime);
+
+            var orders = await orderQuery.ToArrayAsync();
+
+            foreach (var order in orders)
+            {
+                var notList = await _unitOfWork.NotificationRepository
+                    .GetOrdersNotifications(order.Id);
+                foreach (var not in notList)
+                    _unitOfWork.NotificationRepository.DeleteNotification(not);
+            }
+
+            _unitOfWork.OrdersRepository.DeleteOrders(orders);
+
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200, "All orders Before six months has been deleted successfully"));
+
+            if (!_unitOfWork.HasChanges())
+                return Ok(new ApiResponse(200, "There are no orders before six months to be deleted"));
+
+            return BadRequest(new ApiResponse(400, "Failed to delete orders"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
