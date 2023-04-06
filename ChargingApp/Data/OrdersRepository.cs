@@ -32,6 +32,12 @@ public class OrdersRepository : IOrdersRepository
         return true;
     }
 
+    public void DeleteOrders(Order[] orders)
+    {
+        if (orders.Length > 0)
+            _context.Orders.RemoveRange(orders);
+    }
+
     public void DeleteOrder(Order order)
     {
         _context.Orders.Remove(order);
@@ -83,7 +89,7 @@ public class OrdersRepository : IOrdersRepository
             .Include(x => x.Photo)
             .Include(x => x.User)
             .Include(x => x.Product)
-             .OrderByDescending(x => x.CreatedAt)
+            .OrderByDescending(x => x.CreatedAt)
             .Where(x => x.Status == 0 || x.Status == 4);
 
         if (!string.IsNullOrEmpty(email))
@@ -104,7 +110,7 @@ public class OrdersRepository : IOrdersRepository
             .AsNoTracking()
             .Where(x => x.Status == 0 || x.Status == 4)
             .Where(x => x.User.Email.ToLower() == email)
-            .OrderByDescending(x=>x.CreatedAt)
+            .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync();
 
         return res != null;
@@ -135,7 +141,12 @@ public class OrdersRepository : IOrdersRepository
     public async Task<List<Order?>> GetOrdersForSpecificProduct(int productId)
     {
         return await _context.Orders
-            .Include(x=>x.Product)
+            .Include(x => x.Product)
             .Where(x => x.Product.Id == productId).ToListAsync();
+    }
+
+    public IQueryable<Order> GetQueryable()
+    {
+        return _context.Orders.AsQueryable();
     }
 }

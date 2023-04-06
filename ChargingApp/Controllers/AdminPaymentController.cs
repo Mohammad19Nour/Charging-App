@@ -5,6 +5,7 @@ using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Controllers;
 
@@ -52,13 +53,13 @@ public class AdminPaymentController : AdminController
 
             payment.User.Balance += payment.AddedValue;
             payment.AddedValue += mn;
-            
+
             _unitOfWork.UserRepository.UpdateUserInfo(payment.User);
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
                 new NotificationHistory
                 {
                     User = payment.User,
-                    ArabicDetails = " تم قبول  الدفعة رقم " + paymentId+" من قبل الادمن ",
+                    ArabicDetails = " تم قبول  الدفعة رقم " + paymentId + " من قبل الادمن ",
                     EnglishDetails = "Payment with id " + paymentId + " has been approved by admin"
                 });
             var not = new OrderAndPaymentNotification
@@ -71,7 +72,7 @@ public class AdminPaymentController : AdminController
 
             if (await _unitOfWork.Complete())
             {
-                 Semaphore.Release();
+                Semaphore.Release();
                 return Ok(new ApiResponse(200, "approved successfully"));
             }
 
@@ -108,7 +109,7 @@ public class AdminPaymentController : AdminController
             payment.Status = 2;
             payment.Notes = notes;
 
-            
+
             var not = new OrderAndPaymentNotification
             {
                 Payment = payment,
@@ -122,7 +123,7 @@ public class AdminPaymentController : AdminController
                 new NotificationHistory
                 {
                     User = payment.User,
-                    ArabicDetails = " تم رفض  الدفعة رقم " + paymentId+" من قبل الادمن ",
+                    ArabicDetails = " تم رفض  الدفعة رقم " + paymentId + " من قبل الادمن ",
                     EnglishDetails = "Payment with id " + paymentId + " has been rejected by admin"
                 });
             if (await _unitOfWork.Complete())
@@ -157,4 +158,42 @@ public class AdminPaymentController : AdminController
         }
     }
 
+
+    // delete done orders in last 6 months
+    [HttpDelete("delete-orders")]
+    public async Task<ActionResult<bool>> DeleteOrders()
+    {
+        try
+        {
+            var dateTime = DateTime.UtcNow.AddDays(-183);
+
+            var paymentQuery = _unitOfWork.PaymentRepository.GetQueryable();
+            paymentQuery = paymentQuery.Where(x => x.Status == 1)
+                .Where(x => x.CreatedDate < dateTime);
+            var payments = await paymentQuery.ToArrayAsync();
+
+            foreach (var payment in payments)
+            {
+                var notList = await _unitOfWork.NotificationRepository
+                    .GetOrdersNotifications(payment.Id);
+                foreach (var not in notList)
+                    _unitOfWork.NotificationRepository.DeleteNotification(not);
+            }
+
+            _unitOfWork.PaymentRepository.DeletePayments(payments);
+
+            if (await _unitOfWork.Complete())
+                return Ok(new ApiResponse(200, "All payments Before six months has been deleted successfully"));
+            
+            if (!_unitOfWork.HasChanges())
+                return Ok(new ApiResponse(200, "There are no payments before six months to be deleted"));
+            
+            return BadRequest(new ApiResponse(400, "Failed to delete payments"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

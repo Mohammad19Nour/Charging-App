@@ -39,7 +39,7 @@ public class PaymentRepository : IPaymentRepository
         if (id is null) return null;
 
         return await _context.ChangerAndCompanies
-            .Include(x=>x.RechargeMethodMethod)
+            .Include(x => x.RechargeMethodMethod)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
@@ -70,5 +70,16 @@ public class PaymentRepository : IPaymentRepository
             .OrderByDescending(p => p.CreatedDate)
             .ProjectTo<PaymentAdminDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
+    }
+
+    public void DeletePayments(Payment[] payments)
+    {
+        if (payments.Length > 0)
+            _context.Payments.RemoveRange(payments);
+    }
+
+    public IQueryable<Payment> GetQueryable()
+    {
+        return _context.Payments.AsQueryable();
     }
 }
