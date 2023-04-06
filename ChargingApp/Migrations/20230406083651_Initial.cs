@@ -150,14 +150,14 @@ namespace ChargingApp.Migrations
                 name: "SpecificBenefit",
                 columns: table => new
                 {
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
-                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false),
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    BenefitPercent = table.Column<double>(type: "REAL", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SpecificBenefit", x => new { x.ProductId, x.VipLevel });
+                    table.PrimaryKey("PK_SpecificBenefit", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(

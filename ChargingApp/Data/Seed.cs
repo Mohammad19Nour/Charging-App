@@ -75,7 +75,17 @@ public static class Seed
             { BenefitPercent = 10, VipLevel = 1, Purchase = 132, Photo = new Photo { Url = "http1" } });
         context.VipLevels.Add(new VIPLevel
         {
-            BenefitPercent = 1, VipLevel = 2, MinimumPurchase = 132, Purchase = 1000,
+            BenefitPercent = 5, VipLevel = 2, MinimumPurchase = 132, Purchase = 2000,
+            Photo = new Photo { Url = "http2" }
+        });
+        context.VipLevels.Add(new VIPLevel
+        {
+            BenefitPercent = 3, VipLevel = 3, MinimumPurchase = 2132, Purchase = 8000,
+            Photo = new Photo { Url = "http2" }
+        });
+        context.VipLevels.Add(new VIPLevel
+        {
+            BenefitPercent = 2, VipLevel = 4, MinimumPurchase = 10132, Purchase = 10000,
             Photo = new Photo { Url = "http2" }
         });
 

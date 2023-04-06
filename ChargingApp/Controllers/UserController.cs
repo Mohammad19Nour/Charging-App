@@ -226,7 +226,6 @@ public class UserController : BaseApiController
         var t = await _unitOfWork.VipLevelRepository
             .GetMinimumPurchasingForVipLevelAsync(user.VIPLevel);
         vipPurchase -= t;
-        Console.WriteLine(t + "\n\n");
         var myWallet = new WalletDto
         {
             DollarBalance = user.Balance,

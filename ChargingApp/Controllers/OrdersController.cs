@@ -109,7 +109,7 @@ public class OrdersController : BaseApiController
 
             if (!product.CanChooseQuantity)
             {
-                order.TotalPrice = await SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity((int)dto.Quantity,
+                order.TotalPrice = await PriceForVIP.CannotChooseQuantity((int)dto.Quantity,
                     product,
                     user,
                     _unitOfWork);
@@ -118,7 +118,7 @@ public class OrdersController : BaseApiController
             else
             {
                 order.TotalQuantity = await
-                    SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
+                    PriceForVIP.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
 
                 var specificPrice = await _unitOfWork.SpecificPriceForUserRepository
                     .GetProductPriceForUserAsync(product.Id, user);
@@ -174,7 +174,7 @@ public class OrdersController : BaseApiController
                 {
                     User = order.User,
                     ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
-                    EnglishDetails = "Your level is upgrade to vip " + order.User.VIPLevel
+                    EnglishDetails = "Your level has been upgraded to vip " + order.User.VIPLevel
                 };
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
@@ -267,14 +267,14 @@ public class OrdersController : BaseApiController
             if (!product.CanChooseQuantity)
             {
                 order.TotalPrice = await
-                    SomeUsefulFunction.CalcTotalPriceCannotChooseQuantity(
+                    PriceForNormal.CannotChooseQuantity(
                         dto.Quantity, product, user, _unitOfWork);
                 order.TotalQuantity = dto.Quantity;
             }
             else
             {
                 order.TotalQuantity = await
-                    SomeUsefulFunction.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
+                    PriceForNormal.CalcTotalQuantity(product.Quantity, product, user, _unitOfWork);
 
                 order.TotalPrice = product.Price;
                 order.Quantity = product.Quantity;
@@ -367,7 +367,7 @@ public class OrdersController : BaseApiController
                 {
                     User = order.User,
                     ArabicDetails = " تم اعادة مستواك الى vip  " + order.User.VIPLevel,
-                    EnglishDetails = "Your level is returned back to vip " + order.User.VIPLevel
+                    EnglishDetails = "Your level has been returned back to vip " + order.User.VIPLevel
                 };
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
             }

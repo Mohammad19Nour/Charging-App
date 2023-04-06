@@ -157,7 +157,7 @@ public class AccountController : BaseApiController
                     myWallet.DollarBalance *= -1;
                 }
 
-                return Ok(new UserDto
+                return Ok(new ApiOkResponse(new UserDto
                 {
                     Email = user.Email.ToLower(),
                     FirstName = user.FirstName.ToLower(),
@@ -168,7 +168,7 @@ public class AccountController : BaseApiController
                     Country = user.Country,
                     MyWallet = myWallet,
                     AccountType = "Vip " + (user.VIPLevel)
-                });
+                }));
             }
 
             var normalUser = new NormalUserDto

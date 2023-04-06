@@ -83,14 +83,14 @@ public class OrdersRepository : IOrdersRepository
             .Include(x => x.Photo)
             .Include(x => x.User)
             .Include(x => x.Product)
-            // .OrderByDescending(x => x.CreatedAt)
+             .OrderByDescending(x => x.CreatedAt)
             .Where(x => x.Status == 0 || x.Status == 4);
 
         if (!string.IsNullOrEmpty(email))
             res = res.Where(x => x.User.Email == email);
 
 
-        res = res.OrderByDescending(x => x.CreatedAt);
+        res = res.OrderBy(x => x.CreatedAt);
         var ret = await res.ToListAsync();
         return ret;
     }
@@ -104,6 +104,7 @@ public class OrdersRepository : IOrdersRepository
             .AsNoTracking()
             .Where(x => x.Status == 0 || x.Status == 4)
             .Where(x => x.User.Email.ToLower() == email)
+            .OrderByDescending(x=>x.CreatedAt)
             .FirstOrDefaultAsync();
 
         return res != null;

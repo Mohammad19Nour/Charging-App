@@ -36,8 +36,8 @@ public class UnitOfWork : IUnitOfWork
     public ISpecificPriceForUserRepository SpecificPriceForUserRepository =>
         new SpecificPriceForUserRepository(_context);
 
-    public IBenefitPercentInSpecificVipLevelRepository BenefitPercentInSpecificVipLevelRepository =>
-        new BenefitPercentInSpecificVipLevelRepository(_context);
+    public ISpecificBenefitPercentRepository SpecificBenefitPercentRepository =>
+        new SpecificBenefitPercentRepository(_context);
 
     public IFavoriteRepository FavoriteRepository => new FavoriteRepository(_context, _mapper);
     public ISliderRepository SliderRepository => new SliderRepository(_context, _mapper);

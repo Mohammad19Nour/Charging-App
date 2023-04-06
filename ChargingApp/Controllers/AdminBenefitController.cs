@@ -20,7 +20,7 @@ public class AdminBenefitController : AdminController
     }
 
     [HttpPost("add-specific-benefit-for-product")]
-    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId, int vipLevel, decimal benefitPercent)
+    public async Task<ActionResult> AddSpecificBenefitForProduct(int productId, decimal benefitPercent)
     {
         try
         {
@@ -28,20 +28,16 @@ public class AdminBenefitController : AdminController
 
             if (product is null)
                 return NotFound(new ApiResponse(404, "product not found"));
-            var vip = await _unitOfWork.VipLevelRepository.CheckIfExist(vipLevel);
-
-            if (!vip)
-                return NotFound(new ApiResponse(404, "vip level not found"));
-            var spec = await _unitOfWork.BenefitPercentInSpecificVipLevelRepository
-                .GetBenefitAsync(productId, vipLevel);
+           
+            var spec = await _unitOfWork.SpecificBenefitPercentRepository
+                .GetBenefitAsync(productId);
 
             if (spec is null)
             {
-                _unitOfWork.BenefitPercentInSpecificVipLevelRepository.AddBenefitPercentForProduct(
-                    new BenefitPercentInSpecificVilLevel
+                _unitOfWork.SpecificBenefitPercentRepository.AddBenefitPercentForProduct(
+                    new SpecificBenefitPercent
                     {
                         ProductId = productId,
-                        VipLevel = vipLevel,
                         BenefitPercent = benefitPercent
                     });
             }
