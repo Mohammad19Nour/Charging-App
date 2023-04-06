@@ -211,7 +211,7 @@ public class AdminOrderController : AdminController
     {
         try
         {
-            var dateTime = DateTime.UtcNow.AddDays(-1);
+            var dateTime = DateTime.UtcNow.AddDays(-183);
 
             var orderQuery = _unitOfWork.OrdersRepository.GetQueryable();
 
