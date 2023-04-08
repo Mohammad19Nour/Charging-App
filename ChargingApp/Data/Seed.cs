@@ -32,23 +32,8 @@ public static class Seed
     {
         if (await userManager.Users.AnyAsync()) return;
 
-        var admin = new AppUser
-        {
-            FirstName = "hamza",
-            LastName = "turkea",
-            Email = "hamzaturkea@gmail.com",
-            UserName = "hamzaturkea@gmail.com",
-            City = "Admin",
-            Country = "Admin",
-            PhoneNumber = "8596539",
-            Balance = 10000,
-            VIPLevel = 1,
-            EmailConfirmed = true,
-        };
-        await userManager.CreateAsync(admin, "Admin!1");
-        await userManager.AddToRolesAsync(admin, new[] { "Admin", "VIP" });
 
-        admin = new AppUser
+       var admin = new AppUser
         {
             FirstName = "hamam",
             LastName = "hamam",
@@ -62,7 +47,7 @@ public static class Seed
             EmailConfirmed = true,
         };
         await userManager.CreateAsync(admin, "Admin!1");
-        await userManager.AddToRolesAsync(admin, new[] { "Admin", "VIP" });
+        await userManager.AddToRolesAsync(admin, new[] { "Admin" });
     }
 
     public static async Task SeedVipLevels(DataContext context)

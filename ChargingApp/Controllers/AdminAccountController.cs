@@ -102,7 +102,10 @@ public class AdminAccountController : BaseApiController
         var roles = await _userManager.GetRolesAsync(user);
 
         if (roles.Any(x => x.ToLower() == "admin"))
-            return BadRequest(new ApiResponse(400, "You can't delete the user with admin role"));
+            return BadRequest(new ApiResponse(400, "You can't delete the user with an admin role"));
+
+        if (!roles.Any(x => x.ToLower() != "normal" && x.ToLower() != "vip"))
+            return BadRequest(new ApiResponse(400, "You can't delete this user"));
 
         var orders = await _unitOfWork.OrdersRepository
             .GetOrdersForSpecificProduct(user.Id);
@@ -110,6 +113,15 @@ public class AdminAccountController : BaseApiController
         foreach (var t in orders.Where(t => t != null))
         {
             _unitOfWork.OrdersRepository.DeleteOrder(t);
+        }
+
+        var rechargeCodes = await _unitOfWork.RechargeCodeRepository
+            .GetCodesForUserAsync(user.Id);
+
+        foreach (var code in rechargeCodes)
+        {
+            code.User = null;
+            _unitOfWork.RechargeCodeRepository.Update(code);
         }
 
         _unitOfWork.UserRepository.DeleteUser(user);

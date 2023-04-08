@@ -117,9 +117,5 @@ public class PresenceHub : Hub
         }
         throw new HubException("Failed to fetch notifications");
     }
-    public async Task<string> Messs(string d)
-    {
-        return "gg";
-    }
     
 }

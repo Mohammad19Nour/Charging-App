@@ -3,16 +3,19 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Extentions;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
-[Authorize(Policy = "Required_VIP_Role")]
+[Authorize(Policy = "Required_JustVIP_Role")]
 public class PaymentsController : BaseApiController
 {
-    private readonly List<string> _status = new() { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
+    private readonly List<string> _status = new()
+        { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
@@ -37,14 +40,18 @@ public class PaymentsController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
             if (user == null) return Unauthorized(new ApiResponse(401));
 
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
+
             var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
 
             if (agent is null)
                 return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
             if (agent.RechargeMethodMethod.EnglishName.ToLower() != "companies")
-                return BadRequest(new ApiResponse(400,"This agent not found"));
-           
+                return BadRequest(new ApiResponse(400, "This agent not found"));
+
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
@@ -66,13 +73,14 @@ public class PaymentsController : BaseApiController
                 Photo = photo,
                 PaymentType = "Companies",
             };
-            
+
             _unitOfWork.PaymentRepository.AddPayment(payment);
 
             if (!await _unitOfWork.Complete())
             {
-               return BadRequest(new ApiResponse(400, "Failed to add payment"));
+                return BadRequest(new ApiResponse(400, "Failed to add payment"));
             }
+
             var not = new OrderAndPaymentNotification
             {
                 Payment = payment,
@@ -99,13 +107,17 @@ public class PaymentsController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
             if (user == null) return Unauthorized(new ApiResponse(401));
 
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
+
             var agent = await _unitOfWork.PaymentRepository.GetPaymentAgentByIdAsync(agentId);
 
             if (agent is null)
                 return BadRequest(new ApiResponse(400, "this agent isn't exist"));
 
             if (agent.RechargeMethodMethod.EnglishName.ToLower() != "offices")
-                return BadRequest(new ApiResponse(400,"This agent not found"));
+                return BadRequest(new ApiResponse(400, "This agent not found"));
 
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
             if (!result.Success)
@@ -163,6 +175,10 @@ public class PaymentsController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
             if (user == null) return Unauthorized(new ApiResponse(401));
 
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
+
             name = name.ToLower();
 
             var way = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByNameAsync(name);
@@ -205,7 +221,7 @@ public class PaymentsController : BaseApiController
             };
             await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
                 "Payment status notification", getDetails(payment));
-            
+
             return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
         }
         catch (Exception e)
@@ -222,6 +238,9 @@ public class PaymentsController : BaseApiController
         {
             var email = User.GetEmail();
             if (email is null) return Unauthorized(new ApiResponse(401));
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             email = email.ToLower();
 
@@ -239,12 +258,13 @@ public class PaymentsController : BaseApiController
             throw;
         }
     }
+
     private Dictionary<string, dynamic> getDetails(Payment order)
     {
         return new Dictionary<string, dynamic>
         {
             { "paymentId", order.Id },
-            { "status", "payment "+_status[order.Status] }
+            { "status", "payment " + _status[order.Status] }
         };
     }
 }

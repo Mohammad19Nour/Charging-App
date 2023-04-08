@@ -10,11 +10,11 @@ public static class SomeUsefulFunction
     private static readonly List<string> Status = new List<string>
         { "Pending", "Succeed", "Rejected", "Wrong", "Received", "Cancelled" };
 
-    public static Dictionary<string,dynamic> GetVipLevelNotification(int lvl)
+    public static Dictionary<string, dynamic> GetVipLevelNotification(int lvl)
     {
         return new Dictionary<string, dynamic>
         {
-            { "status","Your vip level is : " + lvl }
+            { "status", "Your vip level is : " + lvl }
         };
     }
 
@@ -26,7 +26,7 @@ public static class SomeUsefulFunction
             { "status", "payment " + Status[order.Status] }
         };
     }
-    
+
     public static Dictionary<string, dynamic> GetOrderNotificationDetails(Order order)
     {
         return new Dictionary<string, dynamic>
@@ -52,5 +52,14 @@ public static class SomeUsefulFunction
             return (false, "you should specify month of day");
 
         return (true, "");
+    }
+
+    public static bool CheckIfItIsAnAdmin(IList<string> roles)
+    {
+        return roles.Any(x =>
+        {
+            var tmp = x.ToLower();
+            return tmp is "admin" or "admin_1" or "admin_2" or "advancedemployee" or "normalemployee";
+        });
     }
 }

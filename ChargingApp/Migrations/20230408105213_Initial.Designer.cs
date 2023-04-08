@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230406083651_Initial")]
+    [Migration("20230408105213_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -623,9 +623,6 @@ namespace ChargingApp.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Istaked")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime?>("TakedTime")
                         .HasColumnType("TEXT");
 
@@ -633,6 +630,9 @@ namespace ChargingApp.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("WasTaken")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Code");

@@ -30,10 +30,10 @@ public class AdminCategoryController : AdminController
 
         if (category == null)
             return BadRequest(new ApiResponse(400, "Can't find category with id " + id));
-        return new CategoryResultDto
+        return Ok(new ApiOkResponse(new CategoryResultDto
         {
             Category = await _unitOfWork.CategoryRepository.GetCategoryByIdProjectedAsync(id)
-        };
+        }));
     }
 
     [Authorize(Policy = "Required_Admins_Role")]
@@ -91,7 +91,8 @@ public class AdminCategoryController : AdminController
                     .GetOrdersForSpecificProduct(t.Id);
 
                 if (ordersForThisProduct.Any(x => x.Status is 0 or 4))
-                    return BadRequest(new ApiResponse(400, "There are pending orders for for some products in this category..."));
+                    return BadRequest(new ApiResponse(400,
+                        "There are pending orders for for some products in this category..."));
 
                 var fromOtherApi = await _unitOfWork.OtherApiRepository
                     .CheckIfProductExistAsync(t.Id, true);

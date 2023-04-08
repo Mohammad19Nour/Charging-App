@@ -44,7 +44,7 @@ public static class PriceForVIP
 
         decimal price = 0;
 
-        minimumP.Add(1000000000);
+        minimumP.Add(5000000000);
         var specificBenefit = await unitOfWork.SpecificBenefitPercentRepository
             .GetBenefitPercentForProductAsync(product.Id);
 
