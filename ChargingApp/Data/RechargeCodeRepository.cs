@@ -9,9 +9,10 @@ namespace ChargingApp.Data;
 public class RechargeCodeRepository : IRechargeCodeRepository
 {
     private const int Size = 8;
+
     private readonly char[] Chars =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
-    
+
     private readonly DataContext _context;
 
     public RechargeCodeRepository(DataContext context)
@@ -19,7 +20,7 @@ public class RechargeCodeRepository : IRechargeCodeRepository
         _context = context;
     }
 
-    public async Task<List<string>?>GenerateCodesWithValue(int numberOfCodes, int valueOfCode)
+    public async Task<List<string>?> GenerateCodesWithValue(int numberOfCodes, int valueOfCode)
     {
         var c = 0;
         var codeList = new List<string>();
@@ -36,7 +37,8 @@ public class RechargeCodeRepository : IRechargeCodeRepository
                     continue;
                 }
             }
-            _context.RechargeCodes.Add(new RechargeCode{Code = code , Value = valueOfCode});
+
+            _context.RechargeCodes.Add(new RechargeCode { Code = code, Value = valueOfCode });
             codeList.Add(code);
         }
 
@@ -46,9 +48,21 @@ public class RechargeCodeRepository : IRechargeCodeRepository
 
     public async Task<RechargeCode?> GetCodeAsync(string code)
     {
-        var tmpCode = await _context.RechargeCodes.FirstOrDefaultAsync(x => x.Code == code) ;
+        var tmpCode = await _context.RechargeCodes.FirstOrDefaultAsync(x => x.Code == code);
 
         return tmpCode;
+    }
+
+    public async Task<List<RechargeCode>> GetCodesForUserAsync(int userId)
+    {
+        return await _context.RechargeCodes
+            .Where(x => x.User != null)
+            .Where(x => x.User.Id == userId).ToListAsync();
+    }
+
+    public void Update(RechargeCode code)
+    {
+        _context.RechargeCodes.Update(code);
     }
 
     private string GenerateCode()
@@ -70,5 +84,4 @@ public class RechargeCodeRepository : IRechargeCodeRepository
 
         return result.ToString();
     }
-
-} 
+}

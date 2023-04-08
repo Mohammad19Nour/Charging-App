@@ -24,13 +24,10 @@ public class TokenService : ITokenService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Email, user.Email),
-          //  new("number" , "50")
+       
         };
 
-       // var roles = await _userManager.GetRolesAsync(user);
-        
-       //claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role,r)));
-
+       
         var creds = new SigningCredentials(_key , SecurityAlgorithms.HmacSha384Signature);
  
         var tokenDescriptor = new SecurityTokenDescriptor

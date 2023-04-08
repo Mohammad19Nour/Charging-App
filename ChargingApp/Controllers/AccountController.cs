@@ -1,6 +1,8 @@
 ﻿using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Extentions;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using ChargingApp.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -121,11 +123,10 @@ public class AccountController : BaseApiController
                 return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
             }
 
-            var roles =await  _userManager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
 
             if (roles.Any(x => x.ToLower() == "vip"))
             {
-
                 var syrian = await _unitOfWork.CurrencyRepository.GetSyrianCurrency();
                 var turkish = await _unitOfWork.CurrencyRepository.GetTurkishCurrency();
                 var vipPurchase = user.TotalForVIPLevel;

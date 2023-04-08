@@ -328,7 +328,7 @@ namespace ChargingApp.Migrations
                 {
                     Code = table.Column<string>(type: "TEXT", nullable: false),
                     Value = table.Column<int>(type: "INTEGER", nullable: false),
-                    Istaked = table.Column<bool>(type: "INTEGER", nullable: false),
+                    WasTaken = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     TakedTime = table.Column<DateTime>(type: "TEXT", nullable: true),
                     UserId = table.Column<int>(type: "INTEGER", nullable: true),

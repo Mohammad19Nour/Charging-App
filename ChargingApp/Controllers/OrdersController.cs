@@ -29,7 +29,7 @@ public class OrdersController : BaseApiController
         _notificationService = notificationService;
     }
 
-    [Authorize(Policy = "Required_Normal_Role")]
+    [Authorize(Policy = "Required_JustNORMAL_Role")]
     [HttpGet("normal-my-order")]
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
@@ -38,6 +38,9 @@ public class OrdersController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
             if (user is null) return BadRequest(new ApiResponse(401));
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
         }
@@ -48,7 +51,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "Required_VIP_Role")]
+    [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpGet("vip-my-order")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
@@ -57,6 +60,10 @@ public class OrdersController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
 
             if (user is null) return BadRequest(new ApiResponse(401));
+
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
         }
@@ -67,7 +74,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "Required_VIP_Role")]
+    [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpPost("vip-order")]
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
@@ -75,6 +82,9 @@ public class OrdersController : BaseApiController
         {
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
             if (user is null) return BadRequest(new ApiResponse(401));
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
@@ -179,7 +189,7 @@ public class OrdersController : BaseApiController
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
                 await _notificationService.VipLevelNotification(order.User.Email,
-                    "Vip level status notification", 
+                    "Vip level status notification",
                     SomeUsefulFunction.GetVipLevelNotification(order.User.VIPLevel));
             }
 
@@ -199,7 +209,7 @@ public class OrdersController : BaseApiController
     }
 
     // new order 
-    [Authorize(Policy = "Required_Normal_Role")]
+    [Authorize(Policy = "Required_JustNORMAL_Role")]
     [HttpPost("normal-order")]
     public async Task<IActionResult> PlaceOrder([FromForm] NewNormalOrderDto dto)
     {
@@ -209,15 +219,10 @@ public class OrdersController : BaseApiController
 
             if (user is null) return BadRequest(new ApiResponse(401));
 
-         /*   var roles = User.GetRoles();
+            var roles = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
-            if (roles.Any(x =>
-                {
-                    var tmp = x.ToLower();
-                    return tmp is "admin" or "admin_1" or "admin_2" or "advancedemployee" or "normalemployee";
-                }))
-                return BadRequest(new ApiResponse(403,"You're admin.. Can't make an order with this account"));
-            */
             var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(dto.ProductId);
 
             if (product is null)
@@ -295,7 +300,7 @@ public class OrdersController : BaseApiController
         }
     }
 
-    [Authorize(Policy = "Required_VIP_Role")]
+    [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpDelete]
     public async Task<ActionResult> DeleteOrder(int orderId)
     {
@@ -303,6 +308,9 @@ public class OrdersController : BaseApiController
         {
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(User.GetEmail());
             if (user is null) return Unauthorized(new ApiResponse(401));
+            var rols = User.GetRoles().ToList();
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(rols))
+                return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             var order = await _unitOfWork.OrdersRepository.GetOrderByIdAsync(orderId);
 

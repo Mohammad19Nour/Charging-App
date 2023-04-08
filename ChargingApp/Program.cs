@@ -110,6 +110,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
+//app.MapFallbackToController("Index","Fallback");
 app.MapHub<PresenceHub>("/hubs");
 
 

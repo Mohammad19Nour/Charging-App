@@ -621,9 +621,6 @@ namespace ChargingApp.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Istaked")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime?>("TakedTime")
                         .HasColumnType("TEXT");
 
@@ -631,6 +628,9 @@ namespace ChargingApp.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("WasTaken")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Code");
