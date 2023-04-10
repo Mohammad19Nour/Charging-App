@@ -12,16 +12,19 @@ public class AdminRechargeMethodeController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPhotoService _photoService;
 
-    public AdminRechargeMethodeController(IUnitOfWork unitOfWork, IMapper mapper)
+    public AdminRechargeMethodeController(IUnitOfWork unitOfWork, IMapper mapper
+        , IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _photoService = photoService;
     }
 
     [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPost("add-agent/{rechargeMethodId:int}")]
-    public async Task<ActionResult> AddAgent(int rechargeMethodId, [FromBody] NewAgentDto dto)
+    public async Task<ActionResult<AgentDto>> AddAgent(int rechargeMethodId,[FromForm] NewAgentDto dto)
     {
         try
         {
@@ -31,11 +34,20 @@ public class AdminRechargeMethodeController : AdminController
             if (rechargeMethod is null)
                 return NotFound(new ApiResponse(404, "recharge method not found"));
 
-            var agent =new ChangerAndCompany
+            if (dto.ImageFile == null)
+                return BadRequest(new ApiResponse(400, "Image file is required"));
+
+            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+
+            if (!result.Success)
+                return BadRequest(new ApiResponse(400, "Failed to upload photo  " + result.Message));
+
+            var agent = new ChangerAndCompany
             {
                 ArabicName = dto.ArabicName,
                 EnglishName = dto.EnglishName,
-                RechargeMethodMethod = rechargeMethod
+                RechargeMethodMethod = rechargeMethod,
+                Photo = new Photo { Url = result.Url }
             };
             _unitOfWork.RechargeMethodeRepository.AddAgent(rechargeMethod, agent);
 
@@ -53,7 +65,8 @@ public class AdminRechargeMethodeController : AdminController
 
     [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPut("update-agent/{agentId:int}")]
-    public async Task<ActionResult> UpdateAgent(int agentId, int rechargeMethodId, [FromQuery] string? arabicName
+    public async Task<ActionResult<AgentDto>> UpdateAgent(int agentId, int rechargeMethodId,
+        [FromQuery] string? arabicName
         , [FromQuery] string? englishName)
     {
         try
@@ -67,10 +80,11 @@ public class AdminRechargeMethodeController : AdminController
 
             if (agent is null)
                 return BadRequest(new ApiResponse(400, "Agent not found"));
-            if (string.IsNullOrEmpty(arabicName) && string.IsNullOrEmpty(englishName)) 
-                return BadRequest(new ApiResponse(400, 
+
+            if (string.IsNullOrEmpty(arabicName) && string.IsNullOrEmpty(englishName))
+                return BadRequest(new ApiResponse(400,
                     "You should provide some information to be updated "));
-           
+
             if (!string.IsNullOrEmpty(arabicName)) agent.ArabicName = arabicName;
             if (!string.IsNullOrEmpty(englishName)) agent.EnglishName = englishName;
 
@@ -87,6 +101,66 @@ public class AdminRechargeMethodeController : AdminController
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    [HttpPut("update-agent-photo/{rechargeMethodId:int}")]
+    public async Task<ActionResult<ApiResponse>> UpdateAgentPhoto(int agentId, int rechargeMethodId,
+        IFormFile? imageFile)
+    {
+        var method = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodByIdAsync(rechargeMethodId);
+
+        if (method is null)
+            return BadRequest(new ApiResponse(400, "Recharge method not found"));
+
+        var agent = method.ChangerAndCompanies.FirstOrDefault(x => x.Id == agentId);
+
+        if (agent is null)
+            return BadRequest(new ApiResponse(400, "Agent not found"));
+
+        if (imageFile == null) return BadRequest(new ApiResponse(400, "image file is required"));
+
+
+        var result = await _photoService.AddPhotoAsync(imageFile);
+
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
+
+        agent.Photo.Url = result.Url;
+        _unitOfWork.RechargeMethodeRepository.UpdateAgent(agent);
+
+        if (await _unitOfWork.Complete())
+        {
+            return Ok(new ApiResponse(200, "Image updated successfully."));
+        }
+
+        return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
+    }
+
+    [HttpPut("update-Method-photo/{rechargeMethodId:int}")]
+    public async Task<ActionResult<ApiResponse>> UpdateMethodPhoto(int rechargeMethodId, IFormFile? imageFile)
+    {
+        var method = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodByIdAsync(rechargeMethodId);
+
+        if (method is null)
+            return BadRequest(new ApiResponse(400, "Recharge method not found"));
+
+        if (imageFile == null) return BadRequest(new ApiResponse(400, "image file is required"));
+
+
+        var result = await _photoService.AddPhotoAsync(imageFile);
+
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
+
+        method.Photo.Url = result.Url;
+        _unitOfWork.RechargeMethodeRepository.Update(method);
+
+        if (await _unitOfWork.Complete())
+        {
+            return Ok(new ApiResponse(200, "Image updated successfully."));
+        }
+
+        return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
     }
 
     [Authorize(Policy = "Required_Administrator_Role")]

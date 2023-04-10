@@ -202,7 +202,7 @@ public class AdminOrderController : AdminController
 
         var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
         var orders = _mapper.Map<List<DoneOrderDto>>(result);
-        return Ok(orders);
+        return Ok(new ApiOkResponse(orders));
     }
 
     // delete done orders in last 6 months

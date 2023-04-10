@@ -14,7 +14,7 @@ public class AutoMapperProfiles : Profile
         var statusForCancel = new List<string>
             { "Not canceled", "Waiting", "Cancellation Accepted", "Cancellation Rejected" };
 
-        CreateMap<UpdatePaymentGatewayDto,PaymentGateway>()
+        CreateMap<UpdatePaymentGatewayDto, PaymentGateway>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<Order, DoneOrderDto>().ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]))
@@ -50,7 +50,10 @@ public class AutoMapperProfiles : Profile
         CreateMap<RegisterDto, AppUser>();
         CreateMap<NewAgentDto, ChangerAndCompany>();
         CreateMap<Category, CategoryDto>();
-        CreateMap<Category, CategoryWithProductsDto>();
+        CreateMap<Category, CategoryWithProductsDto>()
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(src => BaseUrl + src.Photo.Url));
+        CreateMap<PaymentGateway, PaymentGatewayDto>();
         CreateMap<RechargeMethod, RechargeMethodDto>()
             .ForMember(dest => dest.Agents, opt =>
                 opt.MapFrom(src => src.ChangerAndCompanies))
@@ -58,7 +61,9 @@ public class AutoMapperProfiles : Profile
                 opt.MapFrom(src => src.Id));
         CreateMap<ChangerAndCompany, AgentDto>()
             .ForMember(dest => dest.AgentId, opt =>
-                opt.MapFrom(src => src.Id));
+                opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Photo, opt =>
+                opt.MapFrom(src => BaseUrl + src.Photo.Url));
 
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>

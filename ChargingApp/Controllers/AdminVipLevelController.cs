@@ -30,7 +30,7 @@ public class AdminVipLevelController : AdminController
         try
         {
             var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
-            levels = levels.Where(x => x.VipLevel != 0).ToList();
+          //  levels = levels.Where(x => x.VipLevel != 0).ToList();
 
             var res = levels.Select(x => _mapper.Map<AdminVipLevelDto>(x));
 

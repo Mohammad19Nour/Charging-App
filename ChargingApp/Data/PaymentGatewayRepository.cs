@@ -17,19 +17,22 @@ public class PaymentGatewayRepository : IPaymentGatewayRepository
     {
         name = name.ToLower();
         return await 
-            _context.PaymentGateways.FirstOrDefaultAsync(x=>x.EnglishName.ToLower() == name);
+            _context.PaymentGateways
+                .Include(x=>x.Photo)
+                .FirstOrDefaultAsync(x=>x.EnglishName.ToLower() == name);
     }
 
     public async Task<List<PaymentGateway>> GetPaymentGatewaysAsync()
     {
-        return await _context.PaymentGateways.
-            
-            ToListAsync();
+        return await _context.PaymentGateways
+            .Include(x=>x.Photo)
+            .ToListAsync();
     }
 
     public async Task<PaymentGateway?> GetPaymentGatewayByIdAsync(int id)
     {
         return await _context.PaymentGateways
+            .Include(x=>x.Photo)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 

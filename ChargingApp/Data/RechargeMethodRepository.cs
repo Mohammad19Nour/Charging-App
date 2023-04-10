@@ -21,7 +21,9 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
     public async Task<List<RechargeMethodDto>?> GetRechargeMethodsAsync()
     {
         return await _context.RechargeMethods
+            .Include(x=>x.Photo)
             .Include(x => x.ChangerAndCompanies)
+            .ThenInclude(x=>x.Photo)
             .ProjectTo<RechargeMethodDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
@@ -38,9 +40,9 @@ public class RechargeMethodRepository : IRechargeMethodeRepository
 
     public async Task<RechargeMethod?> GetRechargeMethodByIdAsync(int methodId)
     {
-        return await _context.RechargeMethods
-            .Include(x=>x.ChangerAndCompanies)
-          //  .AsNoTracking()
+        return await _context.RechargeMethods.Include(x=>x.Photo)
+            .Include(x => x.ChangerAndCompanies)
+            .ThenInclude(x=>x.Photo)
             .FirstOrDefaultAsync(x => x.Id == methodId);
     }
 

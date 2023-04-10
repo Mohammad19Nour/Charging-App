@@ -30,10 +30,10 @@ public class AdminCategoryController : AdminController
 
         if (category == null)
             return BadRequest(new ApiResponse(400, "Can't find category with id " + id));
-        return Ok(new ApiOkResponse(new CategoryResultDto
+        return new CategoryResultDto
         {
             Category = await _unitOfWork.CategoryRepository.GetCategoryByIdProjectedAsync(id)
-        }));
+        };
     }
 
     [Authorize(Policy = "Required_Admins_Role")]

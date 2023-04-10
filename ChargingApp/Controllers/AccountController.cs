@@ -52,7 +52,11 @@ public class AccountController : BaseApiController
                                                " please check your email and confirm your account."));
             }
 
+            if (!SomeUsefulFunction.IsValidEmail(registerDto.Email))
+                return BadRequest(new ApiResponse(400,"Wrong email"));
+            
             registerDto.AccountType = registerDto.AccountType.ToLower();
+            
             if (registerDto.AccountType != "normal" && registerDto.AccountType != "vip")
                 return BadRequest(new ApiResponse(400, "account type should be normal or vip"));
 
@@ -112,18 +116,22 @@ public class AccountController : BaseApiController
         {
             loginDto.Email = loginDto.Email.ToLower();
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email);
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == loginDto.Email);
             if (user == null) return Unauthorized(new ApiResponse(401, "Invalid Email"));
 
             var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
             if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
+            
+            var roles = await _userManager.GetRolesAsync(user);
+
+
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403,"You can't login with an admin account"));
 
             if (!await _userManager.IsEmailConfirmedAsync(user))
             {
                 return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
             }
-
-            var roles = await _userManager.GetRolesAsync(user);
 
             if (roles.Any(x => x.ToLower() == "vip"))
             {

@@ -80,7 +80,6 @@ public class OrdersRepository : IOrdersRepository
         return order;
     }
 
-
     public async Task<List<Order>> GetPendingOrdersAsync(string email = "")
     {
         email = email.ToLower();

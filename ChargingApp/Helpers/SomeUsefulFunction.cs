@@ -38,6 +38,23 @@ public static class SomeUsefulFunction
 
     public static bool IsValidEmail(string email)
     {
+        var trimmedEmail = email.Trim();
+
+        if (trimmedEmail.EndsWith(".")) {
+            return false; // suggested by @TK-421
+        }
+        try {
+            var addr = new System.Net.Mail.MailAddress(email);
+            var res = addr.Address == trimmedEmail;
+
+            if (!res) return res;
+
+            var idx = email.IndexOf('@');
+            return email.Length != idx + 1 && email.ElementAt(idx+1) != '.';
+        }
+        catch {
+            return false;
+        }
         const string pattern = @"^[\w!#$%&'*+\-/=?\^_`{|}~]+(\.[\w!#$%&'*+\-/=?\^_`{|}~]+)*" + "@" +
                                @"((([\-\w]+\.)+[a-zA-Z]{2,4})|(([0-9]{1,3}\.){3}[0-9]{1,3}))$";
         return Regex.IsMatch(email, pattern);

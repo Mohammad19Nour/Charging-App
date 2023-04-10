@@ -11,11 +11,13 @@ public class AdminPaymentGatewayController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPhotoService _photoService;
 
-    public AdminPaymentGatewayController(IUnitOfWork unitOfWork, IMapper mapper)
+    public AdminPaymentGatewayController(IUnitOfWork unitOfWork, IMapper mapper,IPhotoService photoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _photoService = photoService;
     }
 
     [HttpPut("update/{id:int}")]
@@ -26,9 +28,35 @@ public class AdminPaymentGatewayController : BaseApiController
 
         if (gateway == null)
             return BadRequest(new ApiResponse(404, "Gateway with id " + id + " not found"));
+       
         _mapper.Map(dto, gateway);
 
         if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse(gateway));
+        return BadRequest(new ApiResponse(400, "Failed to update"));
+    }
+
+    [HttpPut("update-photo/{id:int}")]
+    public async Task<ActionResult<PaymentGatewayDto>> UpdatePhoto(int id
+        , IFormFile imageFile)
+    {
+        var gateway = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewayByIdAsync(id);
+
+        if (gateway == null)
+            return BadRequest(new ApiResponse(404, "Gateway with id " + id + " not found"));
+
+        if (imageFile == null) return BadRequest(new ApiResponse(400, "Image file is required"));
+
+
+        var result = await _photoService.AddPhotoAsync(imageFile);
+
+        if (!result.Success)
+            return BadRequest(new ApiResponse(400, result.Message));
+
+        gateway.Photo.Url = result.Url;
+        
+        if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse(
+            _mapper.Map<PaymentGatewayDto>(gateway)));
+        
         return BadRequest(new ApiResponse(400, "Failed to update"));
     }
 }

@@ -2,29 +2,35 @@
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
+using ChargingApp.Extentions;
 using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChargingApp.Controllers;
 
-[Authorize(Policy = "Required_Administrator_Role")]
+
 public class AdminAccountController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
     private readonly IMapper _mapper;
+    private readonly SignInManager<AppUser> _signInManager;
+    private readonly ITokenService _tokenService;
 
     public AdminAccountController(IUnitOfWork unitOfWork, UserManager<AppUser> userManager,
-        IMapper mapper)
+        IMapper mapper, SignInManager<AppUser> signInManager, ITokenService tokenService)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
         _mapper = mapper;
+        _signInManager = signInManager;
+        _tokenService = tokenService;
     }
-
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPost("create-account")]
     public async Task<ActionResult<AdminDto>> CreateAccount(AdminRegisterDto dto)
     {
@@ -67,7 +73,6 @@ public class AdminAccountController : BaseApiController
 
             if (res.Succeeded == false) return BadRequest(res.Errors);
 
-            dto.Roles.Add("VIP");
             var roleResult = await _userManager.AddToRolesAsync(user, dto.Roles);
 
             if (!roleResult.Succeeded) return BadRequest(new ApiResponse(400, "Failed to add roles"));
@@ -83,6 +88,79 @@ public class AdminAccountController : BaseApiController
         }
     }
 
+    [HttpPost("login")]
+    public async Task<ActionResult<AdminLoginDto>> Login(LoginDto loginDto)
+    {
+        try
+        {
+            loginDto.Email = loginDto.Email.ToLower();
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email);
+            if (user == null) return Unauthorized(new ApiResponse(401, "Invalid Email"));
+
+            var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (!SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403));
+            
+            return Ok(new ApiOkResponse(new AdminLoginDto
+            {
+                Email = user.Email.ToLower(),
+                FirstName = user.FirstName.ToLower(),
+                LastName = user.LastName.ToLower(),
+                Token = await _tokenService.CreateToken(user),
+                PhoneNumber = user.PhoneNumber,
+                City = user.City,
+                Country = user.Country,
+                Roles = roles.ToList()
+            }));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    [HttpGet("info")]
+    public async Task<ActionResult<AdminDto>> AdminInfo()
+    {
+        var email = User.GetEmail();
+
+        if (string.IsNullOrEmpty(email)) return Unauthorized(new ApiResponse(401));
+
+        var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+
+        if (user is null) return Unauthorized(new ApiResponse(401));
+
+        var roles = User.GetRoles().ToList();
+            
+        if (!SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+            return BadRequest(new ApiResponse(403));
+        
+         
+        return Ok(new ApiOkResponse(new AdminDto
+        {
+            Email = user.Email.ToLower(),
+            FirstName = user.FirstName.ToLower(),
+            LastName = user.LastName.ToLower(),
+            PhoneNumber = user.PhoneNumber,
+            City = user.City,
+            Country = user.Country,
+            Roles = roles.ToList()
+        }));
+        
+        
+    }
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpDelete("email")]
     public async Task<ActionResult<bool>> DeleteAccount([FromQuery] string email)
     {
@@ -128,7 +206,7 @@ public class AdminAccountController : BaseApiController
 
         if (!await _unitOfWork.Complete())
             return BadRequest(new ApiResponse(400, "Can't delete the user... something went wrong"));
-        
+
         await _userManager.DeleteAsync(user);
         return Ok(new ApiResponse(200, "User deleted"));
     }

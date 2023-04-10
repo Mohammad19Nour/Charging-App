@@ -33,7 +33,7 @@ public static class Seed
         if (await userManager.Users.AnyAsync()) return;
 
 
-       var admin = new AppUser
+        var admin = new AppUser
         {
             FirstName = "hamam",
             LastName = "hamam",
@@ -48,6 +48,35 @@ public static class Seed
         };
         await userManager.CreateAsync(admin, "Admin!1");
         await userManager.AddToRolesAsync(admin, new[] { "Admin" });
+        admin = new AppUser
+        {
+            FirstName = "hamam",
+            LastName = "hamam",
+            Email = "v@v.v",
+            UserName = "v@v.v",
+            City = "Admin",
+            Country = "Admin",
+            PhoneNumber = "8596539",
+            Balance = 10000,
+            VIPLevel = 1,
+            EmailConfirmed = true,
+        };
+        await userManager.CreateAsync(admin, "string");
+        await userManager.AddToRolesAsync(admin, new[] { "VIP" });
+        admin = new AppUser
+        {
+            FirstName = "hamam",
+            LastName = "hamam",
+            Email = "n@n.n",
+            UserName = "n@n.n",
+            City = "Admin",
+            Country = "Admin",
+            PhoneNumber = "8596539",
+            VIPLevel = 0,
+            EmailConfirmed = true,
+        };
+        await userManager.CreateAsync(admin, "string");
+        await userManager.AddToRolesAsync(admin, new[] { "Normal" });
     }
 
     public static async Task SeedVipLevels(DataContext context)
@@ -85,25 +114,29 @@ public static class Seed
         {
             EnglishName = "lord",
             ArabicName = "اللورد للحوالات المالية",
-            BagAddress = "2654jhjh"
+            BagAddress = "2654jhjh", 
+            Photo = new Photo { Url = "http2" }
         });
         context.PaymentGateways.Add(new PaymentGateway
         {
             EnglishName = "USDT",
             ArabicName = "USDT",
-            BagAddress = "hku5416"
+            BagAddress = "hku5416",
+            Photo = new Photo { Url = "http2" }
         });
         context.PaymentGateways.Add(new PaymentGateway
         {
             EnglishName = "Payeer",
             ArabicName = "Payeer",
-            BagAddress = "lscwlncwlc"
+            BagAddress = "lscwlncwlc",
+            Photo = new Photo { Url = "http2" }
         });
         context.PaymentGateways.Add(new PaymentGateway
         {
             EnglishName = "Binance",
             ArabicName = "Binance",
-            BagAddress = "cdncwlkcnlscm"
+            BagAddress = "cdncwlkcnlscm",
+            Photo = new Photo { Url = "http2" }
         });
 
         await context.SaveChangesAsync();
@@ -113,8 +146,14 @@ public static class Seed
     {
         if (await context.RechargeMethods.AnyAsync()) return;
 
-        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "شركات التحويل", EnglishName = "Companies" });
-        context.RechargeMethods.Add(new RechargeMethod { ArabicName = "مكاتب الصرافين", EnglishName = "Offices" });
+        context.RechargeMethods.Add(new RechargeMethod
+        {
+            Photo = new Photo { Url = "http2" }, ArabicName = "شركات التحويل", EnglishName = "Companies"
+        });
+        context.RechargeMethods.Add(new RechargeMethod
+        {
+            Photo = new Photo { Url = "http2" }, ArabicName = "مكاتب الصرافين", EnglishName = "Offices"
+        });
         await context.SaveChangesAsync();
     }
 
@@ -177,12 +216,14 @@ public static class Seed
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "eng",
-            ArabicName = "arb"
+            ArabicName = "arb",
+            Photo = new Photo { Url = "http2" }
         });
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "popo",
-            ArabicName = "عربي"
+            ArabicName = "عربي",
+            Photo = new Photo { Url = "http2" }
         });
 
 
@@ -191,7 +232,7 @@ public static class Seed
         cc.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "eng",
-            ArabicName = "اسم عربي"
+            ArabicName = "اسم عربي", Photo = new Photo { Url = "http2" }
         });
         await context.SaveChangesAsync();
     }
