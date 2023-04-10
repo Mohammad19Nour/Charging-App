@@ -84,15 +84,9 @@ public class AdminRejectWrongOrderController : BaseApiController
             var cur = new NotificationHistory
             {
                 User = order.User,
-                ArabicDetails = "تم رفض الطلب رقم " + orderId + " لانه خاطئ ",
-                EnglishDetails = "Order with id " + orderId + " has been rejected by admin"
+                ArabicDetails = order.Notes+" : "+ "تم رفض الطلب رقم " + orderId + " لأن " ,
+                EnglishDetails = "Order with id " + orderId + " has been rejected by admin because: " + order.Notes
             };
-
-            if (order.Status != 2)
-            {
-                cur.ArabicDetails = "تم رفض الطلب رقم " + orderId + " لانه خاطئ ";
-                cur.EnglishDetails = "Order with id " + orderId + " has been rejected by admin because it's wrong";
-            }
 
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);
 

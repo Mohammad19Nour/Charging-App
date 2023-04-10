@@ -123,8 +123,9 @@ public class AdminPaymentController : AdminController
                 new NotificationHistory
                 {
                     User = payment.User,
-                    ArabicDetails = " تم رفض  الدفعة رقم " + paymentId + " من قبل الادمن ",
-                    EnglishDetails = "Payment with id " + paymentId + " has been rejected by admin"
+                    ArabicDetails = payment.Notes+" : "+ "تم رفض الدفعة رقم " + paymentId + " لأن " ,
+                    EnglishDetails = "Payment with id " + paymentId + " has been rejected by admin because: " +
+                                     payment.Notes
                 });
             if (await _unitOfWork.Complete())
             {
@@ -184,10 +185,10 @@ public class AdminPaymentController : AdminController
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "All payments Before six months has been deleted successfully"));
-            
+
             if (!_unitOfWork.HasChanges())
                 return Ok(new ApiResponse(200, "There are no payments before six months to be deleted"));
-            
+
             return BadRequest(new ApiResponse(400, "Failed to delete payments"));
         }
         catch (Exception e)

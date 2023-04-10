@@ -11,7 +11,7 @@ public class RechargeCodeRepository : IRechargeCodeRepository
     private const int Size = 8;
 
     private readonly char[] Chars =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
+        "yz8ABCabOPQRSTcd0efg1hijk2lmnHIJ3KLMNUopq9rst5uvw7x4DEF6GVWXYZ".ToCharArray();
 
     private readonly DataContext _context;
 

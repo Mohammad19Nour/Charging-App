@@ -241,10 +241,15 @@ namespace ChargingApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RechargeMethodMethodId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PhotoId");
 
                     b.HasIndex("RechargeMethodMethodId");
 
@@ -549,7 +554,12 @@ namespace ChargingApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PhotoId");
 
                     b.ToTable("PaymentGateways");
                 });
@@ -654,7 +664,12 @@ namespace ChargingApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PhotoId");
 
                     b.ToTable("RechargeMethods");
                 });
@@ -914,11 +929,19 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.ChangerAndCompany", b =>
                 {
+                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ChargingApp.Entity.RechargeMethod", "RechargeMethodMethod")
                         .WithMany("ChangerAndCompanies")
                         .HasForeignKey("RechargeMethodMethodId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Photo");
 
                     b.Navigation("RechargeMethodMethod");
                 });
@@ -1033,6 +1056,17 @@ namespace ChargingApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ChargingApp.Entity.PaymentGateway", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Photo");
+                });
+
             modelBuilder.Entity("ChargingApp.Entity.Product", b =>
                 {
                     b.HasOne("ChargingApp.Entity.Category", "Category")
@@ -1055,6 +1089,17 @@ namespace ChargingApp.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChargingApp.Entity.RechargeMethod", b =>
+                {
+                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Photo");
                 });
 
             modelBuilder.Entity("ChargingApp.Entity.SliderPhoto", b =>

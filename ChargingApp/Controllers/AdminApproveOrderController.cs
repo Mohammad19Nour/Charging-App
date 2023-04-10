@@ -120,13 +120,22 @@ public class AdminApproveOrderController : BaseApiController
 
             if (order.OrderType.ToLower() == "vip")
             {
-                order.User.TotalPurchasing -= order.TotalPrice;
-                order.User.TotalForVIPLevel -= order.TotalPrice;
-                order.User.Balance += order.TotalPrice;
+                var lastVip = order.User.VIPLevel;
+                var res = await _unitOfWork.OrdersRepository
+                    .GetPendingOrdersAsync(order.User.Email);
+
+                foreach (var t in res)
+                {
+                    t.User.TotalPurchasing -= t.TotalPrice;
+                    t.User.TotalForVIPLevel -= t.TotalPrice;
+                    t.User.Balance += t.TotalPrice;
+                    t.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                        .GetVipLevelForPurchasingAsync(t.User.TotalForVIPLevel);
+                }
+
                 order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
 
-                var lastVip = order.User.VIPLevel;
 
                 if (!order.CanChooseQuantity)
                 {
@@ -175,8 +184,20 @@ public class AdminApproveOrderController : BaseApiController
                     order.Notes = "No enough money";
                 }
 
+                foreach (var t in res)
+                {
+                    if (order.Id == t.Id) continue;
+
+                    t.User.TotalPurchasing += t.TotalPrice;
+                    t.User.TotalForVIPLevel += t.TotalPrice;
+                    t.User.Balance -= t.TotalPrice;
+                }
+
+                order.User.VIPLevel = await _unitOfWork.VipLevelRepository
+                    .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+
                 if (lastVip < order.User.VIPLevel)
-                { 
+                {
                     var curr = new NotificationHistory
                     {
                         User = order.User,
@@ -186,7 +207,21 @@ public class AdminApproveOrderController : BaseApiController
                     _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
                     await _notificationService.VipLevelNotification(order.User.Email,
-                        "Vip level status notification", 
+                        "Vip level status notification",
+                        SomeUsefulFunction.GetVipLevelNotification(order.User.VIPLevel));
+                }
+                else if (lastVip > order.User.VIPLevel)
+                {
+                    var curr = new NotificationHistory
+                    {
+                        User = order.User,
+                        ArabicDetails = " تم ارجاع مستواك الى vip  " + order.User.VIPLevel,
+                        EnglishDetails = "Your level has been returned back to vip " + order.User.VIPLevel
+                    };
+                    _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
+
+                    await _notificationService.VipLevelNotification(order.User.Email,
+                        "Vip level status notification",
                         SomeUsefulFunction.GetVipLevelNotification(order.User.VIPLevel));
                 }
             }
@@ -200,8 +235,8 @@ public class AdminApproveOrderController : BaseApiController
 
             if (order.Status != 1)
             {
-                cur.ArabicDetails = " تم رفض الطلب رقم " + orderId;
-                cur.EnglishDetails = "Order with id " + orderId + " has been rejected by admin";
+                cur.ArabicDetails = order.Notes+" : "+ "تم رفض الطلب رقم " + orderId + " لأن " ;
+                cur.EnglishDetails = "Order with id " + orderId + " has been rejected by admin because: " + order.Notes;
             }
 
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);

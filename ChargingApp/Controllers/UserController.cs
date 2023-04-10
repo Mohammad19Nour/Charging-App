@@ -3,6 +3,7 @@ using ChargingApp.Entity;
 using ChargingApp.Extentions;
 using ChargingApp.DTOs;
 using ChargingApp.Errors;
+using ChargingApp.Helpers;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -64,6 +65,9 @@ public class UserController : BaseApiController
             if (user is null) return Unauthorized(new ApiResponse(401));
 
             var roles = await _userManager.GetRolesAsync(user);
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403));
+
             if (roles.Any(x => x.ToLower() == "vip"))
             {
                 var res = _mapper.Map<UserInfoDto>(user);
@@ -136,6 +140,7 @@ public class UserController : BaseApiController
         }
     }
 
+    [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpGet("my-wallet")]
     public async Task<ActionResult<WalletDto>> MyWallet()
     {
@@ -181,7 +186,11 @@ public class UserController : BaseApiController
 
             if (user is null) return Unauthorized(new ApiResponse(401));
 
-            var roles = User.GetRoles();
+            var roles = User.GetRoles().ToList();
+            
+            if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
+                return BadRequest(new ApiResponse(403));
+            
             var role = roles.FirstOrDefault(x => x.ToLower() == "vip");
 
             if (role is null) return Ok(new ApiOkResponse("Normal"));
@@ -198,7 +207,6 @@ public class UserController : BaseApiController
                 percentage -= lvl.Purchase;
             }
 
-            percentage = percentage / vipLevels[user.VIPLevel - 1].Purchase * 100;
             var res = new AccountInfoDto
             {
                 UserVipLevel = user.VIPLevel,

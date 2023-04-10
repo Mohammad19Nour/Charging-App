@@ -105,21 +105,6 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentGateways",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
-                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
-                    BagAddress = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentGateways", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Photos",
                 columns: table => new
                 {
@@ -130,20 +115,6 @@ namespace ChargingApp.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Photos", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RechargeMethods",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
-                    EnglishName = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RechargeMethods", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -390,6 +361,28 @@ namespace ChargingApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentGateways",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
+                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
+                    BagAddress = table.Column<string>(type: "TEXT", nullable: false),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentGateways", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentGateways_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -420,6 +413,27 @@ namespace ChargingApp.Migrations
                         column: x => x.PhotoId,
                         principalTable: "Photos",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RechargeMethods",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
+                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RechargeMethods", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RechargeMethods_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -460,27 +474,6 @@ namespace ChargingApp.Migrations
                         name: "FK_VipLevels_Photos_PhotoId",
                         column: x => x.PhotoId,
                         principalTable: "Photos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChangerAndCompanies",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    RechargeMethodMethodId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
-                    EnglishName = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChangerAndCompanies", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChangerAndCompanies_RechargeMethods_RechargeMethodMethodId",
-                        column: x => x.RechargeMethodMethodId,
-                        principalTable: "RechargeMethods",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -538,6 +531,34 @@ namespace ChargingApp.Migrations
                         column: x => x.PhotoId,
                         principalTable: "Photos",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChangerAndCompanies",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    RechargeMethodMethodId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
+                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChangerAndCompanies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChangerAndCompanies_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChangerAndCompanies_RechargeMethods_RechargeMethodMethodId",
+                        column: x => x.RechargeMethodMethodId,
+                        principalTable: "RechargeMethods",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -739,6 +760,11 @@ namespace ChargingApp.Migrations
                 column: "PhotoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChangerAndCompanies_PhotoId",
+                table: "ChangerAndCompanies",
+                column: "PhotoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ChangerAndCompanies_RechargeMethodMethodId",
                 table: "ChangerAndCompanies",
                 column: "RechargeMethodMethodId");
@@ -794,6 +820,11 @@ namespace ChargingApp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentGateways_PhotoId",
+                table: "PaymentGateways",
+                column: "PhotoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payments_PhotoId",
                 table: "Payments",
                 column: "PhotoId");
@@ -817,6 +848,11 @@ namespace ChargingApp.Migrations
                 name: "IX_RechargeCodes_UserId",
                 table: "RechargeCodes",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RechargeMethods_PhotoId",
+                table: "RechargeMethods",
+                column: "PhotoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SliderPhotos_PhotoId",
