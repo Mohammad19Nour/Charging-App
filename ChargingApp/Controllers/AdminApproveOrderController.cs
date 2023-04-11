@@ -116,6 +116,8 @@ public class AdminApproveOrderController : BaseApiController
                 return BadRequest(new ApiResponse(400, "Failed to approve order"));
             }
 
+            order.Notes = "Success";
+
             order.Status = 1; // accepted
 
             if (order.OrderType.ToLower() == "vip")

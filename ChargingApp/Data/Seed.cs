@@ -217,13 +217,11 @@ public static class Seed
         {
             EnglishName = "eng",
             ArabicName = "arb",
-            Photo = new Photo { Url = "http2" }
         });
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "popo",
             ArabicName = "عربي",
-            Photo = new Photo { Url = "http2" }
         });
 
 
@@ -232,7 +230,7 @@ public static class Seed
         cc.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "eng",
-            ArabicName = "اسم عربي", Photo = new Photo { Url = "http2" }
+            ArabicName = "اسم عربي",
         });
         await context.SaveChangesAsync();
     }

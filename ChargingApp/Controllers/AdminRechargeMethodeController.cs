@@ -33,21 +33,12 @@ public class AdminRechargeMethodeController : AdminController
 
             if (rechargeMethod is null)
                 return NotFound(new ApiResponse(404, "recharge method not found"));
-
-            if (dto.ImageFile == null)
-                return BadRequest(new ApiResponse(400, "Image file is required"));
-
-            var result = await _photoService.AddPhotoAsync(dto.ImageFile);
-
-            if (!result.Success)
-                return BadRequest(new ApiResponse(400, "Failed to upload photo  " + result.Message));
-
+            
             var agent = new ChangerAndCompany
             {
                 ArabicName = dto.ArabicName,
                 EnglishName = dto.EnglishName,
                 RechargeMethodMethod = rechargeMethod,
-                Photo = new Photo { Url = result.Url }
             };
             _unitOfWork.RechargeMethodeRepository.AddAgent(rechargeMethod, agent);
 
@@ -101,39 +92,6 @@ public class AdminRechargeMethodeController : AdminController
             Console.WriteLine(e);
             throw;
         }
-    }
-
-    [HttpPut("update-agent-photo/{rechargeMethodId:int}")]
-    public async Task<ActionResult<ApiResponse>> UpdateAgentPhoto(int agentId, int rechargeMethodId,
-        IFormFile? imageFile)
-    {
-        var method = await _unitOfWork.RechargeMethodeRepository.GetRechargeMethodByIdAsync(rechargeMethodId);
-
-        if (method is null)
-            return BadRequest(new ApiResponse(400, "Recharge method not found"));
-
-        var agent = method.ChangerAndCompanies.FirstOrDefault(x => x.Id == agentId);
-
-        if (agent is null)
-            return BadRequest(new ApiResponse(400, "Agent not found"));
-
-        if (imageFile == null) return BadRequest(new ApiResponse(400, "image file is required"));
-
-
-        var result = await _photoService.AddPhotoAsync(imageFile);
-
-        if (!result.Success)
-            return BadRequest(new ApiResponse(400, result.Message));
-
-        agent.Photo.Url = result.Url;
-        _unitOfWork.RechargeMethodeRepository.UpdateAgent(agent);
-
-        if (await _unitOfWork.Complete())
-        {
-            return Ok(new ApiResponse(200, "Image updated successfully."));
-        }
-
-        return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
     }
 
     [HttpPut("update-Method-photo/{rechargeMethodId:int}")]

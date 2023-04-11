@@ -193,9 +193,12 @@ public class PaymentsController : BaseApiController
                 return BadRequest(new ApiResponse(400, "can't find the target method"));
 
             var result = await _photoService.AddPhotoAsync(dto.ImageFile);
+            
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
 
+            if (dto.CreatedDate != null)
+                dto.CreatedDate = dto.CreatedDate.ToUniversalTime();
             var photo = new Photo
             {
                 Url = result.Url
@@ -204,7 +207,7 @@ public class PaymentsController : BaseApiController
             {
                 User = user,
                 AddedValue = dto.AddedValue,
-                CreatedDate = dto.CreatedDate,
+             //   CreatedDate = dto.CreatedDate,
                 Notes = dto.Notes,
                 Photo = photo,
                 PaymentType = name,
