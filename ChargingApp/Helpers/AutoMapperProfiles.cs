@@ -61,9 +61,7 @@ public class AutoMapperProfiles : Profile
                 opt.MapFrom(src => src.Id));
         CreateMap<ChangerAndCompany, AgentDto>()
             .ForMember(dest => dest.AgentId, opt =>
-                opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(src => BaseUrl + src.Photo.Url));
+                opt.MapFrom(src => src.Id));
 
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>

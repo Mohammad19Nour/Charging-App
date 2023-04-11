@@ -45,7 +45,7 @@ public class AdminRejectWrongOrderController : BaseApiController
             if (order.Status != 4)
                 return BadRequest(new ApiResponse(400, "this order already checked"));
 
-            if (order.OrderType.ToLower() == "vip" && type == "rejected")
+            if (order.OrderType.ToLower() == "vip" && type == "reject")
                 return BadRequest(new ApiResponse(400, "can't reject this order"));
 
             order.Status = type == "reject" ? 2 : 3;
