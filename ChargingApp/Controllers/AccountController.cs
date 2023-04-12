@@ -41,7 +41,7 @@ public class AccountController : BaseApiController
             if (user != null)
             {
                 if (user.EmailConfirmed)
-                    return BadRequest(new ApiResponse(400, "This email is already used"));
+                    return BadRequest(new ApiResponse(400, "This email is already used","هذا الحساب مستخدم من قبل"));
                 var response = await GenerateTokenAndSendEmailForUser(user);
 
                 if (!response)
@@ -49,11 +49,12 @@ public class AccountController : BaseApiController
 
                 return Ok(new ApiResponse(200, "You have already registered with this Email," +
                                                "The confirmation link will be resent to your email," +
-                                               " please check your email and confirm your account."));
+                                               " please check your email and confirm your account.",
+                    "انت مسجل مسبقا بهذا الحساب, سيتم إعادة إرسال رابط التأكيد إليك... الرجاء التأكد من صندوق الوارد لديك من اجل تاكيد حسابك"));
             }
 
             if (!SomeUsefulFunction.IsValidEmail(registerDto.Email))
-                return BadRequest(new ApiResponse(400,"Wrong email"));
+                return BadRequest(new ApiResponse(400,"Wrong email","بريد إالكتروني خاطئ"));
             
             registerDto.AccountType = registerDto.AccountType.ToLower();
             
@@ -85,10 +86,11 @@ public class AccountController : BaseApiController
 
             if (!roleResult.Succeeded) return BadRequest(new ApiResponse(400, "Failed to add roles"));
             if (!respons)
-                return BadRequest(new ApiResponse(400, "Failed to send email."));
+                return BadRequest(new ApiResponse(400, "Failed to send email.","حدثت مشكلة اثناء إرسال رسالة التأكيد... يرجى المحاولة لاحقا"));
 
             return Ok(new ApiResponse(200, "The confirmation link was send to your email successfully, " +
-                                           "please check your email and confirm your account."));
+                                           "please check your email and confirm your account.",
+                "تم إرسال رابط التأكيد إلى البريد الإلكتروني الخاص بك, الرجاء التأمد من صندوق الوارد لديك وتأكيد حسابك."));
         }
         catch (Exception e)
         {
@@ -130,7 +132,7 @@ public class AccountController : BaseApiController
 
             if (!await _userManager.IsEmailConfirmedAsync(user))
             {
-                return BadRequest(new ApiResponse(400, "Please Confirm your Email"));
+                return BadRequest(new ApiResponse(400, "Please Confirm your Email","الرجاء تأكيد حسابك أولا"));
             }
 
             if (roles.Any(x => x.ToLower() == "vip"))
@@ -235,7 +237,7 @@ public class AccountController : BaseApiController
 
             if (user == null)
             {
-                return BadRequest(new ApiResponse(400, "user was not found"));
+                return Unauthorized(new ApiResponse(401, "user was not found"));
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -274,12 +276,13 @@ public class AccountController : BaseApiController
             var val = ConfirmationCodesService.GetUserIdAndToken(code);
 
             if (val is null)
-                return BadRequest(new ApiResponse(400, "the code is incorrect"));
+                return BadRequest(new ApiResponse(400, "the code is incorrect","الكود خاطئ, يرجى التأكد من الكود والمحاولة لاحقا"));
+            
             var userId = val.Value.userId;
             var token = val.Value.token;
 
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null) return BadRequest(new ApiResponse(400, "this user is not registered"));
+            if (user == null) return Unauthorized(new ApiResponse(401, "this user is not registered"));
 
             var res = await _userManager.ResetPasswordAsync(user, token, newPassword);
 

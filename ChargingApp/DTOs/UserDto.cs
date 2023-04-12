@@ -29,7 +29,13 @@ public class NormalUserDto : UserInfo
     public string Email { get; set; }
     public string Token { get; set; }
 }
-
+public class NormalUserInfoDto : UserInfo
+{ 
+    
+    public string Email { get; set; }
+    public string AccountType { get; set; }
+    
+}
 public class UserInfoDto : UserInfo
 { 
     
@@ -40,10 +46,3 @@ public class UserInfoDto : UserInfo
 }
 
 
-public class NormalUserInfoDto : UserInfo
-{ 
-    
-    public string Email { get; set; }
-    public string AccountType { get; set; }
-    
-}

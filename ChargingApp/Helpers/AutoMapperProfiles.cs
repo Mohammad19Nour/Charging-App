@@ -71,18 +71,25 @@ public class AutoMapperProfiles : Profile
             (p.Url == null) ? "No Photo" : BaseUrl + p.Url);
 
         CreateMap<Payment, PaymentDto>()
+            .ForMember(dest => dest.CreatedDate, opt =>
+                opt.MapFrom(src => src.ClientDate))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
         CreateMap<Payment, CompanyPaymentDto>()
+            .ForMember(dest => dest.CreatedDate, opt =>
+                opt.MapFrom(src => src.ClientDate))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url))
             .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]));
 
-        CreateMap<Payment, OfficePaymentDto>().ForMember(dest => dest.Status, opt =>
+        CreateMap<Payment, OfficePaymentDto>()
+            .ForMember(dest => dest.CreatedDate, opt =>
+                opt.MapFrom(src => src.ClientDate))
+            .ForMember(dest => dest.Status, opt =>
                 opt.MapFrom(src => status[src.Status]))
             .ForMember(dest => dest.ReceiptNumberUrl, opt =>
                 opt.MapFrom(src => src.Photo == null ? "No photo" : BaseUrl + src.Photo.Url));
@@ -93,10 +100,14 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.Username, opt =>
                 opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
 
-        CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
+        CreateMap<AppUser, UserInfoDto>()
+            .ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
         CreateMap<AppUser, NormalUserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => "Normal"));
+
+        CreateMap<UpdateVipLevelDto, VIPLevel>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<CategoryUpdateDto, Category>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
@@ -142,6 +153,8 @@ public class AutoMapperProfiles : Profile
 
 
         CreateMap<Payment, PaymentAdminDto>()
+            .ForMember(dest => dest.CreatedDate, opt =>
+                opt.MapFrom(src => src.ClientDate))
             .ForMember(dest => dest.Email, opt =>
                 opt.MapFrom(src => src.User.Email));
 

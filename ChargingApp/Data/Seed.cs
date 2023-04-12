@@ -84,23 +84,38 @@ public static class Seed
         if (await context.VipLevels.AnyAsync()) return;
 
         // normal user is considered as vip 0 so don't remove this line
-        context.VipLevels.Add(new VIPLevel { BenefitPercent = 20, VipLevel = 0, Photo = new Photo { Url = "http" } });
         context.VipLevels.Add(new VIPLevel
-            { BenefitPercent = 10, VipLevel = 1, Purchase = 132, Photo = new Photo { Url = "http1" } });
+        {
+            BenefitPercent = 20, VipLevel = 0, Photo = new Photo { Url = "http" },
+            EnglishName = "Normal",
+            ArabicName = "عادي"
+        });
+        context.VipLevels.Add(new VIPLevel
+        {
+            BenefitPercent = 10, VipLevel = 1, Purchase = 132, Photo = new Photo { Url = "http1" },
+            EnglishName = "Bronze",
+            ArabicName = "برونزي"
+        });
         context.VipLevels.Add(new VIPLevel
         {
             BenefitPercent = 5, VipLevel = 2, MinimumPurchase = 132, Purchase = 2000,
-            Photo = new Photo { Url = "http2" }
+            Photo = new Photo { Url = "http2" },
+            EnglishName = "Bronze",
+            ArabicName = "برونزي"
         });
         context.VipLevels.Add(new VIPLevel
         {
             BenefitPercent = 3, VipLevel = 3, MinimumPurchase = 2132, Purchase = 8000,
-            Photo = new Photo { Url = "http2" }
+            Photo = new Photo { Url = "http2" },
+            EnglishName = "Silver",
+            ArabicName = "فضي"
         });
         context.VipLevels.Add(new VIPLevel
         {
             BenefitPercent = 2, VipLevel = 4, MinimumPurchase = 10132, Purchase = 10000,
-            Photo = new Photo { Url = "http2" }
+            Photo = new Photo { Url = "http2" },
+            EnglishName = "Golden",
+            ArabicName = "ذهبي"
         });
 
         await context.SaveChangesAsync();

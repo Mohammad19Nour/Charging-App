@@ -33,10 +33,10 @@ public class UserController : BaseApiController
         {
             var email = User.GetEmail();
 
-            if (email is null) return Unauthorized(new ApiResponse(403, "user not fount"));
+            if (email is null) return Unauthorized(new ApiResponse(401, "user not fount"));
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
-            if (user is null) return Unauthorized(new ApiResponse(403, "user not fount"));
+            if (user is null) return Unauthorized(new ApiResponse(401, "user not fount"));
 
             _mapper.Map(updateUserInfoDto, user);
             _unitOfWork.UserRepository.UpdateUserInfo(user);

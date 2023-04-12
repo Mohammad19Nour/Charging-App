@@ -99,7 +99,8 @@ public class OrdersController : BaseApiController
 
             if (dto.Quantity < product.MinimumQuantityAllowed)
                 return BadRequest(new ApiResponse(400,
-                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed
+                    ,product.MinimumQuantityAllowed+"يجب ان تكون الكمية اكبر او يساوي "));
 
             var order = new Order
             {
@@ -147,7 +148,7 @@ public class OrdersController : BaseApiController
             }
 
             if (order.TotalPrice > user.Balance)
-                return BadRequest(new ApiResponse(400, "you have no enough money to do this"));
+                return BadRequest(new ApiResponse(400, "you have no enough money to do this","ليس لديك رصيد كاف"));
 
             var fromApi = await _unitOfWork.OtherApiRepository
                 .CheckIfProductExistAsync(product.Id, true);
@@ -242,7 +243,8 @@ public class OrdersController : BaseApiController
 
             if (dto.Quantity < product.MinimumQuantityAllowed)
                 return BadRequest(new ApiResponse(400,
-                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed));
+                    "the minimum quantity you can chose is " + product.MinimumQuantityAllowed
+                    ,product.MinimumQuantityAllowed+"يجب ان تكون الكمية اكبر او يساوي "));
 
             var result = await _photoService.AddPhotoAsync(dto.ReceiptPhoto);
 
@@ -321,9 +323,13 @@ public class OrdersController : BaseApiController
                 return BadRequest(new ApiResponse(403));
 
             if (order.CreatedAt.AddSeconds(60).CompareTo(DateTime.UtcNow) > 0)
+            {
+                var rem = CalcSeconds(order.CreatedAt.AddSeconds(60).Second,
+                    DateTime.UtcNow.Second);
                 return BadRequest(new ApiResponse(400, "you can cancel this order after " +
-                                                       CalcSeconds(order.CreatedAt.AddSeconds(60).Second,
-                                                           DateTime.UtcNow.Second) + " seconds"));
+                                                       rem + " seconds"
+                    , " ثانية"+rem + "يمكنك إلغاء الطلب بعد "));
+            }
 
             if (order.Status != 0 && order.Status != 5)
                 return BadRequest(new ApiResponse(400,
@@ -342,7 +348,7 @@ public class OrdersController : BaseApiController
             if (fromApi)
             {
                 if (normal)
-                    return Ok(new ApiResponse(200, "can't do this action"));
+                    return Ok(new ApiResponse(200, "can't do this action","لا يمكنك إلغاء الطلب"));
 
                 var apiId = await _unitOfWork.OtherApiRepository
                     .GetApiOrderIdAsync(order.Id);
@@ -399,7 +405,7 @@ public class OrdersController : BaseApiController
 
 
             if (!await _unitOfWork.Complete())
-                return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order"));
+                return BadRequest(new ApiResponse(400, "Something went wrong during deleting the order","حدثت مشكلة اثناء حذف الطلب"));
 
             if (lastVip > user.VIPLevel)
                 await _notificationService.VipLevelNotification(order.User.Email,

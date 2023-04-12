@@ -62,11 +62,11 @@ public class AdminVipLevelController : AdminController
                 var last = vips.Last().VipLevel;
 
                 if (dto.VipLevel != 1 + last)
-                    return BadRequest(new ApiResponse(400, "vip level should be " + (last + 1) ));
+                    return BadRequest(new ApiResponse(400, "New vip level must be " + (last + 1) ));
             }
 
             else if (dto.VipLevel != 1)
-                return BadRequest(new ApiResponse(400, "vip level should be " + 1));
+                return BadRequest(new ApiResponse(400, "New vip level must be " + 1));
 
             if (dto.ImageFile == null)
                 return BadRequest(new ApiResponse(400, "Image file is required"));
@@ -87,6 +87,8 @@ public class AdminVipLevelController : AdminController
                 Purchase = dto.Purchase,
                 BenefitPercent = dto.BenefitPercent,
                 MinimumPurchase = prevSum,
+                ArabicName = dto.ArabicName,
+                EnglishName = dto.EnglishName,
                 Photo = new Photo { Url = result.Url }
             };
 
@@ -105,7 +107,7 @@ public class AdminVipLevelController : AdminController
     }
 
     [HttpPut("update-vip-level/{vipLevel:int}")]
-    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel, VipLevelInfo dto)
+    public async Task<ActionResult> UpdateMinPurchasing(int vipLevel, UpdateVipLevelDto dto)
     {
         try
         {
@@ -115,17 +117,26 @@ public class AdminVipLevelController : AdminController
 
             var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
 
+            
             if (dto.BenefitPercent != null)
                 levels[vipLevel].BenefitPercent = (decimal)dto.BenefitPercent;
 
             if (dto.Purchase != null && vipLevel != 0)
                 levels[vipLevel].Purchase = (decimal)dto.Purchase;
 
+            if (!string.IsNullOrEmpty(dto.ArabicName))
+                levels[vipLevel].ArabicName = dto.ArabicName;
+            
+            if (!string.IsNullOrEmpty(dto.EnglishName))
+                levels[vipLevel].EnglishName = dto.EnglishName;
+
             for (int j = 1; j < levels.Count; j++)
             {
                 levels[j].MinimumPurchase = levels[j - 1].MinimumPurchase + levels[j - 1].Purchase;
                 _unitOfWork.VipLevelRepository.UpdateVipLevel(levels[j]);
             }
+            
+            if (vipLevel == 0) _unitOfWork.VipLevelRepository.UpdateVipLevel(levels[0]);
 
             if (await _unitOfWork.Complete())
                 return Ok(new ApiResponse(200, "updated successfully"));
