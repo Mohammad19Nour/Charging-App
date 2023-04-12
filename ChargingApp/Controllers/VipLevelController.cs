@@ -4,6 +4,7 @@ using ChargingApp.Errors;
 using ChargingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ChargingApp.Controllers;
 
@@ -20,6 +21,8 @@ public class VipLevelController : BaseApiController
     }
 
     [HttpGet("vip-levels")]
+    [ProducesResponseType(typeof(ApiOkResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<VipLevelDto>>> GetVipLevels()
     {
         try

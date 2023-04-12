@@ -3,6 +3,7 @@
 public class Payment :BaseEntity
 {
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public string ClientDate { get; set; }
     public string? Notes{ get; set; }
     public decimal AddedValue { get; set; }
     public Photo? Photo { get; set; }

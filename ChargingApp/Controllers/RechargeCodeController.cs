@@ -37,7 +37,7 @@ public class RechargeCodeController : BaseApiController
             var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
            
             if (tmpCode is null || tmpCode.WasTaken)
-                return BadRequest(new ApiResponse(401, "Invalid Code"));
+                return BadRequest(new ApiResponse(401, "Invalid Code","الكود خاطئ... يرجى التأكد والمحاولة لاحقا"));
 
             tmpCode.WasTaken = true;
             tmpCode.User = user;

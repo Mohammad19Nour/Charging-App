@@ -389,6 +389,7 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ClientDate = table.Column<string>(type: "TEXT", nullable: false),
                     Notes = table.Column<string>(type: "TEXT", nullable: true),
                     AddedValue = table.Column<double>(type: "REAL", nullable: false),
                     PhotoId = table.Column<int>(type: "INTEGER", nullable: true),
@@ -462,6 +463,8 @@ namespace ChargingApp.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VipLevel = table.Column<int>(type: "INTEGER", nullable: false),
+                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
+                    ArabicName = table.Column<string>(type: "TEXT", nullable: false),
                     BenefitPercent = table.Column<double>(type: "REAL", nullable: false),
                     MinimumPurchase = table.Column<double>(type: "REAL", nullable: false),
                     Purchase = table.Column<double>(type: "REAL", nullable: false),

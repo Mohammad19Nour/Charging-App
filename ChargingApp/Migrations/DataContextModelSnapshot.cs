@@ -494,6 +494,10 @@ namespace ChargingApp.Migrations
                     b.Property<double>("AddedValue")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("ClientDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
@@ -748,8 +752,16 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ArabicName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("BenefitPercent")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("EnglishName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("MinimumPurchase")
                         .HasColumnType("REAL");

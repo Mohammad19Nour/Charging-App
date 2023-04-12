@@ -27,7 +27,7 @@ public class AdminOrderController : AdminController
     public async Task<ActionResult<List<PendingOrderDto>>> GetPendingOrders()
     {
         try
-        {
+        { 
             var res = await _unitOfWork.OrdersRepository.GetPendingOrdersAsync();
             var tmp = new List<PendingOrderDto>();
 
@@ -202,7 +202,7 @@ public class AdminOrderController : AdminController
 
         var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
         var orders = _mapper.Map<List<DoneOrderDto>>(result);
-        return Ok(new ApiOkResponse(orders));
+        return Ok(new ApiOkResponse(new { Doneorders = orders}));
     }
 
     // delete done orders in last 6 months

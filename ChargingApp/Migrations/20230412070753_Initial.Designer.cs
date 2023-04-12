@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230410144403_Initial")]
+    [Migration("20230412070753_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -496,6 +496,10 @@ namespace ChargingApp.Migrations
                     b.Property<double>("AddedValue")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("ClientDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
@@ -750,8 +754,16 @@ namespace ChargingApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ArabicName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("BenefitPercent")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("EnglishName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("MinimumPurchase")
                         .HasColumnType("REAL");
