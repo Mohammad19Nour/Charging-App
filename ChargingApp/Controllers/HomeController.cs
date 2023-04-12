@@ -14,6 +14,8 @@ public class HomeController : BaseApiController
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(HomeDto),StatusCodes.Status200OK)]
+
     public async Task<ActionResult<HomeDto>> GetHomePage()
     {
         try

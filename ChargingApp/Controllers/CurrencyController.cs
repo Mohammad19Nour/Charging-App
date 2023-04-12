@@ -16,12 +16,14 @@ public class CurrencyController : BaseApiController
     }
 
     [HttpGet("currencies")]
+    [ProducesResponseType(typeof(ActionResult<List<CurrencyDto>>),StatusCodes.Status200OK)]
+
     public async Task<ActionResult<List<CurrencyDto>>> GetCurrencies()
     {
         try
         {
             var res = await _unitOfWork.CurrencyRepository.GetCurrencies();
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse< List<CurrencyDto>>(res));
         }
         catch (Exception e)
         {

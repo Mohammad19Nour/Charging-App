@@ -300,7 +300,7 @@ public class AdminProductController : AdminController
             if (product is null)
                 return BadRequest(new ApiResponse(400, "this product isn't exist"));
 
-            return Ok(new ApiOkResponse(_mapper.Map<ProductDto>(product)));
+            return Ok(new ApiOkResponse<ProductDto>(_mapper.Map<ProductDto>(product)));
         }
         catch (Exception e)
         {
@@ -332,7 +332,7 @@ public class AdminProductController : AdminController
                 });
             }
 
-            return Ok(new ApiOkResponse(list));
+            return Ok(new ApiOkResponse< List<Dictionary<string,object?>>>(list));
         }
         catch (Exception e)
         {

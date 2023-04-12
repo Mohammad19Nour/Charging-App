@@ -34,7 +34,7 @@ public class AdminVipLevelController : AdminController
 
             var res = levels.Select(x => _mapper.Map<AdminVipLevelDto>(x));
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse< IEnumerable<AdminVipLevelDto>>(res));
         }
         catch (Exception e)
         {
@@ -95,7 +95,7 @@ public class AdminVipLevelController : AdminController
             _unitOfWork.VipLevelRepository.AddVipLevel(vip);
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse(_mapper.Map<AdminVipLevelDto>(vip)));
+                return Ok(new ApiOkResponse<AdminVipLevelDto>(_mapper.Map<AdminVipLevelDto>(vip)));
 
             return BadRequest(new ApiResponse(400, "something went wrong"));
         }

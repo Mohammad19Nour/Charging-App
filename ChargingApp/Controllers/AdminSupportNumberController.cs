@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
+
 [Authorize(Policy = "Required_Administrator_Role")]
 public class AdminSupportNumberController : AdminController
 {
@@ -26,7 +27,7 @@ public class AdminSupportNumberController : AdminController
             };
             _unitOfWork.SupportNumberRepository.AddSupportNumber(tmp);
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse(tmp));
+                return Ok(new ApiOkResponse<SupportNumber>(tmp));
             return BadRequest(new ApiResponse(400, "Something went wrong"));
         }
         catch (Exception e)
@@ -47,8 +48,8 @@ public class AdminSupportNumberController : AdminController
 
         tmp.PhoneNumber = number;
         if (await _unitOfWork.Complete())
-            return Ok(new ApiOkResponse(tmp));
-        
+            return Ok(new ApiOkResponse<SupportNumber>(tmp));
+
         return BadRequest(new ApiResponse(400, "Something went wrong"));
     }
 }

@@ -15,11 +15,14 @@ public class OurAgentsController : BaseApiController
     }
 
     [HttpGet("our-agents")]
+    [ProducesResponseType(typeof(ApiOkResponse<List<OurAgentsDto>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<List<OurAgentsDto>>> GetOurAgents()
     {
         try
         {
-            return Ok(new ApiOkResponse(await _unitOfWork.OurAgentsRepository.GetOurAgentsAsync()));
+            return Ok(new ApiOkResponse<List<OurAgentsDto>>
+                (await _unitOfWork.OurAgentsRepository.GetOurAgentsAsync()));
         }
         catch (Exception e)
         {

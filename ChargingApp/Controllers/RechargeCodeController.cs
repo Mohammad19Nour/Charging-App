@@ -20,6 +20,8 @@ public class RechargeCodeController : BaseApiController
 
     [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpPost]
+    [ProducesResponseType(typeof(ApiOkResponse<string>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<decimal>> Recharge([FromBody] MyClass obj)
     {
         try
@@ -28,16 +30,16 @@ public class RechargeCodeController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
             if (user is null)
-                return Unauthorized(new ApiResponse(404));
+                return Unauthorized(new ApiResponse(401));
 
             var rols = User.GetRoles().ToList();
             if (SomeUsefulFunction.CheckIfItIsAnAdmin(rols))
                 return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
             var tmpCode = await _unitOfWork.RechargeCodeRepository.GetCodeAsync(obj.Code);
-           
+
             if (tmpCode is null || tmpCode.WasTaken)
-                return BadRequest(new ApiResponse(401, "Invalid Code","الكود خاطئ... يرجى التأكد والمحاولة لاحقا"));
+                return BadRequest(new ApiResponse(401, "Invalid Code", "الكود خاطئ... يرجى التأكد والمحاولة لاحقا"));
 
             tmpCode.WasTaken = true;
             tmpCode.User = user;
@@ -56,7 +58,7 @@ public class RechargeCodeController : BaseApiController
             _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse("Recharged successfully. your balance is " + user.Balance));
+                return Ok(new ApiOkResponse<string>("Recharged successfully. your balance is " + user.Balance));
 
             return BadRequest(new ApiResponse(400, "something went wrong"));
         }
@@ -69,17 +71,18 @@ public class RechargeCodeController : BaseApiController
 
     [Authorize(Policy = "Required_Admins_Role")]
     [HttpGet("generate-codes")]
+    [ProducesResponseType(typeof(ApiOkResponse<IEnumerable<string>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<IEnumerable<string>>> GetCodes(int codeValue, int codeNumber)
     {
         try
         {
-            
             var codes = await _unitOfWork.RechargeCodeRepository.GenerateCodesWithValue(codeNumber, codeValue);
 
             if (codes is null)
                 return BadRequest(new ApiResponse(400, "should provide number of codes and their values"));
 
-            return Ok(new ApiOkResponse(codes));
+            return Ok(new ApiOkResponse<List<string>>(codes));
         }
         catch (Exception e)
         {

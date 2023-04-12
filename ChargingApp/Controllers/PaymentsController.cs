@@ -32,7 +32,9 @@ public class PaymentsController : BaseApiController
 
 
     [HttpPost("add-payment/company/{agentId:int}")]
-    public async Task<ActionResult<PaymentDto>> AddPaymentComp(int agentId, [FromForm] NewCompanyPaymentDto dto)
+    [ProducesResponseType(typeof(ApiOkResponse<CompanyPaymentDto>), StatusCodes.Status200OK)]
+
+    public async Task<ActionResult<CompanyPaymentDto>> AddPaymentComp(int agentId, [FromForm] NewCompanyPaymentDto dto)
     {
         try
         {
@@ -89,7 +91,8 @@ public class PaymentsController : BaseApiController
             await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
                 "Payment status notification", getDetails(payment));
 
-            return Ok(new ApiOkResponse(_mapper.Map<CompanyPaymentDto>(payment)));
+            return Ok(new ApiOkResponse<CompanyPaymentDto>
+                (_mapper.Map<CompanyPaymentDto>(payment)));
         }
         catch (Exception e)
         {
@@ -97,9 +100,10 @@ public class PaymentsController : BaseApiController
             throw;
         }
     }
+    [ProducesResponseType(typeof(ApiOkResponse<OfficePaymentDto>), StatusCodes.Status200OK)]
 
     [HttpPost("add-payment/office/{agentId:int}")]
-    public async Task<ActionResult<PaymentDto>> AddPaymentOff(int agentId, [FromForm] NewOfficePaymentDto dto)
+    public async Task<ActionResult<OfficePaymentDto>> AddPaymentOff(int agentId, [FromForm] NewOfficePaymentDto dto)
     {
         try
         {
@@ -154,7 +158,8 @@ public class PaymentsController : BaseApiController
                 await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
                     "Payment status notification", getDetails(payment));
 
-                return Ok(new ApiOkResponse(_mapper.Map<OfficePaymentDto>(payment)));
+                return Ok(new ApiOkResponse<OfficePaymentDto>
+                    (_mapper.Map<OfficePaymentDto>(payment)));
             }
 
             return BadRequest(new ApiResponse(400, "Failed to add payment"));
@@ -165,6 +170,7 @@ public class PaymentsController : BaseApiController
             throw;
         }
     }
+    [ProducesResponseType(typeof(ApiOkResponse<PaymentDto>), StatusCodes.Status200OK)]
 
     [HttpPost("add-payment/other/{name}")]
     public async Task<ActionResult<PaymentDto>> AddPaymentUsdt([FromForm] NewPaymentDto dto, string name)
@@ -223,7 +229,7 @@ public class PaymentsController : BaseApiController
             await _notificationService.NotifyUserByEmail(payment.User.Email, _unitOfWork, not,
                 "Payment status notification", getDetails(payment));
 
-            return Ok(new ApiOkResponse(_mapper.Map<PaymentDto>(payment)));
+            return Ok(new ApiOkResponse<PaymentDto>(_mapper.Map<PaymentDto>(payment)));
         }
         catch (Exception e)
         {
@@ -232,6 +238,8 @@ public class PaymentsController : BaseApiController
         }
     }
 
+
+    [ProducesResponseType(typeof(ApiOkResponse<List<CompanyPaymentDto>>), StatusCodes.Status200OK)]
     [HttpGet("my-payments")]
     public async Task<ActionResult<List<CompanyPaymentDto>>> GetMyPayment()
     {
@@ -251,7 +259,7 @@ public class PaymentsController : BaseApiController
 
             var res = await _unitOfWork.PaymentRepository.GetPaymentsForUserAsync(email);
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<List<CompanyPaymentDto>>(res));
         }
         catch (Exception e)
         {

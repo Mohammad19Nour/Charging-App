@@ -20,9 +20,9 @@ public class VipLevelController : BaseApiController
         _mapper = mapper;
     }
 
-    [HttpGet("vip-levels")]
-    [ProducesResponseType(typeof(ApiOkResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("vip-levels")]  
+    [ProducesResponseType(typeof(ApiOkResponse<List<VipLevelDto>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<List<VipLevelDto>>> GetVipLevels()
     {
         try
@@ -32,7 +32,7 @@ public class VipLevelController : BaseApiController
 
             var res = levels.Select(x => _mapper.Map<VipLevelDto>(x));
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse< IEnumerable<VipLevelDto>>(res));
         }
         catch (Exception e)
         {

@@ -20,6 +20,8 @@ public class RechargeMethodsController : BaseApiController
 
     //  [Authorize(Policy = "RequiredVIPRole")]
     [HttpGet("recharge-methods-available")]
+    [ProducesResponseType(typeof(ApiOkResponse<PaymentAndRechargeMethodDto>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<PaymentAndRechargeMethodDto>> GetAllRechargeMethods()
     {
         try
@@ -31,7 +33,7 @@ public class RechargeMethodsController : BaseApiController
 
             res.ForPaymentAndRecharge = _mapper.Map<List<PaymentGatewayDto>>(forBoth);
             res.ForRecharge = forRecharge ?? new List<RechargeMethodDto>();
-            return Ok(new ApiOkResponse(result: res));
+            return Ok(new ApiOkResponse<PaymentAndRechargeMethodDto>(result: res));
         }
         catch (Exception e)
         {
@@ -41,6 +43,7 @@ public class RechargeMethodsController : BaseApiController
     }
 
     //[Authorize(Policy = "RequiredNormalRole")]
+    [ProducesResponseType(typeof(ApiOkResponse<List<PaymentGatewayDto>>), StatusCodes.Status200OK)]
 
     [HttpGet("normal-recharge-methods")]
     public async Task<ActionResult<List<PaymentGatewayDto>>> GetNormalRechargeMethods()
@@ -49,7 +52,8 @@ public class RechargeMethodsController : BaseApiController
         {
             var res = await _unitOfWork.PaymentGatewayRepository.GetPaymentGatewaysAsync();
 
-            return Ok(new ApiOkResponse(result: _mapper.Map<List<PaymentGatewayDto>>(res)));
+            return Ok(new ApiOkResponse<List<PaymentGatewayDto>>
+                (result: _mapper.Map<List<PaymentGatewayDto>>(res)));
         }
         catch (Exception e)
         {

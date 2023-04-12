@@ -30,7 +30,7 @@ public class AdminReportController : BaseApiController
             if (!ans) return BadRequest(new ApiResponse(400, msg));
 
             var res = await CalcBenefit(dto);
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<decimal>(res));
         }
         catch (Exception e)
         {
@@ -49,7 +49,7 @@ public class AdminReportController : BaseApiController
             if (!ans) return BadRequest(new ApiResponse(400, msg));
 
             var res = await _unitOfWork.DebitRepository.GetDebits(dto, null);
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse< List<DebitDto>>(res));
         }
         catch (Exception e)
         {
@@ -74,7 +74,7 @@ public class AdminReportController : BaseApiController
             var sellsDto = listOfSells as SellsDto[] ?? listOfSells.ToArray();
             var totalPurchasing = sellsDto.Sum(x => x.TotalPrice);
 
-            return Ok(new ApiOkResponse(new { listOfSells = sellsDto, totalPurchasing }));
+            return Ok(new ApiOkResponse<object>(new { listOfSells = sellsDto, totalPurchasing }));
         }
         catch (Exception e)
         {

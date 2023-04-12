@@ -54,7 +54,7 @@ public class AdminRolesController : AdminController
             x.UserEmail,
             x.UserName
         }).ToList();
-        return Ok(new ApiOkResponse(res));
+        return Ok(new ApiOkResponse<object>(res));
     }
 
     [HttpPost("edit-roles/{userEmail}")]
@@ -110,6 +110,6 @@ public class AdminRolesController : AdminController
         var response = await _userManager.GetRolesAsync(user);
 
         response = response.Where(x => x.ToLower() != "normal" && x.ToLower() != "vip").ToList();
-        return Ok(new ApiOkResponse(response));
+        return Ok(new ApiOkResponse<IList<string>>(response));
     }
 }
