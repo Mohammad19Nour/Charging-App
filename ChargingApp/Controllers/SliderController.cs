@@ -15,12 +15,14 @@ public class SliderController : BaseApiController
     }
 
     [HttpGet("slider-photos")]
+    [ProducesResponseType(typeof(ApiOkResponse<List<SliderPhotoDto>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<List<SliderPhotoDto?>>> GetSliderPhotos()
     {
         try
         {
             var res = await _unitOfWork.SliderRepository.GetSliderPhotosAsync();
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<List<SliderPhotoDto>>(res));
         }
         catch (Exception e)
         {

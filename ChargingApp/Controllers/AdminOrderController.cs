@@ -92,7 +92,7 @@ public class AdminOrderController : AdminController
             }
 
             tmp = tmp.OrderByDescending(x => x.CreatedAt).ToList();
-            return Ok(new ApiOkResponse(tmp));
+            return Ok(new ApiOkResponse<List<PendingOrderDto>>(tmp));
         }
         catch (Exception e)
         {
@@ -184,7 +184,7 @@ public class AdminOrderController : AdminController
             }
 
             tmp = tmp.OrderByDescending(x => x.CreatedAt).ToList();
-            return Ok(new ApiOkResponse(tmp));
+            return Ok(new ApiOkResponse<List<PendingOrderDto>>(tmp));
         }
         catch (Exception e)
         {
@@ -202,7 +202,7 @@ public class AdminOrderController : AdminController
 
         var result = await _unitOfWork.OrdersRepository.GetDoneOrders(dto, null);
         var orders = _mapper.Map<List<DoneOrderDto>>(result);
-        return Ok(new ApiOkResponse(new { Doneorders = orders}));
+        return Ok(new ApiOkResponse<object>(new { Doneorders = orders}));
     }
 
     // delete done orders in last 6 months

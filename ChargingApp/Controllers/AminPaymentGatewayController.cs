@@ -31,7 +31,7 @@ public class AdminPaymentGatewayController : BaseApiController
        
         _mapper.Map(dto, gateway);
 
-        if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse(gateway));
+        if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse<PaymentGateway>(gateway));
         return BadRequest(new ApiResponse(400, "Failed to update"));
     }
 
@@ -54,7 +54,7 @@ public class AdminPaymentGatewayController : BaseApiController
 
         gateway.Photo.Url = result.Url;
         
-        if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse(
+        if (await _unitOfWork.Complete()) return Ok(new ApiOkResponse <PaymentGatewayDto>(
             _mapper.Map<PaymentGatewayDto>(gateway)));
         
         return BadRequest(new ApiResponse(400, "Failed to update"));

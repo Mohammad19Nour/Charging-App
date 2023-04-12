@@ -33,7 +33,7 @@ public class UserController : BaseApiController
         {
             var email = User.GetEmail();
 
-            if (email is null) return Unauthorized(new ApiResponse(401, "user not fount"));
+            if (email is null) return NotFound(new ApiResponse(404, "user not fount"));
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
             if (user is null) return Unauthorized(new ApiResponse(401, "user not fount"));
@@ -52,6 +52,8 @@ public class UserController : BaseApiController
     }
 
     [HttpGet("user-info")]
+    [ProducesResponseType(typeof(ApiOkResponse<UserInfoDto>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<UserInfoDto>> GetUserInfo()
     {
         try
@@ -97,16 +99,16 @@ public class UserController : BaseApiController
                     SurianVIPPurchase = vipPurchase * syrian,
                     DollarVIPPurchase = vipPurchase
                 };
-                if (!(user.Debit > 0)) return Ok(new ApiOkResponse(res));
+                if (!(user.Debit > 0)) return Ok(new ApiOkResponse<UserInfoDto>(res));
 
                 res.MyWallet.TurkishBalance *= -1;
                 res.MyWallet.SyrianBalance *= -1;
                 res.MyWallet.DollarBalance *= -1;
 
-                return Ok(new ApiOkResponse(res));
+                return Ok(new ApiOkResponse<UserInfoDto>(res));
             }
 
-            return Ok(new ApiOkResponse(_mapper.Map<NormalUserInfoDto>(user)));
+            return Ok(new ApiOkResponse<NormalUserInfoDto>(_mapper.Map<NormalUserInfoDto>(user)));
         }
         catch (Exception e)
         {
@@ -141,6 +143,8 @@ public class UserController : BaseApiController
     }
 
     [Authorize(Policy = "Required_JustVIP_Role")]
+    [ProducesResponseType(typeof(ApiOkResponse<WalletDto>), StatusCodes.Status200OK)]
+
     [HttpGet("my-wallet")]
     public async Task<ActionResult<WalletDto>> MyWallet()
     {
@@ -160,10 +164,12 @@ public class UserController : BaseApiController
             var role = roles.FirstOrDefault(x => x.ToLower() == "vip");
 
             if (role != null)
-                return Ok(new ApiOkResponse(myWallet));
+                return Ok(new ApiOkResponse<WalletDto>(myWallet));
 
-            return Ok(new ApiOkResponse(new
-                { myWallet.DollarTotalPurchase, myWallet.SyrianTotalPurchase, myWallet.TurkishTotalPurchase }));
+            var response = new
+                { myWallet.DollarTotalPurchase, myWallet.SyrianTotalPurchase, myWallet.TurkishTotalPurchase };
+
+            return Ok(new ApiOkResponse<object>(response));
         }
         catch (Exception e)
         {
@@ -173,6 +179,9 @@ public class UserController : BaseApiController
     }
 
     [Authorize(Policy = "Required_VIP_Role")]
+    
+    [ProducesResponseType(typeof(ApiOkResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiOkResponse<AccountInfoDto>), StatusCodes.Status200OK)]
     [HttpGet("account-info")]
     public async Task<ActionResult> AccountInfo()
     {
@@ -187,13 +196,13 @@ public class UserController : BaseApiController
             if (user is null) return Unauthorized(new ApiResponse(401));
 
             var roles = User.GetRoles().ToList();
-            
+
             if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
                 return BadRequest(new ApiResponse(403));
-            
+
             var role = roles.FirstOrDefault(x => x.ToLower() == "vip");
 
-            if (role is null) return Ok(new ApiOkResponse("Normal"));
+            if (role is null) return Ok(new ApiOkResponse<string>("Normal"));
 
             var levels = await _unitOfWork.VipLevelRepository.GetAllVipLevelsAsync();
             levels = levels.Where(x => x.VipLevel != 0).ToList();
@@ -214,7 +223,7 @@ public class UserController : BaseApiController
                 VipLevels = vipLevels
             };
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<AccountInfoDto>(res));
         }
         catch (Exception e)
         {

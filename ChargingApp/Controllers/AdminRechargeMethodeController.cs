@@ -43,7 +43,7 @@ public class AdminRechargeMethodeController : AdminController
             _unitOfWork.RechargeMethodeRepository.AddAgent(rechargeMethod, agent);
 
             if (await _unitOfWork.Complete())
-                return Ok(new ApiOkResponse(_mapper.Map<AgentDto>(agent)));
+                return Ok(new ApiOkResponse<AgentDto>(_mapper.Map<AgentDto>(agent)));
 
             return BadRequest(new ApiResponse(400, "Failed to add a new agent"));
         }
@@ -82,7 +82,7 @@ public class AdminRechargeMethodeController : AdminController
             _unitOfWork.RechargeMethodeRepository.UpdateAgent(agent);
             if (await _unitOfWork.Complete())
             {
-                return Ok(new ApiOkResponse(_mapper.Map<AgentDto>(agent)));
+                return Ok(new ApiOkResponse<AgentDto>(_mapper.Map<AgentDto>(agent)));
             }
 
             return BadRequest(new ApiResponse(400, "Failed to Update agent"));

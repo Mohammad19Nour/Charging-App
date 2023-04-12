@@ -17,7 +17,9 @@ public class NotificationHistoryController : BaseApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<(string ArabicDetails,string EnglishDetails)>>> GetNotifications()
+    [ProducesResponseType(typeof(ApiOkResponse<List<(string ArabicDetails, string EnglishDetails)>>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<(string ArabicDetails, string EnglishDetails)>>> GetNotifications()
     {
         try
         {
@@ -31,10 +33,10 @@ public class NotificationHistoryController : BaseApiController
             var tmp = await _unitOfWork.NotificationRepository
                 .GetNotificationHistoryByEmailAsync(email);
 
-            List<(string ArabicDetails,string EnglishDetails)> res =
+            List<(string ArabicDetails, string EnglishDetails)> res =
                 tmp.Select(t => (t.ArabicDetails, t.EnglishDetails)).ToList();
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<List<(string ArabicDetails, string EnglishDetails)>>(res));
         }
         catch (Exception e)
         {

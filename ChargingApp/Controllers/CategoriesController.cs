@@ -17,6 +17,8 @@ public class CategoriesController : BaseApiController
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(ActionResult<CategoryResultDto>),StatusCodes.Status200OK)]
+
     public async Task<ActionResult<CategoryResultDto?>> GetCategoryById(int id)
     {
         try
@@ -34,7 +36,7 @@ public class CategoriesController : BaseApiController
             var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
             if (res.Category is null || res.Category.Products is null)
-                return Ok(new ApiOkResponse(new CategoryResultDto()));
+                return Ok(new ApiOkResponse<CategoryResultDto>(new CategoryResultDto()));
             if (user != null)
             {
                 vipLevel = user.VIPLevel;
@@ -45,7 +47,7 @@ public class CategoriesController : BaseApiController
                 res.Category.Products = await PriceForNormal.CalcPriceForProducts
                     (user, res.Category.Products, _unitOfWork, vipLevel);
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<CategoryResultDto>(res));
         }
         catch (Exception e)
         {

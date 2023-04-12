@@ -31,6 +31,8 @@ public class OrdersController : BaseApiController
 
     [Authorize(Policy = "Required_JustNORMAL_Role")]
     [HttpGet("normal-my-order")]
+    [ProducesResponseType(typeof(ApiOkResponse<IEnumerable<NormalOrderDto>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<IEnumerable<NormalOrderDto>>> GetMyOrdersNormal()
     {
         try
@@ -42,7 +44,8 @@ public class OrdersController : BaseApiController
             if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
                 return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
-            return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
+            return Ok(new ApiOkResponse<IEnumerable<NormalOrderDto>>
+                (await _unitOfWork.OrdersRepository.GetNormalUserOrdersAsync(user.Id)));
         }
         catch (Exception e)
         {
@@ -53,6 +56,8 @@ public class OrdersController : BaseApiController
 
     [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpGet("vip-my-order")]
+    [ProducesResponseType(typeof(ApiOkResponse<IEnumerable<OrderDto>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrdersVip()
     {
         try
@@ -65,7 +70,7 @@ public class OrdersController : BaseApiController
             if (SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
                 return BadRequest(new ApiResponse(403, "You're an admin... can't make an order with this account"));
 
-            return Ok(new ApiOkResponse(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
+            return Ok(new ApiOkResponse<List<OrderDto>>(await _unitOfWork.OrdersRepository.GetVipUserOrdersAsync(user.Id)));
         }
         catch (Exception e)
         {
@@ -76,6 +81,8 @@ public class OrdersController : BaseApiController
 
     [Authorize(Policy = "Required_JustVIP_Role")]
     [HttpPost("vip-order")]
+    [ProducesResponseType(typeof(ApiOkResponse<OrderDto>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult> PlaceOrderVip([FromBody] NewOrderDto dto)
     {
         try
@@ -200,7 +207,7 @@ public class OrdersController : BaseApiController
             if (!await _unitOfWork.Complete()) return BadRequest(new ApiResponse(400, "Something went wrong"));
             var res = _mapper.Map<OrderDto>(order);
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<OrderDto>(res));
         }
         catch (Exception e)
         {
@@ -212,6 +219,8 @@ public class OrdersController : BaseApiController
     // new order 
     [Authorize(Policy = "Required_JustNORMAL_Role")]
     [HttpPost("normal-order")]
+    [ProducesResponseType(typeof(ApiOkResponse<NormalOrderDto>), StatusCodes.Status200OK)]
+
     public async Task<IActionResult> PlaceOrder([FromForm] NewNormalOrderDto dto)
     {
         try
@@ -293,7 +302,7 @@ public class OrdersController : BaseApiController
                 return BadRequest(new ApiResponse(400, "Something went wrong"));
 
             var res = _mapper.Map<NormalOrderDto>(order);
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<NormalOrderDto>(res));
         }
         catch (Exception e)
         {
@@ -380,7 +389,7 @@ public class OrdersController : BaseApiController
                 var curr = new NotificationHistory
                 {
                     User = order.User,
-                    ArabicDetails = " تم اعادة مستواك الى vip  " + order.User.VIPLevel,
+                    ArabicDetails = " تم اعادة مستواك الى المستوى  " + order.User.VIPLevel,
                     EnglishDetails = "Your level has been returned back to vip " + order.User.VIPLevel
                 };
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);

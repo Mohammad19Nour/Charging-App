@@ -14,11 +14,13 @@ public class SupportNumberController : BaseApiController
     }
 
     [HttpGet("get-support-numbers")]
+    [ProducesResponseType(typeof(ApiOkResponse<List<string>>), StatusCodes.Status200OK)]
+
     public async Task<ActionResult<List<string>>> GetSupportNumbers()
     {
         try
         {
-            return Ok(new ApiOkResponse(await _unitOfWork.SupportNumberRepository
+            return Ok(new ApiOkResponse<List<string>>(await _unitOfWork.SupportNumberRepository
                 .GetSupportNumbersAsync()));
         }
         catch (Exception e)

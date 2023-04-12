@@ -32,7 +32,7 @@ public class FavoriteController : BaseApiController
 
             var res = await _unitOfWork.FavoriteRepository.GetFavoriteCategoriesForUserAsync(user.Id);
 
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse< List<CategoryDto>>(res));
         }
         catch (Exception e)
         {

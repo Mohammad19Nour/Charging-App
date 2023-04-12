@@ -98,7 +98,6 @@ public class AccountController : BaseApiController
             throw;
         }
     }
-
     private async Task<bool> GenerateTokenAndSendEmailForUser(AppUser user)
     {
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -111,6 +110,7 @@ public class AccountController : BaseApiController
         return await _emailSender.SendEmailAsync(user.Email, "Confirmation Email", text);
     }
 
+    [ProducesResponseType(typeof(ApiOkResponse<UserDto>), StatusCodes.Status200OK)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto loginDto)
     {
@@ -119,7 +119,7 @@ public class AccountController : BaseApiController
             loginDto.Email = loginDto.Email.ToLower();
 
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == loginDto.Email);
-            if (user == null) return Unauthorized(new ApiResponse(401, "Invalid Email"));
+            if (user == null) return BadRequest(new ApiResponse(400, "Invalid Email"));
 
             var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
             if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
@@ -168,7 +168,7 @@ public class AccountController : BaseApiController
                     myWallet.DollarBalance *= -1;
                 }
 
-                return Ok(new ApiOkResponse(new UserDto
+                return Ok(new ApiOkResponse<UserDto>(new UserDto
                 {
                     Email = user.Email.ToLower(),
                     FirstName = user.FirstName.ToLower(),
@@ -193,7 +193,7 @@ public class AccountController : BaseApiController
                 Country = user.Country,
                 AccountType = "Normal"
             };
-            return Ok(new ApiOkResponse(normalUser));
+            return Ok(new ApiOkResponse<NormalUserDto>(normalUser));
         }
         catch (Exception e)
         {
@@ -225,6 +225,9 @@ public class AccountController : BaseApiController
         return Ok("Your Email is Confirmed try to login in now");
     }
 
+    
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [HttpPost("forget-password")]
     [AllowAnonymous]
     public async Task<ActionResult> ForgetPassword(UpdateEmailDto dto)
@@ -264,6 +267,8 @@ public class AccountController : BaseApiController
     }
 
     [HttpPost("reset-password")]
+    
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [AllowAnonymous]
     public async Task<ActionResult> ResetPassword(RestDto restDto)
     {

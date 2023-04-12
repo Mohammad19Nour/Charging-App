@@ -150,7 +150,7 @@ public class AdminPaymentController : AdminController
         try
         {
             var res = await _unitOfWork.PaymentRepository.GetAllPendingPaymentsAsync(user);
-            return Ok(new ApiOkResponse(res));
+            return Ok(new ApiOkResponse<List<PaymentAdminDto>>(res));
         }
         catch (Exception e)
         {

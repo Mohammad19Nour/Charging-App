@@ -31,6 +31,8 @@ public class AdminAccountController : BaseApiController
         _tokenService = tokenService;
     }
     [Authorize(Policy = "Required_Administrator_Role")]
+    
+    [ProducesResponseType(typeof(ApiOkResponse<AdminDto>), StatusCodes.Status200OK)]
     [HttpPost("create-account")]
     public async Task<ActionResult<AdminDto>> CreateAccount(AdminRegisterDto dto)
     {
@@ -79,7 +81,7 @@ public class AdminAccountController : BaseApiController
 
             var admin = _mapper.Map<AdminDto>(user);
             admin.Roles = (await _userManager.GetRolesAsync(user)).ToList();
-            return Ok(new ApiOkResponse(admin));
+            return Ok(new ApiOkResponse<AdminDto>(admin));
         }
         catch (Exception e)
         {
@@ -87,6 +89,7 @@ public class AdminAccountController : BaseApiController
             throw;
         }
     }
+    [ProducesResponseType(typeof(ApiOkResponse<>), StatusCodes.Status200OK)]
 
     [HttpPost("login")]
     public async Task<ActionResult<AdminLoginDto>> Login(LoginDto loginDto)
@@ -111,7 +114,7 @@ public class AdminAccountController : BaseApiController
             if (!SomeUsefulFunction.CheckIfItIsAnAdmin(roles))
                 return BadRequest(new ApiResponse(403));
             
-            return Ok(new ApiOkResponse(new AdminLoginDto
+            return Ok(new ApiOkResponse<AdminLoginDto>(new AdminLoginDto
             {
                 Email = user.Email.ToLower(),
                 FirstName = user.FirstName.ToLower(),
@@ -147,7 +150,7 @@ public class AdminAccountController : BaseApiController
             return BadRequest(new ApiResponse(403));
         
          
-        return Ok(new ApiOkResponse(new AdminDto
+        return Ok(new ApiOkResponse<AdminDto>(new AdminDto
         {
             Email = user.Email.ToLower(),
             FirstName = user.FirstName.ToLower(),
