@@ -64,6 +64,8 @@ public class AdminRejectWrongOrderController : BaseApiController
                 user.TotalForVIPLevel -= order.TotalPrice;
                 user.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
+                var lvl = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(user.VIPLevel);
+                
                 _unitOfWork.UserRepository.UpdateUserInfo(user);
 
                 if (lastVip > order.User.VIPLevel)
@@ -71,8 +73,8 @@ public class AdminRejectWrongOrderController : BaseApiController
                     var curr = new NotificationHistory
                     {
                         User = order.User,
-                        ArabicDetails = " تم اعادة مستواك الى vip  " + order.User.VIPLevel,
-                        EnglishDetails = "Your level is returned back to vip " + order.User.VIPLevel
+                        ArabicDetails = " تم اعادة مستواك الى المستوى  " + lvl.ArabicName,
+                        EnglishDetails = "Your level has been returned back to " + lvl.EnglishName
                     };
                     _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 

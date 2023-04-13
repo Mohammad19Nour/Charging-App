@@ -185,14 +185,16 @@ public class OrdersController : BaseApiController
             user.Balance -= order.TotalPrice;
             order.User.VIPLevel = await _unitOfWork.VipLevelRepository
                 .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
+            var lvl = await _unitOfWork.VipLevelRepository
+                .GetVipLevelAsync(user.VIPLevel);
 
             if (lastVipLevel < user.VIPLevel)
             {
                 var curr = new NotificationHistory
                 {
                     User = order.User,
-                    ArabicDetails = " تم ترقية مستواك الى vip  " + order.User.VIPLevel,
-                    EnglishDetails = "Your level has been upgraded to vip " + order.User.VIPLevel
+                    ArabicDetails = " تم ترقية مستواك الى  " + lvl.ArabicName,
+                    EnglishDetails = "Your level has been upgraded to " + lvl.EnglishName
                 };
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
 
@@ -384,13 +386,16 @@ public class OrdersController : BaseApiController
                     .GetVipLevelForPurchasingAsync(order.User.TotalForVIPLevel);
             }
 
+            var lvl = await _unitOfWork.VipLevelRepository
+                .GetVipLevelAsync(order.User.VIPLevel);
+            
             if (lastVip > order.User.VIPLevel)
             {
                 var curr = new NotificationHistory
                 {
                     User = order.User,
-                    ArabicDetails = " تم اعادة مستواك الى المستوى  " + order.User.VIPLevel,
-                    EnglishDetails = "Your level has been returned back to vip " + order.User.VIPLevel
+                    ArabicDetails = " تم اعادة مستواك الى  " + lvl.ArabicName,
+                    EnglishDetails = "Your level has been returned back to " + lvl.EnglishName
                 };
                 _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(curr);
             }

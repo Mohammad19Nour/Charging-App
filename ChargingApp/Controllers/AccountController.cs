@@ -119,10 +119,10 @@ public class AccountController : BaseApiController
             loginDto.Email = loginDto.Email.ToLower();
 
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == loginDto.Email);
-            if (user == null) return BadRequest(new ApiResponse(400, "Invalid Email"));
+            if (user == null) return BadRequest(new ApiResponse(400, "Invalid Email","البريد الإلكتروني خاطئ"));
 
             var res = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password"));
+            if (!res.Succeeded) return Unauthorized(new ApiResponse(400, "Invalid password","كلمة السر خاطئة"));
             
             var roles = await _userManager.GetRolesAsync(user);
 

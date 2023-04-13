@@ -100,8 +100,8 @@ public static class Seed
         {
             BenefitPercent = 5, VipLevel = 2, MinimumPurchase = 132, Purchase = 2000,
             Photo = new Photo { Url = "http2" },
-            EnglishName = "Bronze",
-            ArabicName = "برونزي"
+            EnglishName = "Bronze5",
+            ArabicName = "برونزي5"
         });
         context.VipLevels.Add(new VIPLevel
         {
