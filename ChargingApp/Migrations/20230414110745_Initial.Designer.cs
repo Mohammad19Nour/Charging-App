@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChargingApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230413073312_Initial")]
+    [Migration("20230414110745_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -243,10 +243,15 @@ namespace ChargingApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RechargeMethodMethodId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PhotoId");
 
                     b.HasIndex("RechargeMethodMethodId");
 
@@ -938,11 +943,19 @@ namespace ChargingApp.Migrations
 
             modelBuilder.Entity("ChargingApp.Entity.ChangerAndCompany", b =>
                 {
+                    b.HasOne("ChargingApp.Entity.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ChargingApp.Entity.RechargeMethod", "RechargeMethodMethod")
                         .WithMany("ChangerAndCompanies")
                         .HasForeignKey("RechargeMethodMethodId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Photo");
 
                     b.Navigation("RechargeMethodMethod");
                 });

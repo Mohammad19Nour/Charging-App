@@ -544,11 +544,18 @@ namespace ChargingApp.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     RechargeMethodMethodId = table.Column<int>(type: "INTEGER", nullable: false),
                     ArabicName = table.Column<string>(type: "TEXT", nullable: false),
-                    EnglishName = table.Column<string>(type: "TEXT", nullable: false)
+                    EnglishName = table.Column<string>(type: "TEXT", nullable: false),
+                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChangerAndCompanies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChangerAndCompanies_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChangerAndCompanies_RechargeMethods_RechargeMethodMethodId",
                         column: x => x.RechargeMethodMethodId,
@@ -753,6 +760,11 @@ namespace ChargingApp.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_PhotoId",
                 table: "Categories",
+                column: "PhotoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChangerAndCompanies_PhotoId",
+                table: "ChangerAndCompanies",
                 column: "PhotoId");
 
             migrationBuilder.CreateIndex(

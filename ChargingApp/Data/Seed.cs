@@ -129,7 +129,7 @@ public static class Seed
         {
             EnglishName = "lord",
             ArabicName = "اللورد للحوالات المالية",
-            BagAddress = "2654jhjh", 
+            BagAddress = "2654jhjh",
             Photo = new Photo { Url = "http2" }
         });
         context.PaymentGateways.Add(new PaymentGateway
@@ -232,11 +232,13 @@ public static class Seed
         {
             EnglishName = "eng",
             ArabicName = "arb",
+            Photo = new Photo { Url = "HHH" }
         });
         com.ChangerAndCompanies.Add(new ChangerAndCompany
         {
             EnglishName = "popo",
             ArabicName = "عربي",
+            Photo = new Photo { Url = "HHH" }
         });
 
 
@@ -246,6 +248,7 @@ public static class Seed
         {
             EnglishName = "eng",
             ArabicName = "اسم عربي",
+            Photo = new Photo { Url = "HHH" }
         });
         await context.SaveChangesAsync();
     }
