@@ -64,7 +64,7 @@ public class AdminRechargeMethodeController : AdminController
         }
     }
 
-    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPut("update-agent/{agentId:int}")]
     public async Task<ActionResult<AgentDto>> UpdateAgent(int agentId, int rechargeMethodId,
         [FromQuery] string? arabicName
@@ -86,10 +86,9 @@ public class AdminRechargeMethodeController : AdminController
                 return BadRequest(new ApiResponse(400,
                     "You should provide some information to be updated "));
 
-          
             if (!string.IsNullOrEmpty(arabicName)) agent.ArabicName = arabicName;
             if (!string.IsNullOrEmpty(englishName)) agent.EnglishName = englishName;
-            Console.WriteLine(agent.Photo.Url+"\n\n\n");
+
             _unitOfWork.RechargeMethodeRepository.UpdateAgent(agent);
             if (await _unitOfWork.Complete())
             {
