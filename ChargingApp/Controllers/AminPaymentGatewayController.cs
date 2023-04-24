@@ -3,6 +3,7 @@ using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
@@ -20,6 +21,7 @@ public class AdminPaymentGatewayController : BaseApiController
         _photoService = photoService;
     }
 
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPut("update/{id:int}")]
     public async Task<ActionResult<PaymentGateway>> UpdateAddress(int id
         , [FromBody] UpdatePaymentGatewayDto dto)
@@ -35,6 +37,8 @@ public class AdminPaymentGatewayController : BaseApiController
         return BadRequest(new ApiResponse(400, "Failed to update"));
     }
 
+    
+    [Authorize(Policy = "Required_AnyAdmin_Role")]
     [HttpPut("update-photo/{id:int}")]
     public async Task<ActionResult<PaymentGatewayDto>> UpdatePhoto(int id
         , IFormFile imageFile)

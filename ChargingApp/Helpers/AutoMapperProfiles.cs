@@ -6,7 +6,7 @@ namespace ChargingApp.Helpers;
 
 public class AutoMapperProfiles : Profile
 {
-    private const string BaseUrl = "http://chargingapp-001-site1.atempurl.com";
+    private const string BaseUrl = "http://mohamed09nour-001-site1.etempurl.com";
 
     public AutoMapperProfiles()
     {
@@ -61,10 +61,7 @@ public class AutoMapperProfiles : Profile
                 opt.MapFrom(src => src.Id));
         CreateMap<ChangerAndCompany, AgentDto>()
             .ForMember(dest => dest.AgentId, opt =>
-                opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Photo, opt =>
-                opt.MapFrom(x => x.Photo == null ? "No photo" : BaseUrl + x.Photo.Url))
-        ;
+                opt.MapFrom(src => src.Id));
 
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.Photo, opt =>
@@ -103,14 +100,10 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.Username, opt =>
                 opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
 
-        CreateMap<AppUser, UserInfoDto>()
-            .ForMember(dest => dest.AccountType, opt =>
+        CreateMap<AppUser, UserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => src.VIPLevel == 0 ? "Normal" : ("VIP " + src.VIPLevel)));
         CreateMap<AppUser, NormalUserInfoDto>().ForMember(dest => dest.AccountType, opt =>
             opt.MapFrom(src => "Normal"));
-
-        CreateMap<UpdateVipLevelDto, VIPLevel>()
-            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<CategoryUpdateDto, Category>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));

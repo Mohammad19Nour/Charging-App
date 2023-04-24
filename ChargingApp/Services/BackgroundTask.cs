@@ -24,7 +24,7 @@ public class BackgroundTask : IHostedService, IDisposable
     {
         // Check the orders status in other sites
         _timer = new Timer(CheckOrderFromOtherSites, null, TimeSpan.Zero,
-            TimeSpan.FromMinutes(3));
+            TimeSpan.FromMinutes(2));
 
         // Every month delete wrong, rejected and cancelled orders and payments
         _timer2 = new Timer(DeleteEveryMonth, null, TimeSpan.Zero,

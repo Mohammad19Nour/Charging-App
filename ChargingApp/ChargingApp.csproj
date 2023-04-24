@@ -13,6 +13,7 @@
         <PackageReference Include="CloudinaryDotNet" Version="1.20.0" />
         <PackageReference Include="EntityFrameworkCore.DataEncryption" Version="3.0.1" />
         <PackageReference Include="EntityFrameworkCore.EncryptColumn" Version="6.0.8" />
+        <PackageReference Include="iTextSharp" Version="5.5.13.3" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.7" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.7" />

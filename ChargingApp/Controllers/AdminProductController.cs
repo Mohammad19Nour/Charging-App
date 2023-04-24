@@ -64,6 +64,7 @@ public class AdminProductController : AdminController
             _unitOfWork.ProductRepository.AddProduct(product);
             if (productId != null)
             {
+                siteName = siteName.ToLower();
                 var hostingSite = await _unitOfWork.OtherApiRepository
                     .GetHostingSiteByNameAsync(siteName);
 

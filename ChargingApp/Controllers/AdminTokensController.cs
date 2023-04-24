@@ -1,9 +1,11 @@
 ﻿using ChargingApp.Errors;
 using ChargingApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChargingApp.Controllers;
 
+[Authorize(Policy = "Required_Admins_Role")]
 public class AdminTokensController : AdminController
 {
     private readonly IUnitOfWork _unitOfWork;

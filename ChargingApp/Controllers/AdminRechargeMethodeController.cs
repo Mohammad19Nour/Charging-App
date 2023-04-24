@@ -51,7 +51,7 @@ public class AdminRechargeMethodeController : AdminController
             };
             _unitOfWork.RechargeMethodeRepository.AddAgent(rechargeMethod, agent);
 
-          
+
             if (await _unitOfWork.Complete())
                 return Ok(new ApiOkResponse<AgentDto>(_mapper.Map<AgentDto>(agent)));
 
@@ -104,7 +104,7 @@ public class AdminRechargeMethodeController : AdminController
         }
     }
 
-    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
+    [Authorize(Policy = "Required_Administrator_Role")]
     [HttpPut("update-Method-photo/{rechargeMethodId:int}")]
     public async Task<ActionResult<ApiResponse>> UpdateMethodPhoto(int rechargeMethodId, IFormFile? imageFile)
     {
@@ -132,7 +132,7 @@ public class AdminRechargeMethodeController : AdminController
         return BadRequest(new ApiResponse(400, "Failed to update the image... try again"));
     }
 
-
+    [Authorize(Policy = "Required_AllAdminExceptNormal_Role")]
     [HttpPut("update-agent-photo/{rechargeMethodId:int}")]
     public async Task<ActionResult<ApiResponse>> UpdateAgentPhoto(int rechargeMethodId, int agentId,
         IFormFile? imageFile)

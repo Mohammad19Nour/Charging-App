@@ -1,7 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using ChargingApp.DTOs;
 using ChargingApp.Entity;
 using ChargingApp.Interfaces;
+using iTextSharp.text;
+using iTextSharp.text.html.simpleparser;
+using iTextSharp.text.pdf;
 
 namespace ChargingApp.Helpers;
 
@@ -78,5 +82,23 @@ public static class SomeUsefulFunction
             var tmp = x.ToLower();
             return tmp is "admin" or "admin_1" or "admin_2" or "advancedemployee" or "normalemployee";
         });
+    }
+    public static void GeneratePdfFromSwagger()
+    {
+        /*var document = new Document();
+        var writer = PdfWriter.GetInstance(document, new FileStream("swagger.pdf", FileMode.Create));
+        document.Open();
+
+        var html = new StringBuilder();
+        html.Append("<html><body>");
+        html.Append("<h1>Swagger Documentation</h1>");
+        html.Append("<p>This is the Swagger documentation for my API.</p>");
+        html.Append("</body></html>");
+
+        var parsedHtmlElements = HTMLWorker.ParseToList(new StringReader(html.ToString()), null);
+        foreach (var htmlElement in parsedHtmlElements)
+            document.Add(htmlElement);
+
+        document.Close();*/
     }
 }

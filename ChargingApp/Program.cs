@@ -2,6 +2,7 @@ using ChargingApp.Data;
 using ChargingApp.Entity;
 using ChargingApp.Errors;
 using ChargingApp.Extentions;
+using ChargingApp.Helpers;
 using ChargingApp.Middleware;
 using ChargingApp.SignalR;
 using Microsoft.AspNetCore.Identity;
@@ -110,7 +111,7 @@ try
     await Seed.SeedCompanies(context);
     await Seed.SeedCurrency(context);
     await Seed.SeedOurAgents(context);
-    await Seed.SeedSites(context); 
+    await Seed.SeedSites(context);
 }
 catch (Exception e)
 {

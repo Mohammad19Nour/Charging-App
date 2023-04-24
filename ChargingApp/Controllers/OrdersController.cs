@@ -389,6 +389,13 @@ public class OrdersController : BaseApiController
             var lvl = await _unitOfWork.VipLevelRepository
                 .GetVipLevelAsync(order.User.VIPLevel);
             
+            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
+                new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = " تم الغاء الطلب رقم " + orderId,
+                    EnglishDetails = "Order with id " + orderId + " has been cancelled "
+                });
             if (lastVip > order.User.VIPLevel)
             {
                 var curr = new NotificationHistory
@@ -408,14 +415,6 @@ public class OrdersController : BaseApiController
                 User = order.User,
                 Order = order
             };
-
-            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(
-                new NotificationHistory
-                {
-                    User = order.User,
-                    ArabicDetails = " تم الغاء الطلب رقم " + orderId,
-                    EnglishDetails = "Order with id " + orderId + " has been cancelled "
-                });
 
 
             if (!await _unitOfWork.Complete())

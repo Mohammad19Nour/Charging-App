@@ -22,7 +22,7 @@ public class AdminRejectWrongOrderController : BaseApiController
         _notificationService = notificationService;
         _userManager = userManager;
     }
-    
+
     [HttpGet("reject-wrong/{orderId:int}")]
     public async Task<ActionResult> RejectOrWrong(int orderId, string type, string notes = "")
     {
@@ -65,9 +65,17 @@ public class AdminRejectWrongOrderController : BaseApiController
                 user.VIPLevel = await _unitOfWork.VipLevelRepository
                     .GetVipLevelForPurchasingAsync(user.TotalForVIPLevel);
                 var lvl = await _unitOfWork.VipLevelRepository.GetVipLevelAsync(user.VIPLevel);
-                
+
                 _unitOfWork.UserRepository.UpdateUserInfo(user);
 
+                var cur = new NotificationHistory
+                {
+                    User = order.User,
+                    ArabicDetails = order.Notes + " : " + "تم رفض الطلب رقم " + orderId + " لأن ",
+                    EnglishDetails = "Order with id " + orderId + " has been rejected by admin because: " + order.Notes
+                };
+
+                _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);
                 if (lastVip > order.User.VIPLevel)
                 {
                     var curr = new NotificationHistory
@@ -82,15 +90,6 @@ public class AdminRejectWrongOrderController : BaseApiController
                         "Vip level status notification", SomeUsefulFunction.GetOrderNotificationDetails(order));
                 }
             }
-
-            var cur = new NotificationHistory
-            {
-                User = order.User,
-                ArabicDetails = order.Notes+" : "+ "تم رفض الطلب رقم " + orderId + " لأن " ,
-                EnglishDetails = "Order with id " + orderId + " has been rejected by admin because: " + order.Notes
-            };
-
-            _unitOfWork.NotificationRepository.AddNotificationForHistoryAsync(cur);
 
             var not = new OrderAndPaymentNotification
             {
