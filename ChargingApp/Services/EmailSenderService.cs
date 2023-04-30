@@ -36,6 +36,8 @@ public class EmailSenderService : IEmailHelper
         try
         {
              await Task.Run(() => smtp.Send(mail));
+             smtp.Dispose();
+             mail.Dispose();
              return true;
         }
         catch (Exception e)

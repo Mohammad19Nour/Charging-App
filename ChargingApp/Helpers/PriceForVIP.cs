@@ -101,7 +101,7 @@ public static class PriceForVIP
         IUnitOfWork unitOfWork, int vipLevel)
     {
         var syria = await unitOfWork.CurrencyRepository.GetSyrianCurrency();
-        var turkey = await unitOfWork.CurrencyRepository.GetSyrianCurrency();
+        var turkey = await unitOfWork.CurrencyRepository.GetTurkishCurrency();
 
         var benefitPercent =
             await unitOfWork.VipLevelRepository.GetBenefitPercentForVipLevel(vipLevel);

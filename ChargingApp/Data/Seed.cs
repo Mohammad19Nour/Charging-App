@@ -48,7 +48,7 @@ public static class Seed
         };
         await userManager.CreateAsync(admin, "Admin!1");
         await userManager.AddToRolesAsync(admin, new[] { "Admin" });
-        admin = new AppUser
+        /*admin = new AppUser
         {
             FirstName = "hamam",
             LastName = "hamam",
@@ -76,7 +76,7 @@ public static class Seed
             EmailConfirmed = true,
         };
         await userManager.CreateAsync(admin, "string");
-        await userManager.AddToRolesAsync(admin, new[] { "Normal" });
+        await userManager.AddToRolesAsync(admin, new[] { "Normal" });*/
     }
 
     public static async Task SeedVipLevels(DataContext context)

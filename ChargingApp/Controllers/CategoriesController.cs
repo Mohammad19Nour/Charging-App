@@ -10,7 +10,6 @@ namespace ChargingApp.Controllers;
 public class CategoriesController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
-
     public CategoriesController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
