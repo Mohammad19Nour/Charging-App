@@ -81,7 +81,7 @@ public class AdminCategoryController : AdminController
             var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(categoryId);
 
             if (category is null)
-                return NotFound(new ApiResponse(403, "category not found"));
+                return NotFound(new ApiResponse(401, "category not found"));
 
             var name = category.Photo?.Url;
 

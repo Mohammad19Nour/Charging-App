@@ -45,6 +45,8 @@ public class AdminProductController : AdminController
             if (!result.Success)
                 return BadRequest(new ApiResponse(400, result.Message));
 
+            dto.Price = dto.Price / dto.MinimumQuantityAllowed;
+            
             var photo = new Photo
             {
                 Url = result.Url
